@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import supabase from '../supabaseClient'
+import AddCustomerForm from './AddCustomerForm'
 
 export default function CustomerList() {
   const [customers, setCustomers] = useState([])
@@ -37,6 +38,11 @@ export default function CustomerList() {
           </li>
         ))}
       </ul>
+      <AddCustomerForm
+  isOpen={showModal}
+  onClose={() => setShowModal(false)}
+  onCustomerAdded={fetchCustomers}
+/>
     </div>
   )
 }
