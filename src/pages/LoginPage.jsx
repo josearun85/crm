@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { supabase } from '../supabaseClient'
+import supabase from '../supabaseClient'
+import { useNavigate } from 'react-router-dom'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
+  const navigate = useNavigate()
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -12,7 +14,7 @@ export default function LoginPage() {
     if (error) {
       setMessage('Error: ' + error.message)
     } else {
-      setMessage('Magic link sent! Check your email.')
+      setMessage('✅ Check your email for the login link.')
     }
   }
 
@@ -23,8 +25,10 @@ export default function LoginPage() {
         <input
           type="email"
           value={email}
-          placeholder="Enter email"
+          placeholder="Enter your email"
           onChange={(e) => setEmail(e.target.value)}
+          required
+          style={{ padding: '0.5rem', marginRight: '1rem' }}
         />
         <button type="submit">Send Magic Link</button>
       </form>
