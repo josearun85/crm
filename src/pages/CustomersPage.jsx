@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getCustomers } from '../services/customerService';
+import { getCustomers } from '../services/customersService';
 import CustomerCard from '../components/CustomerCard';
 import AddCustomerModal from '../components/AddCustomerForm';
 import './CustomersPage.css';
