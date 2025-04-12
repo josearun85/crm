@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '../supabaseClient';
-import './OrdersPage.css';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
