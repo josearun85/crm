@@ -1,26 +1,20 @@
 import React from 'react'
-import { useEffect, useState } from 'react'
-import supabase from './supabaseClient'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import CustomersPage from './pages/CustomersPage.jsx'
+import OrdersPage from './pages/OrdersPage.jsx'
+import InvoicesPage from './pages/InvoicesPage.jsx'
+import Navbar from './components/Navbar.jsx'
 
-function App() {
-  const [customers, setCustomers] = useState([])
-
-  useEffect(() => {
-    supabase.from('customers').select('*').then(({ data, error }) => {
-      if (!error) setCustomers(data)
-    })
-  }, [])
-
+export default function App() {
   return (
-    <div>
-      <h1>Customers</h1>
-      <ul>
-        {customers.map(c => (
-          <li key={c.id}>{c.name} — {c.phone}</li>
-        ))}
-      </ul>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Navigate to="/customers" />} />
+        <Route path="/customers" element={<CustomersPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/invoices" element={<InvoicesPage />} />
+      </Routes>
+    </Router>
   )
 }
-
-export default App
