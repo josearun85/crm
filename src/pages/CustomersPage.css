@@ -1,0 +1,16 @@
+.customers-page {
+    padding: 20px;
+  }
+  
+  .customers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .customers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
