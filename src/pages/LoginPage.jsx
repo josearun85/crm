@@ -19,20 +19,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
+    <div className="login-page">
+      <img src="/logo.jpeg" alt="Sign Company Logo" className="login-logo" />
+      <form onSubmit={handleLogin} className="login-box">
+        <h2>Login</h2>
         <input
           type="email"
           value={email}
           placeholder="Enter your email"
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ padding: '0.5rem', marginRight: '1rem' }}
         />
         <button type="submit">Send Magic Link</button>
+        <p>{message}</p>
       </form>
-      <p>{message}</p>
     </div>
   )
 }
