@@ -9,20 +9,22 @@ import supabase from './supabaseClient'
 
 export default function App() {
   const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
+      setLoading(false)
     })
 
-    // Listen for login/logout
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
 
     return () => listener.subscription.unsubscribe()
   }, [])
+
+  if (loading) return null
 
   return (
     <Router>
