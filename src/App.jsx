@@ -6,6 +6,8 @@ import InvoicesPage from './pages/InvoicesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import Navbar from './components/Navbar.jsx'
 import supabase from './supabaseClient'
+import './App.css'
+import './pages/CustomersPage.css' // Ensure to import the CSS file for styling
 
 export default function App() {
   const [session, setSession] = useState(null)
