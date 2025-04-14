@@ -143,7 +143,7 @@ export default function OrderPage() {
     </div>
     <div
         className="grid grid-cols-10 gap-x-2 text-sm mt-6 px-2 items-center"
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 20px 60px)' }}
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 20px 100px)' }}
       >
         <div className="w-3 h-3 rounded bg-[#16a34a]"></div>
         <div className="text-gray-800 font-medium">Closedd</div>
