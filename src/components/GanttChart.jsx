@@ -78,13 +78,27 @@ export default function GanttChart({
           />
         </div>
       </div>
-      <div className="flex flex-wrap text-sm mt-6 gap-4 px-2">
-        {Object.entries(STATUS_COLORS).map(([label, color]) => (
-          <div className="flex items-center gap-2" key={label}>
-            <span className="w-4 h-4 rounded inline-block border" style={{ backgroundColor: color }}></span>
-            <span className="capitalize">{label}</span>
-          </div>
-        ))}
+      <div className="flex items-center gap-6 text-sm mt-6 px-2">
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-[#16a34a]"></span>
+          <span className="font-medium">Closed</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-[#2563eb]"></span>
+          <span className="font-medium">In Progress</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-[#f97316]"></span>
+          <span className="font-medium">On Hold</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-[#dc2626]"></span>
+          <span className="font-medium">Delayed</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-[#e5e7eb] border border-gray-300"></span>
+          <span className="font-medium">New</span>
+        </div>
       </div>
     </div>
   );
