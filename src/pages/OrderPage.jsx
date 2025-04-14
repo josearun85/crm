@@ -141,25 +141,28 @@ export default function OrderPage() {
       )}
       
     </div>
-    <div
-  className="grid gap-x-2 text-sm mt-6 px-2 items-center"
-  style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 20px 100px)' }}
->
-  <div className="w-3 h-3 rounded bg-green-600"></div>
-  <div className="text-gray-800 font-medium bg-green-600">Closed</div>
-
-  <div className="w-3 h-3 rounded bg-blue-600"></div>
-  <div className="text-gray-800 font-medium">In Progress</div>
-
-  <div className="w-3 h-3 rounded bg-orange-500"></div>
-  <div className="text-gray-800 font-medium">On Hold</div>
-
-  <div className="w-3 h-3 rounded bg-red-600"></div>
-  <div className="text-gray-800 font-medium">Delayed</div>
-
-  <div className="w-3 h-3 rounded bg-gray-300 border border-gray-400"></div>
-  <div className="text-gray-800 font-medium">New</div>
-</div>
+    <div className="flex flex-wrap text-sm mt-6 gap-4">
+        <div className="flex items-center gap-2">
+          <span className="w-4 h-4 rounded bg-[#16a34a] inline-block"></span>
+          <span>Closed</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-4 h-4 rounded bg-[#2563eb] inline-block"></span>
+          <span>In Progress</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-4 h-4 rounded bg-[#f97316] inline-block"></span>
+          <span>On Hold</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-4 h-4 rounded bg-[#dc2626] inline-block"></span>
+          <span>Delayed</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-4 h-4 rounded bg-[#e5e7eb] inline-block border"></span>
+          <span>New</span>
+        </div>
+      </div>
     </div>
   );
 }
