@@ -1,5 +1,6 @@
 import React from 'react';
 import './CustomerCard.css';
+import { updateOrder } from '../services/orderService';
 
 export default function CustomerCard({ customer }) { 
   return (
@@ -37,9 +38,28 @@ export default function CustomerCard({ customer }) {
                   >
                     Order #{order.id} – {order.status}
                   </div>
-                  <div style={{ fontSize: '0.85rem', marginTop: '4px', color: '#333' }}>
-                    Due: {order.due_date}<br />
-                    Current Step: <em>(fetching...)</em>
+                  <div style={{ fontSize: '0.85rem', marginTop: '8px', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <label>
+                      Due: <input
+                        type="date"
+                        defaultValue={order.due_date}
+                        onChange={(e) => updateOrder(order.id, { due_date: e.target.value })}
+                        style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
+                      />
+                    </label>
+                    <label>
+                      Status: <select
+                        defaultValue={order.status}
+                        onChange={(e) => updateOrder(order.id, { status: e.target.value })}
+                        style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
+                      >
+                        <option value="NEW">New</option>
+                        <option value="IN PROGRESS">In Progress</option>
+                        <option value="HOLD">Hold</option>
+                        <option value="CLOSED">Closed</option>
+                        <option value="DELAYED">Delayed</option>
+                      </select>
+                    </label>
                   </div>
                 </div>
               </td>
