@@ -6,25 +6,22 @@ export default function Navbar({ session }) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const handleLogout = async () => {
+  const handleLogout = async () => { 
     await supabase.auth.signOut()
     navigate('/login')
   }
 
   return (
     <nav className="navbar">
-      <div className="navbar-brand">Sign Company</div>
-      <div className="navbar-links">
-        {session ? (
-          <>
-            <Link to="/customers" className={location.pathname.startsWith('/customers') ? 'active' : ''}>Customers</Link>
-            <Link to="/orders/1" className={location.pathname.startsWith('/orders') ? 'active' : ''}>Orders</Link>
-            <Link to="/invoices" className={location.pathname.startsWith('/invoices') ? 'active' : ''}>Invoices</Link>
-            <button onClick={handleLogout}>Logout</button>
-          </>
-        ) : (
-          <Link to="/login">Login</Link>
-        )}
+      <div className="navbar-left">
+        <img src="/logo.jpeg" alt="Logo" className="navbar-logo" />
+        <Link to="/customers" className={location.pathname.startsWith('/customers') ? 'active' : ''}>Customers</Link>
+        <Link to="/inventory" className={location.pathname.startsWith('/inventory') ? 'active' : ''}>Inventory</Link>
+        <Link to="/vendors" className={location.pathname.startsWith('/vendors') ? 'active' : ''}>Vendors</Link>
+        <Link to="/payments" className={location.pathname.startsWith('/payments') ? 'active' : ''}>Payments</Link>
+      </div>
+      <div className="navbar-right">
+        <button onClick={handleLogout}>Logout</button>
       </div>
     </nav>
   )

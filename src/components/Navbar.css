@@ -1,0 +1,43 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #facc15; /* yellow */
+  padding: 0.5rem 1rem;
+  font-family: sans-serif;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.navbar-left a {
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.navbar-left a.active {
+  background-color: white;
+  font-weight: 600;
+}
+
+.navbar-right button {
+  background: white;
+  color: black;
+  font-weight: 500;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
