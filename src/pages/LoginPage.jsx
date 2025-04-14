@@ -21,7 +21,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f6d65d', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f6dc68', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
         <img src="/logo.png" alt="Sign Company Logo" style={{ maxWidth: '300px', height: 'auto' }} />
       </div>
