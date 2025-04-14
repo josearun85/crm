@@ -37,14 +37,16 @@ export default function GanttChart({
   return (
     <div className="gantt-wrapper">
       <div className="overflow-x-auto border rounded bg-white">
-        <Gantt
-          tasks={styledTasks}
-          viewMode={viewMode}
-          listCellWidth="200px"
-          columnWidth={65}
-          onDateChange={onDateChange}
-          onSelect={(task, event) => onTaskClick?.(task, event)}
-        />
+        <div className="relative">
+          <Gantt
+            tasks={styledTasks}
+            viewMode={viewMode}
+            listCellWidth="200px"
+            columnWidth={65}
+            onDateChange={onDateChange}
+            onSelect={(task, event) => onTaskClick?.(task, event)}
+          />
+        </div>
       </div>
       <div className="flex flex-wrap text-sm mt-6 gap-4 px-2">
         {Object.entries(STATUS_COLORS).map(([label, color]) => (

@@ -6,6 +6,9 @@ export default function StepModal({ step, onClose, onSave }) {
   const [comment, setComment] = useState('');
   const [file, setFile] = useState(null);
   const { x = 100, y = 100 } = step.popupPosition || {};
+  
+  const top = typeof y === "number" ? y : 150;
+  const left = typeof x === "number" ? x : window.innerWidth / 2 - 150;
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -30,11 +33,11 @@ export default function StepModal({ step, onClose, onSave }) {
 
   return (
     <div
-      className="absolute z-[100] bg-white rounded-lg shadow-lg p-4 border"
+      className="relative z-[999] bg-white rounded-lg shadow-lg p-4 border"
       style={{
-        top: y,
-        left: x,
-        position: 'absolute',
+        top,
+        left,
+        position: 'fixed',
         maxWidth: '90vw',
         maxHeight: '90vh',
       }}
