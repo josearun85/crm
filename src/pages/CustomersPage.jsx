@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import CustomerCard from '../components/CustomerCard';
 import AddCustomerForm from '../components/AddCustomerForm';
 import './CustomersPage.css';
 
 export default function CustomersPage() {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -30,8 +32,7 @@ export default function CustomersPage() {
   };
 
   const goToGantt = (orderId) => {
-    // Navigation logic to order gantt view
-    console.log("Navigate to order:", orderId);
+    navigate(`/orders/${orderId}`);
   };
 
   const createOrderWithSteps = async (customerId) => {
