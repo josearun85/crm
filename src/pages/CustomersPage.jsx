@@ -113,32 +113,53 @@ export default function CustomersPage() {
                 <tr>
                   <td>{customer.name}</td>
                   <td>{customer.phone}</td>
-                  <td>{customer.email}</td>
+                  <td>{customer.email || '-'}</td>
                   <td>{customer.sales_stage}</td>
-                  <td>
-                    {customer.orders?.filter(o => o.status !== 'completed').length || 0}
-                  </td>
-                  <td>{customer.follow_up_on}</td>
+                  <td>{customer.orders?.length || 0}</td>
+                  <td>{customer.follow_up_on || '-'}</td>
                 </tr>
-                {customer.orders?.filter(o => o.status !== 'completed').map(order => (
-                  <tr key={`order-${order.id}`} className="order-row">
-                    <td colSpan="6" style={{ paddingLeft: '2rem' }}>
-                      <div><strong>Order #{order.id}</strong> – {order.status} (Due: {order.due_date})</div>
-                    </td>
-                  </tr>
-                ))}
-                {customer.orders?.filter(o => o.status !== 'completed').length > 0 && (
-                  <tr>
-                    <td colSpan="6" style={{ paddingLeft: '2rem' }}>
-                      <span
-                        style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
-                        onClick={() => createOrderWithSteps(customer.id)}
-                      >
-                        + Add Order
-                      </span>
-                    </td>
-                  </tr>
-                )}
+                {customer.orders?.map(order => {
+                  const statusColorMap = {
+                    NEW: '#fff9c4',
+                    HOLD: '#ffe0b2',
+                    CLOSED: '#c8e6c9',
+                    DELAYED: '#ffcdd2',
+                  };
+                  const bgColor = statusColorMap[order.status] || '#f5f5f5';
+                  return (
+                    <tr key={`order-${order.id}`}>
+                      <td colSpan="6" style={{ paddingLeft: '2rem', background: bgColor }}>
+                        <div
+                          style={{ padding: '0.5rem 0', cursor: 'pointer' }}
+                          onClick={() => goToGantt(order.id)}
+                        >
+                          <strong>Order #{order.id}</strong> – {order.status} (Due: {order.due_date})
+                          <div style={{ fontSize: '0.9em', marginTop: '0.25rem' }}>
+                            Current Step: <em>(fetching...)</em> {/* Backend support needed */}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                <tr>
+                  <td colSpan="6" style={{ paddingLeft: '2rem' }}>
+                    <button
+                      onClick={() => createOrderWithSteps(customer.id)}
+                      style={{
+                        background: '#2196f3',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '4px',
+                        marginTop: '0.5rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      + Add Order
+                    </button>
+                  </td>
+                </tr>
               </React.Fragment>
             ))}
           </tbody>
