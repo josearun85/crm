@@ -28,8 +28,8 @@ export default function StepModal({ step, onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50">
+      <div className="relative z-[101] bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-4">
         <h3 className="text-xl font-bold mb-4">{step.description}</h3>
         <div className="mb-4">
           <label className="block text-sm font-semibold mb-1">Status</label>
