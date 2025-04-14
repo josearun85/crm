@@ -110,70 +110,11 @@ export default function CustomersPage() {
           </thead>
           <tbody>
             {customers.map(customer => (
-              <React.Fragment key={customer.id}>
-                <tr>
-                  <td>{customer.name}</td>
-                  <td>{customer.phone}</td>
-                  <td>{customer.email || '-'}</td>
-                  <td>{customer.sales_stage}</td>
-                  <td>{customer.orders?.length || 0}</td>
-                  <td>{customer.follow_up_on || '-'}</td>
-                </tr>
-                {customer.orders?.map(order => {
-                  const statusColorMap = {
-                    NEW: '#fff9c4',
-                    HOLD: '#ffe0b2',
-                    CLOSED: '#c8e6c9',
-                    DELAYED: '#ffcdd2',
-                  };
-                  const bgColor = statusColorMap[order.status] || '#f5f5f5';
-
-                  return (
-                    <tr key={`order-${order.id}`}>
-                      <td colSpan="6" style={{ paddingLeft: '2rem' }}>
-                        <div
-                          style={{
-                            backgroundColor: bgColor,
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-                            borderRadius: '6px',
-                            padding: '12px',
-                            marginBottom: '10px'
-                          }}
-                        >
-                          <div
-                            style={{ fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}
-                            onClick={() => goToGantt(order.id)}
-                          >
-                            Order #{order.id} – {order.status}
-                          </div>
-                          <div style={{ fontSize: '0.85rem', marginTop: '4px', color: '#333' }}>
-                            Due: {order.due_date}<br />
-                            Current Step: <em>(fetching...)</em>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                <tr>
-                  <td colSpan="6" style={{ paddingLeft: '2rem' }}>
-                    <button
-                      onClick={() => createOrderWithSteps(customer.id)}
-                      style={{
-                        background: '#2196f3',
-                        color: '#fff',
-                        border: 'none',
-                        padding: '6px 12px',
-                        borderRadius: '4px',
-                        marginTop: '0.5rem',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      + Add Order
-                    </button>
-                  </td>
-                </tr>
-              </React.Fragment>
+              <tr key={customer.id}>
+                <td colSpan="6" style={{ padding: 0 }}>
+                  <CustomerCard customer={customer} />
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
