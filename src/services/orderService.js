@@ -39,6 +39,16 @@ export async function updateStep(stepId, patch) {
   if (error) throw error;
 }
 
+// Update entire order
+export async function updateOrder(orderId, patch) {
+  const { error } = await supabase
+    .from("orders")
+    .update(patch)
+    .eq("id", orderId);
+
+  if (error) throw error;
+}
+
 // Upload file to Supabase Storage (bucket: crm)
 export async function uploadFile(file, folder = "orders") {
   const fileName = `${folder}/${Date.now()}-${file.name}`;
