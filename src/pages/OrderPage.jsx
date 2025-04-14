@@ -127,6 +127,8 @@ export default function OrderPage() {
         <p>Due Date: {order.due_date ? new Date(order.due_date).toLocaleDateString() : 'N/A'}</p>
         <GanttChart
           tasks={validatedTasks}
+          steps={steps}
+          setActiveStep={setActiveStep}
           onDateChange={handleDateChange}
           onTaskClick={handleTaskClick}
         />

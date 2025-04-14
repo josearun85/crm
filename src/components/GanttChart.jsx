@@ -13,6 +13,8 @@ const STATUS_COLORS = {
 
 export default function GanttChart({
   tasks,
+  steps,
+  setActiveStep,
   onDateChange,
   onTaskClick,
   viewMode = ViewMode.Day
