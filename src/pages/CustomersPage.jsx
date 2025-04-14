@@ -10,13 +10,24 @@ export default function CustomersPage() {
   useEffect(() => {
     fetchData();
   }, []);
-
   const fetchData = async () => {
     setLoading(true);
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  
+    if (sessionError || !sessionData.session) {
+      console.error('No session available:', sessionError);
+      setLoading(false);
+      return;
+    }
+  
+    const { access_token } = sessionData.session;
+  
     const { data, error } = await supabase
       .from('customers')
-      .select('*, orders(*)');
-
+      .select('*, orders(*)', { 
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+  
     if (error) {
       console.error('Error fetching customers:', error);
     } else {
