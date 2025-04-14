@@ -2,8 +2,14 @@ import React from 'react';
 import './CustomerCard.css';
 import { updateOrder } from '../services/orderService';
 import moment from 'moment';
+import { useNavigate } from 'react-router-dom';
 
 export default function CustomerCard({ customer, onOrderUpdated }) { 
+  const navigate = useNavigate();
+  const goToGantt = (orderId) => {
+    navigate(`/orders/${orderId}`);
+  };
+
   return (
     <div className="customer-card"> 
       <div className="customer-info">
