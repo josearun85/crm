@@ -117,10 +117,24 @@ export default function StepModal({ step, onClose, onSave }) {
           <h4 className="text-sm font-semibold">Uploaded Files:</h4>
           <ul className="text-sm list-disc ml-5">
             {signedUrls.map(({ name, url }, index) => (
-              <li key={index}>
+              <li key={index} className="flex items-center gap-2">
                 <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                   {name}
                 </a>
+                <button
+                  onClick={() => {
+                    const confirmed = window.confirm(`Delete file "${name}"?`);
+                    if (confirmed) {
+                      const fileToDelete = step.files.find(f => f.name === name);
+                      if (fileToDelete) {
+                        window.deleteSupabaseFile("crm", fileToDelete.path);
+                      }
+                    }
+                  }}
+                  className="text-red-500 text-sm hover:underline"
+                >
+                  Delete
+                </button>
               </li>
             ))}
           </ul>
