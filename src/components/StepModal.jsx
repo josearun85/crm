@@ -9,7 +9,6 @@ export default function StepModal({ step, onClose, onSave }) {
   
   const top = typeof y === "number" ? y : 150;
   const left = typeof x === "number" ? x : window.innerWidth / 2 - 150;
-  console.log("StepModal position:", { top, left, step });
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
