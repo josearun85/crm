@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '../supabaseClient';
 import CustomerCard from '../components/CustomerCard';
+import AddCustomerForm from '../components/AddCustomerForm';
 import './CustomersPage.css';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -29,7 +31,10 @@ export default function CustomersPage() {
 
   return (
     <div className="customers-page">
-      <h1>Customers</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>Customers</h1>
+        <button onClick={() => setShowForm(true)}>+ Add Customer</button>
+      </div>
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -39,6 +44,11 @@ export default function CustomersPage() {
           ))}
         </div>
       )}
+      <AddCustomerForm
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        onCustomerAdded={fetchData}
+      />
     </div>
   );
 }
