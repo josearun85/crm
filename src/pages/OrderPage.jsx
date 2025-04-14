@@ -75,7 +75,6 @@ export default function OrderPage() {
 
     const adjustedY = Math.min(mousePos.y + offset, window.innerHeight - 350);
 
-    console.log("Setting popup position", { x: adjustedX, y: adjustedY, step: steps[idx] });
 
     setActiveStep({ ...steps[idx], popupPosition: { x: adjustedX, y: adjustedY } });
   };
