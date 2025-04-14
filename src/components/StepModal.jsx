@@ -122,12 +122,23 @@ export default function StepModal({ step, onClose, onSave }) {
                   {name}
                 </a>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     const confirmed = window.confirm(`Delete file "${name}"?`);
                     if (confirmed) {
                       const fileToDelete = step.files.find(f => f.name === name);
                       if (fileToDelete) {
-                        deleteSupabaseFile("crm", fileToDelete.path); // Using service function for file deletion
+                        try {
+                          await deleteSupabaseFile("crm", fileToDelete.path);
+                          const updatedFileList = step.files.filter(f => f.name !== name);
+                          await updateStep(step.id, { files: updatedFileList });
+
+                          // Refresh UI locally
+                          setSignedUrls(prev => prev.filter(f => f.name !== name));
+                          step.files = updatedFileList; // directly mutate local reference for now
+                        } catch (err) {
+                          console.error("Error deleting file:", err);
+                          alert("Failed to delete file. Please try again.");
+                        }
                       }
                     }
                   }}
