@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { uploadFile, getPublicUrl, updateStep } from "../services/orderService";
+import { uploadFile, getPublicUrl, updateStep, deleteSupabaseFile } from "../services/orderService";
 
 export default function StepModal({ step, onClose, onSave }) {
   const [status, setStatus] = useState(step.status || 'OPEN');
@@ -127,7 +127,7 @@ export default function StepModal({ step, onClose, onSave }) {
                     if (confirmed) {
                       const fileToDelete = step.files.find(f => f.name === name);
                       if (fileToDelete) {
-                        window.deleteSupabaseFile("crm", fileToDelete.path);
+                        deleteSupabaseFile("crm", fileToDelete.path); // Using service function for file deletion
                       }
                     }
                   }}
