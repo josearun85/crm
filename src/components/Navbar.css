@@ -2,9 +2,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #facc15; /* yellow */
+  background-color: white; /* previously #f6d251 */
   padding: 0.5rem 1rem;
   font-family: sans-serif;
+  border-bottom: 4px solid #f6d251; /* adds yellow border strip */
 }
 
 .navbar-left {
@@ -28,7 +29,7 @@
 }
 
 .navbar-left a.active {
-  background-color: white;
+  background-color: #f6d251;
   font-weight: 600;
 }
 
