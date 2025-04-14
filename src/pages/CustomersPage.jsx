@@ -16,7 +16,17 @@ export default function CustomersPage() {
 
     const { data, error } = await supabase
       .from('customers')
-      .select('*, orders(*)');
+      .select(`
+        id,
+        name,
+        phone,
+        email,
+        orders (
+          id,
+          status,
+          due_date
+        )
+      `);
 
     if (error) {
       console.error('Error fetching customers:', error);
