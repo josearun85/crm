@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getOrderById } from '../services/orderService';
+import { getOrderById, updateStep } from '../services/orderService';
 import './OrderPage.css';
 import StepModal from '../components/StepModal';
 import moment from "moment";
@@ -37,6 +37,23 @@ export default function OrderPage() {
     }
   };
 
+  const handleDateChange = async (task) => {
+    const idx = steps.findIndex((_, i) => `${order.id}-step-${i}` === task.id);
+    if (idx === -1) return;
+
+    const step = steps[idx];
+    const patch = {
+      start_date: task.start.toISOString(),
+      end_date: task.end.toISOString()
+    };
+
+    await updateStep(step.id, patch);
+
+    const updatedSteps = [...steps];
+    updatedSteps[idx] = { ...step, ...patch };
+    setSteps(updatedSteps);
+  };
+
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -62,6 +79,7 @@ export default function OrderPage() {
         end,
         progress: 0,
         type: "task",
+        status: step.status || 'new', // add this
         styles: {
           backgroundColor:
             step.status === "closed" ? "#16a34a" :
@@ -83,7 +101,7 @@ export default function OrderPage() {
         <p>Due Date: {order.due_date ? new Date(order.due_date).toLocaleDateString() : 'N/A'}</p>
         <GanttChart
           tasks={validatedTasks}
-          onDateChange={(task) => console.log("Date changed", task)}
+          onDateChange={handleDateChange}
           onTaskClick={(task) => {
             const idx = parseInt(task.id.split("-").pop());
             setActiveStep(steps[idx]);
