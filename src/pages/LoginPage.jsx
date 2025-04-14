@@ -23,7 +23,7 @@ export default function LoginPage() {
   return (
     <div className="login-container">
       <div className="login-card">
-        <img src="/logo.jpeg" alt="Sign Company Logo" className="login-logo-sm" />
+        <img src="/logo.png" alt="Sign Company Logo" className="login-logo-sm" />
         <form onSubmit={handleLogin} className="login-box">
           <h2>Sign In</h2>
           <input
