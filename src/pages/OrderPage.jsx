@@ -13,6 +13,15 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [steps, setSteps] = useState([]);
   const [activeStep, setActiveStep] = useState(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -56,11 +65,19 @@ export default function OrderPage() {
 
   const handleTaskClick = (task, event) => {
     const idx = parseInt(task.id.split("-").pop());
-    const boundingRect = event?.currentTarget?.getBoundingClientRect?.();
-    const x = boundingRect ? boundingRect.left + boundingRect.width / 2 : event?.clientX || window.innerWidth / 2;
-    const y = boundingRect ? boundingRect.top + boundingRect.height + 12 : event?.clientY || window.innerHeight / 2;
-    console.log("Setting popup position", { x, y, step: steps[idx] });
-    setActiveStep({ ...steps[idx], popupPosition: { x, y } });
+    const offset = 16;
+    const popupWidth = 320;
+    const screenMidX = window.innerWidth / 2;
+
+    const adjustedX = mousePos.x < screenMidX
+      ? mousePos.x + offset
+      : mousePos.x - popupWidth - offset;
+
+    const adjustedY = Math.min(mousePos.y + offset, window.innerHeight - 350);
+
+    console.log("Setting popup position", { x: adjustedX, y: adjustedY, step: steps[idx] });
+
+    setActiveStep({ ...steps[idx], popupPosition: { x: adjustedX, y: adjustedY } });
   };
 
   if (loading) {
