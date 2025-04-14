@@ -19,20 +19,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-page">
-      <img src="/logo.jpeg" alt="Sign Company Logo" className="login-logo" />
-      <form onSubmit={handleLogin} className="login-box">
-        <h2>Login</h2>
-        <input
-          type="email"
-          value={email}
-          placeholder="Enter your email"
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <button type="submit">Send Magic Link</button>
-        <p>{message}</p>
-      </form>
+    <div className="login-container">
+      <div className="login-card">
+        <img src="/logo.jpeg" alt="Sign Company Logo" className="login-logo-sm" />
+        <form onSubmit={handleLogin} className="login-box">
+          <h2>Sign In</h2>
+          <input
+            type="email"
+            value={email}
+            placeholder="Email"
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <button type="submit">Send Magic Link</button>
+          {message && <p>{message}</p>}
+        </form>
+      </div>
     </div>
   )
 }
