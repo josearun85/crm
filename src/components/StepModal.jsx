@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { uploadFile, getPublicUrl, updateStep } from "../services/ordersService";
+import { uploadFile, getPublicUrl, updateStep } from "../services/orderService";
 
 export default function StepModal({ step, onClose, onSave }) {
   const [status, setStatus] = useState(step.status || 'OPEN');
