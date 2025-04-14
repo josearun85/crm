@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import supabase from '../supabaseClient';
+import { getOrderById } from '../services/ordersService';
 import './OrderPage.css';
 import StepModal from '../components/StepModal';
 
@@ -18,40 +18,21 @@ export default function OrderPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (orderError) {
-      console.error('Error fetching order:', orderError);
+    try {
+      const data = await getOrderById(id);
+      setOrder({
+        id: data.id,
+        status: data.status,
+        due_date: data.due_date,
+        customer_id: data.customer_id
+      });
+      setCustomerName(data.customer_name);
+      setSteps(data.steps || []);
+    } catch (err) {
+      console.error('Failed to fetch order:', err);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setOrder(orderData);
-
-    const { data: customerData, error: customerError } = await supabase
-      .from('customers')
-      .select('name')
-      .eq('id', orderData.customer_id)
-      .single();
-
-    if (!customerError && customerData) {
-      setCustomerName(customerData.name);
-    }
-
-    const { data: stepsData, error: stepsError } = await supabase
-      .from('order_steps')
-      .select('*')
-      .eq('order_id', orderData.id);
-
-    if (!stepsError) {
-      setSteps(stepsData);
-    }
-
-    setLoading(false);
   };
 
   if (loading) {
