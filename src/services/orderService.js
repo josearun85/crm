@@ -69,3 +69,5 @@ export function getPublicUrl(filePath) {
   const { data } = supabase.storage.from("crm").getPublicUrl(filePath);
   return data.publicUrl;
 }
+
+export { deleteFile as deleteSupabaseFile };
