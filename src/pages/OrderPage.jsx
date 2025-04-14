@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getOrderById } from '../services/ordersService';
+import { getOrderById } from '../services/orderService';
 import './OrderPage.css';
 import StepModal from '../components/StepModal';
 

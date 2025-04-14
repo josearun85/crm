@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import supabase from '../supabaseClient';
+import { uploadFile, getPublicUrl, updateStep } from "../services/ordersService";
 
 export default function StepModal({ step, onClose, onSave }) {
   const [status, setStatus] = useState(step.status || 'OPEN');
@@ -17,21 +17,14 @@ export default function StepModal({ step, onClose, onSave }) {
     };
 
     if (file) {
-      updates.files = [...(step.files || []), { name: file.name }];
-      // Optionally upload to Supabase storage or just store metadata
+      const uploadedPath = await uploadFile(file);
+      updates.files = [...(step.files || []), { name: file.name, path: uploadedPath }];
     }
 
-    const { error } = await supabase
-      .from('order_steps')
-      .update(updates)
-      .eq('id', step.id);
+    await updateStep(step.id, updates);
 
-    if (error) {
-      console.error('Error updating step:', error);
-    } else {
-      onSave();  // Refresh parent data
-      onClose();
-    }
+    onSave();  // Refresh parent data
+    onClose();
   };
 
   return (
@@ -55,10 +48,10 @@ export default function StepModal({ step, onClose, onSave }) {
           <h4>Uploaded Files:</h4>
           <ul>
             {step.files.map((file, index) => {
-              const { data } = supabase.storage.from('crm').getPublicUrl(file.path);
+              const url = getPublicUrl(file.path);
               return (
                 <li key={index}>
-                  <a href={data.publicUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={url} target="_blank" rel="noopener noreferrer">
                     {file.name}
                   </a>
                 </li>
