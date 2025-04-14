@@ -5,6 +5,7 @@ import AddCustomerForm from './AddCustomerForm'
 export default function CustomerList() {
   const [customers, setCustomers] = useState([])
   const [showModal, setShowModal] = useState(false)
+  const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', email: '' })
 
   const fetchCustomers = async () => {
     const { data, error } = await supabase
@@ -49,6 +50,40 @@ export default function CustomerList() {
     <div style={{ padding: '1rem' }}>
       <h2>Customers</h2>
       <button onClick={() => setShowModal(true)}>+ Add Customer</button>
+
+      <div style={{ margin: '1rem 0' }}>
+        <input
+          type="text"
+          placeholder="Name"
+          value={newCustomer.name}
+          onChange={e => setNewCustomer({ ...newCustomer, name: e.target.value })}
+          style={{ marginRight: '0.5rem' }}
+        />
+        <input
+          type="text"
+          placeholder="Phone"
+          value={newCustomer.phone}
+          onChange={e => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+          style={{ marginRight: '0.5rem' }}
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={newCustomer.email}
+          onChange={e => setNewCustomer({ ...newCustomer, email: e.target.value })}
+          style={{ marginRight: '0.5rem' }}
+        />
+        <button onClick={async () => {
+          if (!newCustomer.name) return
+          const { error } = await supabase.from('customers').insert([newCustomer])
+          if (!error) {
+            setNewCustomer({ name: '', phone: '', email: '' })
+            fetchCustomers()
+          }
+        }}>
+          Save Customer
+        </button>
+      </div>
 
       <AddCustomerForm
         isOpen={showModal}
