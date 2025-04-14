@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import CustomersPage from './pages/CustomersPage.jsx'
 import OrderPage from './pages/OrderPage.jsx'
 import InvoicesPage from './pages/InvoicesPage.jsx'
@@ -12,6 +12,8 @@ import './pages/CustomersPage.css' // Ensure to import the CSS file for styling
 export default function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
+  const location = useLocation()
+  const showNavbar = location.pathname !== '/login'
 
   useEffect(() => {
     const loadSession = async () => {
@@ -36,7 +38,7 @@ export default function App() {
 
   return (
     <Router>
-      <Navbar session={session} />
+      {showNavbar && <Navbar session={session} />}
       <Routes>
         <Route path="/" element={<Navigate to="/customers" />} />
         <Route path="/login" element={<LoginPage />} />
