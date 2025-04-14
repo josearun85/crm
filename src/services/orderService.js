@@ -70,4 +70,4 @@ export function getPublicUrl(filePath) {
   return data.publicUrl;
 }
 
-export { deleteFile as deleteSupabaseFile };
+export { deleteFile, deleteFile as deleteSupabaseFile };
