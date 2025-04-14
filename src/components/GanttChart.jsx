@@ -9,19 +9,25 @@ export default function GanttChart({
   viewMode = ViewMode.Day
 }) {
   return (
-    <div className="gantt-wrapper">
+    <div className="gantt-wrapper overflow-x-auto">
       <Gantt
-        tasks={tasks.map(task => ({
-          ...task,
-          styles: {
-            backgroundColor: task.styles?.backgroundColor || "#e5e7eb",
-            progressColor: task.styles?.backgroundColor || "#e5e7eb",
-            progressSelectedColor: task.styles?.backgroundColor || "#e5e7eb",
-            backgroundSelectedColor: task.styles?.backgroundColor || "#e5e7eb"
-          }
-        }))}
+        tasks={tasks.map(task => {
+          const backgroundColor = task.styles?.backgroundColor || "#e5e7eb";
+          const fontColor = ['#16a34a', '#2563eb', '#f97316', '#dc2626'].includes(backgroundColor)
+            ? "#fff" : "#000";
+          return {
+            ...task,
+            styles: {
+              backgroundColor,
+              progressColor: backgroundColor,
+              progressSelectedColor: backgroundColor,
+              backgroundSelectedColor: backgroundColor,
+              fontColor
+            }
+          };
+        })}
         viewMode={viewMode}
-        listCellWidth="155px"
+        listCellWidth="180px"
         columnWidth={65}
         onDateChange={onDateChange}
         onSelect={onTaskClick}
