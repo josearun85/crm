@@ -9,6 +9,7 @@ export default function StepModal({ step, onClose, onSave }) {
   
   const top = typeof y === "number" ? y : 150;
   const left = typeof x === "number" ? x : window.innerWidth / 2 - 150;
+  console.log("StepModal position:", { top, left, step });
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -35,11 +36,13 @@ export default function StepModal({ step, onClose, onSave }) {
     <div
       className="relative z-[999] bg-white rounded-lg shadow-lg p-4 border"
       style={{
+        position: 'fixed',
         top,
         left,
-        position: 'fixed',
+        zIndex: 1000,
         maxWidth: '90vw',
         maxHeight: '90vh',
+        backgroundColor: 'white'
       }}
     >
       <h3 className="text-xl font-bold mb-4">{step.description}</h3>

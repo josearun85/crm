@@ -34,6 +34,14 @@ export default function GanttChart({
     };
   });
 
+  const handleTaskClick = (task, event) => {
+    const idx = parseInt(task.id.split("-").pop());
+    const x = event?.clientX || window.innerWidth / 2;
+    const y = event?.clientY || window.innerHeight / 2;
+    console.log("Modal click position", { x, y, step: steps[idx] });
+    setActiveStep({ ...steps[idx], popupPosition: { x, y } });
+  };
+
   return (
     <div className="gantt-wrapper">
       <div className="overflow-x-auto border rounded bg-white">
@@ -44,7 +52,7 @@ export default function GanttChart({
             listCellWidth="200px"
             columnWidth={65}
             onDateChange={onDateChange}
-            onSelect={(task, event) => onTaskClick?.(task, event)}
+            onSelect={handleTaskClick}
           />
         </div>
       </div>
