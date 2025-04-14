@@ -140,24 +140,24 @@ export default function OrderPage() {
       )}
       <div className="flex items-center gap-6 text-sm mt-6 px-2">
   <div className="flex items-center gap-2">
-    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#16a34a]"></span>
-    <span className="text-gray-800 font-medium">Closed</span>
+    <div className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#16a34a]"></span>
+    <div className="text-gray-800 font-medium">Closed</div>
   </div>
   <div className="flex items-center gap-2">
-    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#2563eb]"></span>
-    <span className="text-gray-800 font-medium">In Progress</span>
+    <div className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#2563eb]"></div>
+    <div className="text-gray-800 font-medium">In Progress</div>
   </div>
   <div className="flex items-center gap-2">
-    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#f97316]"></span>
-    <span className="text-gray-800 font-medium">On Hold</span>
+    <div className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#f97316]"></div>
+    <div className="text-gray-800 font-medium">On Hold</div>
   </div>
   <div className="flex items-center gap-2">
-    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#dc2626]"></span>
-    <span className="text-gray-800 font-medium">Delayed</span>
+    <div className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#dc2626]"></div>
+    <div className="text-gray-800 font-medium">Delayed</div>
   </div>
   <div className="flex items-center gap-2">
-    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#e5e7eb] border border-gray-300"></span>
-    <span className="text-gray-800 font-medium">New</span>
+    <div className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#e5e7eb] border border-gray-300"></div>
+    <div className="text-gray-800 font-medium">New</div>
   </div>
 </div>
     </div>
