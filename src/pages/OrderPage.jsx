@@ -54,6 +54,14 @@ export default function OrderPage() {
     setSteps(updatedSteps);
   };
 
+  const handleTaskClick = (task, event) => {
+    const idx = parseInt(task.id.split("-").pop());
+    const rect = event?.currentTarget?.getBoundingClientRect?.();
+    const x = event?.clientX || rect?.left || 100;
+    const y = event?.clientY || rect?.top + rect?.height + 10 || 100;
+    setActiveStep({ ...steps[idx], popupPosition: { x, y } });
+  };
+
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -102,13 +110,7 @@ export default function OrderPage() {
         <GanttChart
           tasks={validatedTasks}
           onDateChange={handleDateChange}
-          onTaskClick={(task, event) => {
-            const idx = parseInt(task.id.split("-").pop());
-            const rect = event?.currentTarget?.getBoundingClientRect?.();
-            const x = event?.clientX || rect?.left || 100;
-            const y = event?.clientY || rect?.top + rect?.height + 10 || 100;
-            setActiveStep({ ...steps[idx], popupPosition: { x, y } });
-          }}
+          onTaskClick={handleTaskClick}
         />
       </div>
       {activeStep && (
