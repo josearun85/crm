@@ -9,6 +9,9 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true
   }
 });
+if (typeof window !== 'undefined') {
+  window.supabase = supabase;
+}
 supabase.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_IN') {
     console.log('User signed in:', session.user)
