@@ -140,7 +140,7 @@ export default function OrderPage() {
       )}
       <div className="flex items-center gap-6 text-sm mt-6 px-2">
   <div className="flex items-center gap-2">
-    <div className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#16a34a]"></span>
+    <div className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#16a34a]"></div>
     <div className="text-gray-800 font-medium">Closed</div>
   </div>
   <div className="flex items-center gap-2">
