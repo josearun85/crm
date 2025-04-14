@@ -37,7 +37,7 @@ export default function App() {
   if (loading) return null
 
   return (
-    <Router>
+    <>
       {showNavbar && <Navbar session={session} />}
       <Routes>
         <Route path="/" element={<Navigate to="/customers" />} />
@@ -57,6 +57,6 @@ export default function App() {
           </>
         )}
       </Routes>
-    </Router>
+    </>
   )
 }
