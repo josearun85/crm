@@ -11,7 +11,15 @@ export default function GanttChart({
   return (
     <div className="gantt-wrapper">
       <Gantt
-        tasks={tasks}
+        tasks={tasks.map(task => ({
+          ...task,
+          styles: {
+            backgroundColor: task.styles?.backgroundColor || "#e5e7eb",
+            progressColor: task.styles?.backgroundColor || "#e5e7eb",
+            progressSelectedColor: task.styles?.backgroundColor || "#e5e7eb",
+            backgroundSelectedColor: task.styles?.backgroundColor || "#e5e7eb"
+          }
+        }))}
         viewMode={viewMode}
         listCellWidth="155px"
         columnWidth={65}
