@@ -8,7 +8,6 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -111,41 +110,32 @@ export default function CustomersPage() {
           <tbody>
             {customers.map(customer => (
               <React.Fragment key={customer.id}>
-                <tr onClick={() => setSelectedCustomerId(
-                  selectedCustomerId === customer.id ? null : customer.id
-                )}>
+                <tr>
                   <td>{customer.name}</td>
                   <td>{customer.phone}</td>
                   <td>{customer.email}</td>
                   <td>{customer.sales_stage}</td>
                   <td>
                     {customer.orders?.filter(o => o.status !== 'completed').length || 0}
-                    {' '}
-                    <span
-                      style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        createOrderWithSteps(customer.id);
-                      }}
-                    >
-                      + Add Order
-                    </span>
                   </td>
                   <td>{customer.follow_up_on}</td>
                 </tr>
-                {selectedCustomerId === customer.id && customer.orders?.some(o => o.status !== 'completed') && (
+                {customer.orders?.filter(o => o.status !== 'completed').map(order => (
+                  <tr key={`order-${order.id}`} className="order-row">
+                    <td colSpan="6" style={{ paddingLeft: '2rem' }}>
+                      <div><strong>Order #{order.id}</strong> – {order.status} (Due: {order.due_date})</div>
+                    </td>
+                  </tr>
+                ))}
+                {customer.orders?.filter(o => o.status !== 'completed').length > 0 && (
                   <tr>
-                    <td colSpan="6">
-                      <div className="order-list">
-                        {customer.orders
-                          .filter(order => order.status !== 'completed')
-                          .map(order => (
-                            <div key={order.id} onClick={() => goToGantt(order.id)} style={{ cursor: 'pointer', padding: '4px 0' }}>
-                              <strong>Order #{order.id}</strong> – {order.status} (Due: {order.due_date})
-                            </div>
-                          ))
-                        }
-                      </div>
+                    <td colSpan="6" style={{ paddingLeft: '2rem' }}>
+                      <span
+                        style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}
+                        onClick={() => createOrderWithSteps(customer.id)}
+                      >
+                        + Add Order
+                      </span>
                     </td>
                   </tr>
                 )}
