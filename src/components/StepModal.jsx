@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { uploadFile, getPublicUrl, updateStep, deleteSupabaseFile } from "../services/orderService";
+import { uploadFile, getPublicUrl, updateStep } from "../services/orderService";
 
 export default function StepModal({ step, onClose, onSave }) {
   const [status, setStatus] = useState(step.status || 'OPEN');
@@ -128,13 +128,18 @@ export default function StepModal({ step, onClose, onSave }) {
                       const fileToDelete = step.files.find(f => f.name === name);
                       if (fileToDelete) {
                         try {
-                          await deleteSupabaseFile("crm", fileToDelete.path);
+                          const { error } = await window.supabase.storage.from("crm").remove([fileToDelete.path]);
+                          if (error) {
+                            console.error("Error deleting from Supabase:", error);
+                            alert("Failed to delete file from storage.");
+                            return;
+                          }
                           const updatedFileList = step.files.filter(f => f.name !== name);
                           await updateStep(step.id, { files: updatedFileList });
 
                           // Refresh UI locally
                           setSignedUrls(prev => prev.filter(f => f.name !== name));
-                          step.files = updatedFileList; // directly mutate local reference for now
+                          step.files = updatedFileList;
                         } catch (err) {
                           console.error("Error deleting file:", err);
                           alert("Failed to delete file. Please try again.");
