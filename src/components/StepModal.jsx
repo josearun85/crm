@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { uploadFile, getPublicUrl, updateStep } from "../services/orderService";
 
 export default function StepModal({ step, onClose, onSave }) {
@@ -6,9 +6,38 @@ export default function StepModal({ step, onClose, onSave }) {
   const [comment, setComment] = useState('');
   const [file, setFile] = useState(null);
   const { x = 100, y = 100 } = step.popupPosition || {};
-  
+  const [signedUrls, setSignedUrls] = useState([]);
+
   const top = typeof y === "number" ? y : 150;
   const left = typeof x === "number" ? x : window.innerWidth / 2 - 150;
+
+  useEffect(() => {
+    async function fetchSignedUrls() {
+      if (!step?.files || step.files.length === 0) return;
+
+      const urls = await Promise.all(step.files.map(async (file) => {
+        try {
+          const { data, error } = await window.supabase
+            .storage
+            .from('crm')
+            .createSignedUrl(file.path, 300); // valid for 5 min
+
+          if (error) {
+            console.error("Signed URL error:", error.message);
+            return null;
+          }
+          return { name: file.name, url: data.signedUrl };
+        } catch (err) {
+          console.warn("Fallback URL failed:", err);
+          return null;
+        }
+      }));
+
+      setSignedUrls(urls.filter(Boolean));
+    }
+
+    fetchSignedUrls();
+  }, [step]);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -87,16 +116,13 @@ export default function StepModal({ step, onClose, onSave }) {
         <div className="mb-4">
           <h4 className="text-sm font-semibold">Uploaded Files:</h4>
           <ul className="text-sm list-disc ml-5">
-            {step.files.map((file, index) => {
-              const url = getPublicUrl(file.path);
-              return (
-                <li key={index}>
-                  <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                    {file.name}
-                  </a>
-                </li>
-              );
-            })}
+            {signedUrls.map(({ name, url }, index) => (
+              <li key={index}>
+                <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                  {name}
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
       )}
