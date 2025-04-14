@@ -75,7 +75,6 @@ export default function OrderPage() {
 
     const adjustedY = Math.min(mousePos.y + offset, window.innerHeight - 350);
 
-
     setActiveStep({ ...steps[idx], popupPosition: { x: adjustedX, y: adjustedY } });
   };
 
@@ -104,7 +103,7 @@ export default function OrderPage() {
         end,
         progress: 0,
         type: "task",
-        status: step.status || 'new', // add this
+        status: step.status || 'new',
         styles: {
           backgroundColor:
             step.status === "closed" ? "#16a34a" :
