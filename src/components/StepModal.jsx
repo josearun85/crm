@@ -1,4 +1,4 @@
-<file name=1 path=/Users/arunjose/Documents/personal/crm/src/components/StepModal.jsx>import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { uploadFile, getPublicUrl, updateStep } from "../services/orderService";
 
 export default function StepModal({ step, onClose, onSave }) {
@@ -106,4 +106,3 @@ export default function StepModal({ step, onClose, onSave }) {
     </div>
   );
 }
-</file>
