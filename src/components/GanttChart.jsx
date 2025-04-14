@@ -34,7 +34,6 @@ export default function GanttChart({
     };
   });
 
-
   return (
     <div className="gantt-wrapper">
       <div className="overflow-x-auto border rounded bg-white">
@@ -45,7 +44,9 @@ export default function GanttChart({
             listCellWidth="200px"
             columnWidth={65}
             onDateChange={onDateChange}
-          onSelect={onTaskClick}
+            onSelect={(task, event) => {
+              if (onTaskClick) onTaskClick(task, event);
+            }}
           />
         </div>
       </div>

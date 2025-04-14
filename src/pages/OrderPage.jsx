@@ -56,9 +56,10 @@ export default function OrderPage() {
 
   const handleTaskClick = (task, event) => {
     const idx = parseInt(task.id.split("-").pop());
-    const x = event?.clientX || window.innerWidth / 2;
-    const y = event?.clientY || window.innerHeight / 2;
-    console.log("Modal click position", { x, y, step: steps[idx] });
+    const boundingRect = event?.currentTarget?.getBoundingClientRect?.();
+    const x = boundingRect ? boundingRect.left + boundingRect.width / 2 : event?.clientX || window.innerWidth / 2;
+    const y = boundingRect ? boundingRect.top + boundingRect.height + 12 : event?.clientY || window.innerHeight / 2;
+    console.log("Setting popup position", { x, y, step: steps[idx] });
     setActiveStep({ ...steps[idx], popupPosition: { x, y } });
   };
 

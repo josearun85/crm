@@ -34,15 +34,17 @@ export default function StepModal({ step, onClose, onSave }) {
 
   return (
     <div
-      className="relative z-[999] bg-white rounded-lg shadow-lg p-4 border"
+      className="fixed z-[999] rounded-lg shadow-xl border border-gray-300 p-4"
       style={{
         position: 'fixed',
         top,
         left,
         zIndex: 1000,
+        backgroundColor: 'white',
+        width: '320px',
         maxWidth: '90vw',
-        maxHeight: '90vh',
-        backgroundColor: 'white'
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+        borderRadius: '0.5rem'
       }}
     >
       <h3 className="text-xl font-bold mb-4">{step.description}</h3>
