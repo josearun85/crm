@@ -21,13 +21,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f6d251', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f6d65d', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
         <img src="/logo.png" alt="Sign Company Logo" style={{ maxWidth: '300px', height: 'auto' }} />
       </div>
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
         <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', minWidth: '300px' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Sign In</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#000000' }}>Sign In</h2>
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: '1rem' }}>
               <input
