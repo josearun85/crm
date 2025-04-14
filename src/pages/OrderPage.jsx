@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import './OrderPage.css';
+import StepModal from '../components/StepModal';
 
 export default function OrderPage() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [customerName, setCustomerName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [steps, setSteps] = useState([]);
+  const [activeStep, setActiveStep] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -39,6 +42,15 @@ export default function OrderPage() {
       setCustomerName(customerData.name);
     }
 
+    const { data: stepsData, error: stepsError } = await supabase
+      .from('order_steps')
+      .select('*')
+      .eq('order_id', orderData.id);
+
+    if (!stepsError) {
+      setSteps(stepsData);
+    }
+
     setLoading(false);
   };
 
@@ -58,18 +70,28 @@ export default function OrderPage() {
         <p>Status: <strong>{order.status}</strong></p>
         <p>Due Date: {order.due_date ? new Date(order.due_date).toLocaleDateString() : 'N/A'}</p>
         <div className="gantt-bar">
-          {order.steps && order.steps.map((step, index) => (
+          {steps.map((step, index) => (
             <div
               key={index}
               className={`gantt-step ${step.status}`}
-              title={`${step.name}: ${step.status}`}
+              title={`${step.description}: ${step.status}`}
+              onClick={() => setActiveStep(step)}
               style={{
-                width: `${100 / order.steps.length}%`
+                width: `${100 / steps.length}%`
               }}
-            ></div>
+            >
+              {step.description}
+            </div>
           ))}
         </div>
       </div>
+      {activeStep && (
+        <StepModal
+          step={activeStep}
+          onClose={() => setActiveStep(null)}
+          onSave={fetchData}
+        />
+      )}
     </div>
   );
 }
