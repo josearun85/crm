@@ -1,6 +1,7 @@
 import React from 'react';
 import './CustomerCard.css';
 import { updateOrder } from '../services/orderService';
+import moment from 'moment';
 
 export default function CustomerCard({ customer }) { 
   return (
@@ -12,13 +13,16 @@ export default function CustomerCard({ customer }) {
       </div>
       <div className="order-summary">
         {customer.orders?.map(order => {
+          const isOverdue = moment(order.due_date).isBefore(moment(), 'day');
+
           const statusColorMap = {
             NEW: '#fff9c4',
             HOLD: '#ffe0b2',
             CLOSED: '#c8e6c9',
             DELAYED: '#ffcdd2',
+            'IN PROGRESS': '#bbdefb'
           };
-          const bgColor = statusColorMap[order.status] || '#f5f5f5';
+          const bgColor = isOverdue ? '#ffcdd2' : (statusColorMap[order.status] || '#f5f5f5');
 
           return (
             <tr key={`order-${order.id}`}>
@@ -36,20 +40,22 @@ export default function CustomerCard({ customer }) {
                     style={{ fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}
                     onClick={() => goToGantt(order.id)}
                   >
-                    Order #{order.id} – {order.status}
+                    Order #{order.id}
                   </div>
                   <div style={{ fontSize: '0.85rem', marginTop: '8px', display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <label>
-                      Due: <input
+                      Due:{' '}
+                      <input
                         type="date"
-                        defaultValue={order.due_date}
+                        value={order.due_date}
                         onChange={(e) => updateOrder(order.id, { due_date: e.target.value })}
                         style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
                       />
                     </label>
                     <label>
-                      Status: <select
-                        defaultValue={order.status}
+                      Status:{' '}
+                      <select
+                        value={order.status}
                         onChange={(e) => updateOrder(order.id, { status: e.target.value })}
                         style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
                       >
