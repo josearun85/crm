@@ -1,7 +1,7 @@
 import React from 'react';
 import './CustomerCard.css';
 
-export default function CustomerCard({ customer }) {
+export default function CustomerCard({ customer }) { 
   return (
     <div className="customer-card">
       <div className="customer-info">
