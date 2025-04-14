@@ -21,23 +21,50 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <img src="/logo.png" alt="Sign Company Logo" className="login-logo-sm" />
-        <form onSubmit={handleLogin} className="login-box">
-          <h2>Sign In</h2>
-          <input
-            type="email"
-            value={email}
-            placeholder="Email"
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button type="submit" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Magic Link'}
-          </button>
-          {message && <p>{message}</p>}
-        </form>
+    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f6d251', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <img src="/logo.png" alt="Sign Company Logo" style={{ maxWidth: '300px', height: 'auto' }} />
+      </div>
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', minWidth: '300px' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Sign In</h2>
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="email"
+                value={email}
+                placeholder="Email"
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  fontSize: '1rem'
+                }}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                backgroundColor: '#b91c1c',
+                color: 'white',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '4px',
+                width: '100%',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              {loading ? 'Sending...' : 'Send Magic Link'}
+            </button>
+            {message && <p style={{ marginTop: '1rem', color: '#333' }}>{message}</p>}
+          </form>
+        </div>
       </div>
     </div>
   )
