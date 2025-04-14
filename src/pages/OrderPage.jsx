@@ -138,6 +138,28 @@ export default function OrderPage() {
           onSave={fetchData}
         />
       )}
+      <div className="flex items-center gap-6 text-sm mt-6 px-2">
+  <div className="flex items-center gap-2">
+    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#16a34a]"></span>
+    <span className="text-gray-800 font-medium">Closed</span>
+  </div>
+  <div className="flex items-center gap-2">
+    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#2563eb]"></span>
+    <span className="text-gray-800 font-medium">In Progress</span>
+  </div>
+  <div className="flex items-center gap-2">
+    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#f97316]"></span>
+    <span className="text-gray-800 font-medium">On Hold</span>
+  </div>
+  <div className="flex items-center gap-2">
+    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#dc2626]"></span>
+    <span className="text-gray-800 font-medium">Delayed</span>
+  </div>
+  <div className="flex items-center gap-2">
+    <span className="w-4 h-4 min-w-[1rem] min-h-[1rem] rounded inline-block bg-[#e5e7eb] border border-gray-300"></span>
+    <span className="text-gray-800 font-medium">New</span>
+  </div>
+</div>
     </div>
   );
 }
