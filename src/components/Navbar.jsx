@@ -14,7 +14,7 @@ export default function Navbar({ session }) {
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <img src="/logo.jpeg" alt="Logo" className="navbar-logo" />
+        <img src="/logo.png" alt="Logo" className="navbar-logo" />
         <Link to="/customers" className={location.pathname.startsWith('/customers') ? 'active' : ''}>Customers</Link>
         <Link to="/inventory" className={location.pathname.startsWith('/inventory') ? 'active' : ''}>Inventory</Link>
         <Link to="/vendors" className={location.pathname.startsWith('/vendors') ? 'active' : ''}>Vendors</Link>
