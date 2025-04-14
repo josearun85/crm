@@ -12,6 +12,7 @@ export default function StepModal({ step, onClose, onSave }) {
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+    console.log("Selected file:", e.target.files[0]);
   };
 
   const handleSave = async () => {
@@ -70,6 +71,17 @@ export default function StepModal({ step, onClose, onSave }) {
       <div className="mb-4">
         <label className="block text-sm font-semibold mb-1">Upload File</label>
         <input type="file" onChange={handleFileChange} />
+        {file && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-sm">{file.name}</span>
+            <button
+              onClick={handleSave}
+              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm"
+            >
+              Upload
+            </button>
+          </div>
+        )}
       </div>
       {step.files && step.files.length > 0 && (
         <div className="mb-4">
