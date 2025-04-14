@@ -117,6 +117,7 @@ export default function OrderPage() {
     .filter(Boolean);
 
   return (
+    <div>
     <div className="orders-page">
       <h1>Order Details</h1>
       <div className="order-card">
@@ -138,7 +139,9 @@ export default function OrderPage() {
           onSave={fetchData}
         />
       )}
-      <div
+      
+    </div>
+    <div
         className="grid grid-cols-10 gap-x-2 text-sm mt-6 px-2 items-center"
         style={{ gridTemplateColumns: 'repeat(5, 12px 60px)' }}
       >
