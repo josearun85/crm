@@ -78,7 +78,7 @@ export default function GanttChart({
           />
         </div>
       </div>
-      
+     
     </div>
   );
 }

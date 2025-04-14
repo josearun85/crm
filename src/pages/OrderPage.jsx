@@ -138,7 +138,7 @@ export default function OrderPage() {
           onSave={fetchData}
         />
       )}
-      <div className="flex flex-wrap gap-6 text-sm mt-6 px-2">
+       <div className="flex flex-wrap gap-6 text-sm mt-6 px-2">
         <div className="flex items-center gap-2">
           <span className="inline-block w-4 h-4 rounded bg-[#16a34a]"></span>
           <span className="text-gray-800 font-medium">Closed</span>
