@@ -3,7 +3,7 @@ import './CustomerCard.css';
 import { updateOrder } from '../services/orderService';
 import moment from 'moment';
 
-export default function CustomerCard({ customer }) { 
+export default function CustomerCard({ customer, onOrderUpdated }) { 
   return (
     <div className="customer-card"> 
       <div className="customer-info">
@@ -48,7 +48,10 @@ export default function CustomerCard({ customer }) {
                       <input
                         type="date"
                         value={order.due_date}
-                        onChange={(e) => updateOrder(order.id, { due_date: e.target.value })}
+                        onChange={(e) => {
+                          updateOrder(order.id, { due_date: e.target.value });
+                          if (onOrderUpdated) onOrderUpdated();
+                        }}
                         style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
                       />
                     </label>
@@ -56,7 +59,10 @@ export default function CustomerCard({ customer }) {
                       Status:{' '}
                       <select
                         value={order.status}
-                        onChange={(e) => updateOrder(order.id, { status: e.target.value })}
+                        onChange={(e) => {
+                          updateOrder(order.id, { status: e.target.value });
+                          if (onOrderUpdated) onOrderUpdated();
+                        }}
                         style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
                       >
                         <option value="NEW">New</option>
