@@ -43,7 +43,13 @@ export default function GanttChart({
           listCellWidth="200px"
           columnWidth={65}
           onDateChange={onDateChange}
-          onSelect={onTaskClick}
+          onSelect={(task, event) => {
+            const idx = parseInt(task.id.split("-").pop());
+            const rect = event?.currentTarget?.getBoundingClientRect?.();
+            const x = event?.clientX || rect?.left || 100;
+            const y = event?.clientY || rect?.top + rect?.height + 10 || 100;
+            setActiveStep({ ...steps[idx], popupPosition: { x, y } });
+          }}
         />
       </div>
       <div className="flex flex-wrap text-sm mt-6 gap-4 px-2">

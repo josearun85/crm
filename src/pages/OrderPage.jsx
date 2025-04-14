@@ -102,9 +102,12 @@ export default function OrderPage() {
         <GanttChart
           tasks={validatedTasks}
           onDateChange={handleDateChange}
-          onTaskClick={(task) => {
+          onTaskClick={(task, event) => {
             const idx = parseInt(task.id.split("-").pop());
-            setActiveStep(steps[idx]);
+            const rect = event?.currentTarget?.getBoundingClientRect?.();
+            const x = event?.clientX || rect?.left || 100;
+            const y = event?.clientY || rect?.top + rect?.height + 10 || 100;
+            setActiveStep({ ...steps[idx], popupPosition: { x, y } });
           }}
         />
       </div>
