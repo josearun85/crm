@@ -16,7 +16,7 @@ export default function Navbar({ session }) {
       <div className="navbar-left">
         <img src="/logo.png" alt="Logo" className="navbar-logo" />
         <Link to="/customers" className={location.pathname.startsWith('/customers') ? 'active' : ''}>Customers</Link>
-        <Link to="/orders" className={location.pathname.startsWith('/order') ? 'active' : ''}>Orders</Link>
+        <Link to="/orders" className={location.pathname.startsWith('/orders') ? 'active' : ''}>Orders</Link>
       </div>
       <div className="navbar-right">
         <button onClick={handleLogout}>Logout</button>
