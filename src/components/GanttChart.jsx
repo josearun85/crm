@@ -20,6 +20,8 @@ export default function GanttChart({
   viewMode = ViewMode.Day
 }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editedName, setEditedName] = useState("");
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -52,6 +54,25 @@ export default function GanttChart({
 
     return {
       ...task,
+      name: editingTaskId === task.id ? (
+        <input
+          type="text"
+          value={editedName}
+          autoFocus
+          onChange={(e) => setEditedName(e.target.value)}
+          onBlur={() => {
+            const idx = tasks.findIndex(t => t.id === task.id);
+            if (idx !== -1 && editedName.trim()) {
+              const updated = [...tasks];
+              updated[idx].name = editedName.trim();
+              onTaskClick && onTaskClick(updated[idx]);
+            }
+            setEditingTaskId(null);
+          }}
+          className="border px-2 text-sm"
+          style={{ width: "90%" }}
+        />
+      ) : task.name,
       styles: {
         backgroundColor: baseColor,
         progressColor: baseColor,
@@ -62,12 +83,11 @@ export default function GanttChart({
     };
   });
 
-  const handleTaskNameEdit = (taskId, newName) => {
-    const idx = tasks.findIndex(t => t.id === taskId);
-    if (idx !== -1) {
-      const updated = [...tasks];
-      updated[idx].name = newName;
-      onTaskClick && onTaskClick(updated[idx]); // optional callback
+  const handleTaskNameEdit = (taskId) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setEditedName(task.name);
+      setEditingTaskId(taskId);
     }
   };
 
@@ -83,8 +103,6 @@ export default function GanttChart({
 
     const adjustedY = Math.min(mousePos.y + offset, window.innerHeight - 350);
 
-    // console.log("Setting popup position", { x: adjustedX, y: adjustedY, step: steps[idx] });
-
     setActiveStep({ ...steps[idx], popupPosition: { x: adjustedX, y: adjustedY } });
   };
 
@@ -95,32 +113,13 @@ export default function GanttChart({
           <Gantt
             tasks={styledTasks}
             viewMode={viewMode}
-            listCellWidth="200px"
+            listCellWidth="300px"
             onDateChange={onDateChange}
             onSelect={handleTaskClick}
-            TaskListHeader={() => <div style={{ padding: 10, fontWeight: 'bold' }}>Name</div>}
-            TaskListTable={({ rowHeight, tasks }) => (
-              <div>
-                {tasks.map(task => (
-                  <div
-                    key={task.id}
-                    style={{ height: rowHeight, padding: "6px 10px", borderBottom: "1px solid #eee", cursor: "pointer" }}
-                    onDoubleClick={() => {
-                      const newName = prompt("Edit task name:", task.name);
-                      if (newName !== null && newName.trim() !== "") {
-                        handleTaskNameEdit(task.id, newName.trim());
-                      }
-                    }}
-                  >
-                    {task.name}
-                  </div>
-                ))}
-              </div>
-            )}
+            onExpanderClick={(task) => handleTaskNameEdit(task.id)}
           />
         </div>
       </div>
-     
     </div>
   );
 }
