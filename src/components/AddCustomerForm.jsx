@@ -35,14 +35,14 @@ export default function AddCustomerForm({ isOpen, onClose, onCustomerAdded }) {
     <div style={modalBackdrop}>
       <div style={modalContent}>
         <h3>Add New Customer</h3>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <input name="name" placeholder="Name" onChange={handleChange} value={form.name} required />
-          <input name="phone" placeholder="Phone" onChange={handleChange} value={form.phone} />
-          <input name="email" placeholder="Email" onChange={handleChange} value={form.email} />
-          <input name="sales_stage" placeholder="Sales Stage" onChange={handleChange} value={form.sales_stage} />
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
+          <input name="name" placeholder="Name" onChange={handleChange} value={form.name} required style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="phone" placeholder="Phone" onChange={handleChange} value={form.phone} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="email" placeholder="Email" onChange={handleChange} value={form.email} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="sales_stage" placeholder="Sales Stage" onChange={handleChange} value={form.sales_stage} style={{ width: '100%', padding: '0.5rem' }} />
           <div style={{ marginTop: '1rem' }}>
-            <button type="submit" disabled={loading}>Add</button>
-            <button type="button" onClick={onClose} style={{ marginLeft: '1rem' }}>Cancel</button>
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.75rem' }}>Add</button>
+            <button type="button" onClick={onClose} style={{ marginLeft: '1rem', width: '100%', padding: '0.75rem' }}>Cancel</button>
           </div>
         </form>
       </div>
@@ -58,6 +58,11 @@ const modalBackdrop = {
 }
 
 const modalContent = {
-  background: '#fff', padding: '2rem', borderRadius: '8px',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.15)', minWidth: '300px'
+  background: '#fff',
+  padding: '2rem',
+  borderRadius: '8px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+  minWidth: '300px',
+  maxWidth: '90vw',
+  width: '100%'
 }

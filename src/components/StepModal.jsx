@@ -68,14 +68,18 @@ export default function StepModal({ step, onClose, onSave }) {
       className="fixed z-[999] rounded-lg shadow-xl border border-gray-300 p-4"
       style={{
         position: 'fixed',
-        top,
-        left,
+        top: '10vh',
+        left: '50%',
+        transform: 'translateX(-50%)',
         zIndex: 1000,
         backgroundColor: 'white',
-        width: '320px',
-        maxWidth: '90vw',
+        width: '360px',
+        maxWidth: '95vw',
+        maxHeight: '80vh',
+        overflowY: 'auto',
         boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-        borderRadius: '0.5rem'
+        borderRadius: '0.5rem',
+        padding: '1rem'
       }}
     >
       <div

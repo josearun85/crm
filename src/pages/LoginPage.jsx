@@ -21,12 +21,36 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#F8D86B', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      height: '100vh',
+      backgroundColor: '#F8D86B',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{
+        flex: '1 1 100%',
+        display: 'flex',
+        justifyContent: 'center',
+        marginBottom: '1rem'
+      }}>
         <img src="/logo.png" alt="Sign Company Logo" style={{ maxWidth: '300px', height: 'auto' }} />
       </div>
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-        <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', minWidth: '300px' }}>
+      <div style={{
+        flex: '1 1 100%',
+        display: 'flex',
+        justifyContent: 'center',
+        marginBottom: '1rem'
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          padding: '2rem',
+          borderRadius: '8px',
+          minWidth: '300px',
+          maxWidth: '90vw'
+        }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#000000' }}>Sign In</h2>
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: '1rem' }}>

@@ -1,0 +1,45 @@
+.order-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.order-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  background: white;
+}
+
+.order-header {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.order-details {
+  font-size: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .order-container {
+    padding: 12px;
+  }
+
+  .order-card {
+    padding: 12px;
+  }
+
+  .order-header {
+    font-size: 1rem;
+  }
+
+  .order-details {
+    flex-direction: column;
+    font-size: 0.9rem;
+  }
+}

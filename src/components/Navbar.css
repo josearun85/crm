@@ -42,3 +42,27 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .navbar-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .navbar-right {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .navbar-right button {
+    width: auto;
+  }
+}

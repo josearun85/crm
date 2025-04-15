@@ -1,0 +1,38 @@
+.customer-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.customer-info {
+  font-size: 1rem;
+}
+
+.customer-orders {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .customer-card {
+    padding: 12px;
+  }
+
+  .customer-info {
+    font-size: 0.9rem;
+  }
+
+  .customer-orders {
+    gap: 8px;
+  }
+
+  .order-status {
+    font-size: 0.9rem;
+    padding: 6px 10px;
+  }
+}
