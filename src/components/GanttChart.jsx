@@ -54,34 +54,7 @@ export default function GanttChart({
 
     return {
       ...task,
-      name: (
-        editingTaskId === task.id ? (
-          <input
-            type="text"
-            value={editedName}
-            autoFocus
-            onChange={(e) => setEditedName(e.target.value)}
-            onBlur={() => {
-              const idx = tasks.findIndex(t => t.id === task.id);
-              if (idx !== -1 && editedName.trim()) {
-                const updated = [...tasks];
-                updated[idx].name = editedName.trim();
-                onTaskClick && onTaskClick(updated[idx]);
-              }
-              setEditingTaskId(null);
-            }}
-            className="border px-2 text-xs"
-            style={{ width: "90%" }}
-          />
-        ) : (
-          <span
-            className="cursor-pointer text-sm"
-            onDoubleClick={() => handleTaskNameEdit(task.id)}
-          >
-            {task.name}
-          </span>
-        )
-      ),
+      name: task.name,
       styles: {
         backgroundColor: baseColor,
         progressColor: baseColor,
@@ -127,6 +100,51 @@ export default function GanttChart({
             onDateChange={onDateChange}
             onSelect={handleTaskClick}
             onExpanderClick={(task) => handleTaskNameEdit(task.id)}
+            TaskListHeader={() => <div style={{ padding: 10, fontWeight: 'bold' }}>Name</div>}
+            TaskListTable={({ rowHeight, tasks }) => (
+              <div>
+                {tasks.map(task => (
+                  <div
+                    key={task.id}
+                    style={{
+                      height: rowHeight,
+                      padding: "6px 10px",
+                      borderBottom: "1px solid #eee",
+                      display: "flex",
+                      alignItems: "center",
+                      fontSize: "12px",
+                    }}
+                  >
+                    {editingTaskId === task.id ? (
+                      <input
+                        type="text"
+                        value={editedName}
+                        autoFocus
+                        onChange={(e) => setEditedName(e.target.value)}
+                        onBlur={() => {
+                          const idx = tasks.findIndex(t => t.id === task.id);
+                          if (idx !== -1 && editedName.trim()) {
+                            const updated = [...tasks];
+                            updated[idx].name = editedName.trim();
+                            onTaskClick && onTaskClick(updated[idx]);
+                          }
+                          setEditingTaskId(null);
+                        }}
+                        className="border px-2 text-xs"
+                        style={{ width: "90%" }}
+                      />
+                    ) : (
+                      <span
+                        className="cursor-pointer"
+                        onDoubleClick={() => handleTaskNameEdit(task.id)}
+                      >
+                        {task.name}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           />
         </div>
       </div>
