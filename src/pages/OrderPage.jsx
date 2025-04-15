@@ -136,7 +136,17 @@ export default function OrderPage() {
         <div className="flex items-center gap-2 mb-2">
           <label>Status:</label>
           <select
-            className="border rounded px-2 py-1 text-sm"
+            className={`border rounded px-2 py-1 text-sm ${
+              order.status === "closed"
+                ? "bg-green-100 text-green-800"
+                : order.status === "in progress"
+                ? "bg-blue-100 text-blue-800"
+                : order.status === "hold"
+                ? "bg-orange-100 text-orange-800"
+                : order.status === "delayed"
+                ? "bg-red-100 text-red-800"
+                : "bg-gray-200 text-gray-700"
+            }`}
             value={order.status}
             onChange={handleStatusChange}
           >
