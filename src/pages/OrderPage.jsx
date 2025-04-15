@@ -5,6 +5,8 @@ import './OrderPage.css';
 import StepModal from '../components/StepModal';
 import moment from "moment";
 import GanttChart from "../components/GanttChart";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function OrderPage() {
   const { id } = useParams();
@@ -39,11 +41,20 @@ export default function OrderPage() {
       });
       setCustomerName(data.customer_name);
       setSteps(data.steps || []);
+      if (data.due_date) data.due_date = new Date(data.due_date);
     } catch (err) {
       console.error('Failed to fetch order:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDueDateChange = (date) => {
+    setOrder(prev => ({ ...prev, due_date: date }));
+  };
+
+  const handleStatusChange = (e) => {
+    setOrder(prev => ({ ...prev, status: e.target.value }));
   };
 
   const handleDateChange = async (task) => {
@@ -122,8 +133,29 @@ export default function OrderPage() {
       <h1>Order Details</h1>
       <div className="order-card">
         <h3>{customerName}</h3>
-        <p>Status: <strong>{order.status}</strong></p>
-        <p>Due Date: {order.due_date ? new Date(order.due_date).toLocaleDateString() : 'N/A'}</p>
+        <div className="flex items-center gap-2 mb-2">
+          <label>Status:</label>
+          <select
+            className="border rounded px-2 py-1 text-sm"
+            value={order.status}
+            onChange={handleStatusChange}
+          >
+            <option value="new">New</option>
+            <option value="in progress">In Progress</option>
+            <option value="hold">On Hold</option>
+            <option value="delayed">Delayed</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2 mb-2">
+          <label>Due Date:</label>
+          <DatePicker
+            selected={order.due_date}
+            onChange={handleDueDateChange}
+            dateFormat="dd/MM/yyyy"
+            className="border rounded px-2 py-1 text-sm"
+          />
+        </div>
         <GanttChart
           tasks={validatedTasks}
           steps={steps}
