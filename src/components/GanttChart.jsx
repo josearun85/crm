@@ -100,7 +100,13 @@ export default function GanttChart({
           }
 
           .gantt .gantt-container {
-            min-width: 1200px;
+            min-width: 1600px;
+            width: fit-content;
+            display: inline-block;
+          }
+
+          .gantt .gantt-horizontal-container {
+            overflow-x: auto !important;
           }
 
           .gantt-wrapper {
