@@ -79,7 +79,7 @@ export default function GanttChart({
   };
 
   return (
-    <div className="gantt-wrapper" style={{ maxWidth: '100vw' }}>
+    <div className="gantt-wrapper" style={{ overflowX: 'auto' }}>
       <div className="overflow-x-auto border rounded bg-white">
         <div className="relative">
           <Gantt
@@ -97,6 +97,14 @@ export default function GanttChart({
           .gantt .gantt-table .gantt-table-header,
           .gantt .gantt-table .gantt-table-content {
             font-size: 11px;
+          }
+
+          .gantt .gantt-container {
+            min-width: 1200px;
+          }
+
+          .gantt-wrapper {
+            overflow-x: auto;
           }
 
           @media (max-width: 768px) {
