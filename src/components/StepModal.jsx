@@ -7,6 +7,8 @@ export default function StepModal({ step, onClose, onSave }) {
   const [file, setFile] = useState(null);
   const { x = 100, y = 100 } = step.popupPosition || {};
   const [signedUrls, setSignedUrls] = useState([]);
+  const [editedDescription, setEditedDescription] = useState(step.description || "");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   const top = typeof y === "number" ? y : 150;
   const left = typeof x === "number" ? x : window.innerWidth / 2 - 150;
@@ -76,7 +78,35 @@ export default function StepModal({ step, onClose, onSave }) {
         borderRadius: '0.5rem'
       }}
     >
-      <h3 className="text-xl font-bold mb-4">{step.description}</h3>
+      <div
+        className="text-xl font-bold mb-4 cursor-pointer group"
+        onMouseEnter={() => setIsEditingTitle(true)}
+        onMouseLeave={() => setIsEditingTitle(false)}
+      >
+        {isEditingTitle ? (
+          <input
+            type="text"
+            value={editedDescription}
+            onChange={(e) => setEditedDescription(e.target.value)}
+            onBlur={async () => {
+              if (editedDescription.trim() && editedDescription !== step.description) {
+                await updateStep(step.id, { description: editedDescription.trim() });
+                step.description = editedDescription.trim();
+              }
+              setIsEditingTitle(false);
+            }}
+            onKeyDown={async (e) => {
+              if (e.key === 'Enter') {
+                e.target.blur();
+              }
+            }}
+            className="w-full border px-2 py-1 rounded text-sm"
+            autoFocus
+          />
+        ) : (
+          <span className="group-hover:underline">{step.description}</span>
+        )}
+      </div>
       <div className="mb-4">
         <label className="block text-sm font-semibold mb-1">Status</label>
         <select

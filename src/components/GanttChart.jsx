@@ -1,5 +1,5 @@
 import React from "react";
-import { Gantt, ViewMode, Task } from "gantt-task-react";
+import { Gantt, ViewMode } from "gantt-task-react";
 import "gantt-task-react/dist/index.css";
 import { useEffect, useState } from "react";
 
@@ -20,8 +20,6 @@ export default function GanttChart({
   viewMode = ViewMode.Day
 }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [editingTaskId, setEditingTaskId] = useState(null);
-  const [editedName, setEditedName] = useState("");
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -54,34 +52,7 @@ export default function GanttChart({
 
     return {
       ...task,
-      name: editingTaskId === task.id ? (
-        <div
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={() => {
-            const idx = tasks.findIndex(t => t.id === task.id);
-            if (idx !== -1 && editedName.trim()) {
-              const updated = [...tasks];
-              updated[idx].name = editedName.trim();
-              onTaskClick && onTaskClick(updated[idx]);
-            }
-            setEditingTaskId(null);
-          }}
-          onInput={(e) => setEditedName(e.currentTarget.textContent)}
-          className="border px-2 text-xs"
-          style={{ width: "90%" }}
-        >
-          {editedName}
-        </div>
-      ) : (
-        <span
-          className="cursor-pointer text-sm"
-          onDoubleClick={() => handleTaskNameEdit(task.id)}
-        >
-          {task.name}
-        </span>
-      ),
-      nameEditable: true,
+      name: task.name,
       styles: {
         backgroundColor: baseColor,
         progressColor: baseColor,
@@ -91,14 +62,6 @@ export default function GanttChart({
       }
     };
   });
-
-  const handleTaskNameEdit = (taskId) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      setEditedName(task.name);
-      setEditingTaskId(taskId);
-    }
-  };
 
   const handleTaskClick = (task, event) => {
     const idx = parseInt(task.id.split("-").pop());
@@ -125,14 +88,7 @@ export default function GanttChart({
             columnWidth={70}
             listCellWidth="300px"
             onDateChange={onDateChange}
-            onSelect={(task, e) => {
-              if (e.detail === 2) {
-                handleTaskNameEdit(task.id);
-              } else {
-                handleTaskClick(task, e);
-              }
-            }}
-            onExpanderClick={(task) => handleTaskNameEdit(task.id)}
+            onSelect={handleTaskClick}
           />
         </div>
       </div>
