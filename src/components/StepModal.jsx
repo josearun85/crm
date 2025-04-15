@@ -7,7 +7,7 @@ export default function StepModal({ step, onClose, onSave }) {
   const [file, setFile] = useState(null);
   const { x = 100, y = 100 } = step.popupPosition || {};
   const [signedUrls, setSignedUrls] = useState([]);
-  const [editedDescription, setEditedDescription] = useState(step.description || "");
+  const [editedDescription, setEditedDescription] = useState(() => step.description || "");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   const top = typeof y === "number" ? y : 150;
@@ -91,7 +91,8 @@ export default function StepModal({ step, onClose, onSave }) {
             onBlur={async () => {
               if (editedDescription.trim() && editedDescription !== step.description) {
                 await updateStep(step.id, { description: editedDescription.trim() });
-                step.description = editedDescription.trim();
+                setEditedDescription(editedDescription.trim());
+                onSave();  // trigger data refresh at parent level
               }
               setIsEditingTitle(false);
             }}
