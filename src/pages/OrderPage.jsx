@@ -33,6 +33,7 @@ export default function OrderPage() {
     setLoading(true);
     try {
       const data = await getOrderById(id);
+      if (data.due_date) data.due_date = new Date(data.due_date);
       setOrder({
         id: data.id,
         status: data.status,
@@ -41,7 +42,6 @@ export default function OrderPage() {
       });
       setCustomerName(data.customer_name);
       setSteps(data.steps || []);
-      if (data.due_date) data.due_date = new Date(data.due_date);
     } catch (err) {
       console.error('Failed to fetch order:', err);
     } finally {
