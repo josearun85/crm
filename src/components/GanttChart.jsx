@@ -54,25 +54,34 @@ export default function GanttChart({
 
     return {
       ...task,
-      name: editingTaskId === task.id ? (
-        <input
-          type="text"
-          value={editedName}
-          autoFocus
-          onChange={(e) => setEditedName(e.target.value)}
-          onBlur={() => {
-            const idx = tasks.findIndex(t => t.id === task.id);
-            if (idx !== -1 && editedName.trim()) {
-              const updated = [...tasks];
-              updated[idx].name = editedName.trim();
-              onTaskClick && onTaskClick(updated[idx]);
-            }
-            setEditingTaskId(null);
-          }}
-          className="border px-2 text-sm"
-          style={{ width: "90%" }}
-        />
-      ) : task.name,
+      name: (
+        editingTaskId === task.id ? (
+          <input
+            type="text"
+            value={editedName}
+            autoFocus
+            onChange={(e) => setEditedName(e.target.value)}
+            onBlur={() => {
+              const idx = tasks.findIndex(t => t.id === task.id);
+              if (idx !== -1 && editedName.trim()) {
+                const updated = [...tasks];
+                updated[idx].name = editedName.trim();
+                onTaskClick && onTaskClick(updated[idx]);
+              }
+              setEditingTaskId(null);
+            }}
+            className="border px-2 text-xs"
+            style={{ width: "90%" }}
+          />
+        ) : (
+          <span
+            className="cursor-pointer text-sm"
+            onDoubleClick={() => handleTaskNameEdit(task.id)}
+          >
+            {task.name}
+          </span>
+        )
+      ),
       styles: {
         backgroundColor: baseColor,
         progressColor: baseColor,
@@ -113,6 +122,7 @@ export default function GanttChart({
           <Gantt
             tasks={styledTasks}
             viewMode={viewMode}
+            columnWidth={65}
             listCellWidth="300px"
             onDateChange={onDateChange}
             onSelect={handleTaskClick}
@@ -120,6 +130,14 @@ export default function GanttChart({
           />
         </div>
       </div>
+      <style>
+        {`
+          .gantt .gantt-table .gantt-table-header,
+          .gantt .gantt-table .gantt-table-content {
+            font-size: 11px;
+          }
+        `}
+      </style>
     </div>
   );
 }
