@@ -29,9 +29,23 @@ export default function GanttChart({
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  const statusAliasMap = {
+    open: "in progress",
+    closed: "closed",
+    hold: "hold"
+  };
+
+  const today = new Date();
+
   const styledTasks = tasks.map(task => {
-    const normalizedStatus = task.status?.toLowerCase() || "new";
-    const baseColor = task.styles?.backgroundColor || STATUS_COLORS[normalizedStatus] || STATUS_COLORS["new"];
+    const normalizedStatus = task.status?.toLowerCase?.() || "new";
+    const statusKey = statusAliasMap[normalizedStatus] || normalizedStatus;
+
+    const isClosed = statusKey === "closed";
+    const isDelayed = !isClosed && new Date(task.end) < today;
+
+    const finalStatus = isDelayed ? "delayed" : statusKey;
+    const baseColor = STATUS_COLORS[finalStatus] || STATUS_COLORS["new"];
     const fontColor = ["#2563eb", "#16a34a", "#f97316", "#dc2626"].includes(baseColor)
       ? "#ffffff"
       : "#000000";
