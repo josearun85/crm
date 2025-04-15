@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { uploadFile, getPublicUrl, updateStep, deleteSupabaseFile } from "../services/orderService";
 
 export default function StepModal({ step, onClose, onSave }) {
-  const [status, setStatus] = useState(step.status || 'OPEN');
+  const [status, setStatus] = useState(step.status || 'new');
   const [comment, setComment] = useState('');
   const [file, setFile] = useState(null);
   const { x = 100, y = 100 } = step.popupPosition || {};
@@ -83,16 +83,22 @@ export default function StepModal({ step, onClose, onSave }) {
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           className={`w-full border rounded px-3 py-2 text-sm ${
-            status === "CLOSED"
+            status === "closed"
               ? "bg-green-100 text-green-800"
-              : status === "HOLD"
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-blue-100 text-blue-800"
+              : status === "in progress"
+              ? "bg-blue-100 text-blue-800"
+              : status === "hold"
+              ? "bg-orange-100 text-orange-800"
+              : status === "delayed"
+              ? "bg-red-100 text-red-800"
+              : "bg-gray-200 text-gray-700"
           }`}
         >
-          <option value="OPEN">OPEN</option>
-          <option value="CLOSED">CLOSED</option>
-          <option value="HOLD">HOLD</option>
+          <option value="new">New</option>
+          <option value="in progress">In Progress</option>
+          <option value="hold">On Hold</option>
+          <option value="delayed">Delayed</option>
+          <option value="closed">Closed</option>
         </select>
       </div>
       <div className="mb-4">

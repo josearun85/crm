@@ -4,11 +4,11 @@ import "gantt-task-react/dist/index.css";
 import { useEffect, useState } from "react";
 
 const STATUS_COLORS = {
-  "closed": "#16a34a",
-  "in progress": "#2563eb",
-  "hold": "#f97316",
-  "delayed": "#dc2626",
-  "new": "#e5e7eb"
+  "closed": "#16a34a",      // green
+  "in progress": "#2563eb", // blue
+  "hold": "#ea580c",        // orange
+  "delayed": "#dc2626",     // red
+  "new": "#9ca3af"          // gray
 };
 
 export default function GanttChart({
@@ -46,7 +46,7 @@ export default function GanttChart({
 
     const finalStatus = isDelayed ? "delayed" : statusKey;
     const baseColor = STATUS_COLORS[finalStatus] || STATUS_COLORS["new"];
-    const fontColor = ["#2563eb", "#16a34a", "#f97316", "#dc2626"].includes(baseColor)
+    const fontColor = ["#2563eb", "#16a34a", "#ea580c", "#dc2626"].includes(baseColor)
       ? "#ffffff"
       : "#000000";
 
