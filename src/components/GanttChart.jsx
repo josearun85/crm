@@ -30,7 +30,8 @@ export default function GanttChart({
   }, []);
 
   const styledTasks = tasks.map(task => {
-    const baseColor = task.styles?.backgroundColor || STATUS_COLORS[task.status] || STATUS_COLORS["new"];
+    const normalizedStatus = task.status?.toLowerCase() || "new";
+    const baseColor = task.styles?.backgroundColor || STATUS_COLORS[normalizedStatus] || STATUS_COLORS["new"];
     const fontColor = ["#2563eb", "#16a34a", "#f97316", "#dc2626"].includes(baseColor)
       ? "#ffffff"
       : "#000000";
