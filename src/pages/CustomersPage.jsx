@@ -112,7 +112,12 @@ export default function CustomersPage() {
             {customers.map(customer => (
               <tr key={customer.id}>
                 <td colSpan="6" style={{ padding: 0 }}>
-                  <CustomerCard customer={customer} onOrderUpdated={fetchData} />
+                  <>
+                    <CustomerCard customer={customer} onOrderUpdated={fetchData} />
+                    <div style={{ textAlign: 'right', padding: '0.5rem 1rem' }}>
+                      <button onClick={() => createOrderWithSteps(customer.id)}>+ Add Order</button>
+                    </div>
+                  </>
                 </td>
               </tr>
             ))}
