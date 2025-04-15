@@ -62,6 +62,15 @@ export default function GanttChart({
     };
   });
 
+  const handleTaskNameEdit = (taskId, newName) => {
+    const idx = tasks.findIndex(t => t.id === taskId);
+    if (idx !== -1) {
+      const updated = [...tasks];
+      updated[idx].name = newName;
+      onTaskClick && onTaskClick(updated[idx]); // optional callback
+    }
+  };
+
   const handleTaskClick = (task, event) => {
     const idx = parseInt(task.id.split("-").pop());
     const offset = 16;
@@ -87,9 +96,27 @@ export default function GanttChart({
             tasks={styledTasks}
             viewMode={viewMode}
             listCellWidth="200px"
-            columnWidth={65}
             onDateChange={onDateChange}
             onSelect={handleTaskClick}
+            TaskListHeader={() => <div style={{ padding: 10, fontWeight: 'bold' }}>Name</div>}
+            TaskListTable={({ rowHeight, tasks }) => (
+              <div>
+                {tasks.map(task => (
+                  <div
+                    key={task.id}
+                    style={{ height: rowHeight, padding: "6px 10px", borderBottom: "1px solid #eee", cursor: "pointer" }}
+                    onDoubleClick={() => {
+                      const newName = prompt("Edit task name:", task.name);
+                      if (newName !== null && newName.trim() !== "") {
+                        handleTaskNameEdit(task.id, newName.trim());
+                      }
+                    }}
+                  >
+                    {task.name}
+                  </div>
+                ))}
+              </div>
+            )}
           />
         </div>
       </div>
