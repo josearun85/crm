@@ -66,6 +66,7 @@ const id = parseInt(rawId, 10);
     });
   }, [order.status, order.due_date]);
   useEffect(() => {
+    fetchData();
     const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
     };
@@ -73,12 +74,12 @@ const id = parseInt(rawId, 10);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  useEffect(() => {
-    console.log('[OrderPage] going to fetch data',id);
+  // useEffect(() => {
+  //   console.log('[OrderPage] going to fetch data',id);
 
-    fetchData();
-  }, [id]);
-  console.log('43');
+    
+  // }, [id]);
+  // console.log('43');
 
   const handleDueDateChange = (date) => {
     setOrder(prev => ({ ...prev, due_date: date }));
