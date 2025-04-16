@@ -18,7 +18,7 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
 
   return (
     <div className="customer-card"> 
-      <div className="customer-info">
+      <div className="customer-info" style={{ position: 'relative' }}>
         <h3>{customer.name}</h3>
         <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
           <button onClick={() => setMenuOpen(prev => !prev)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>⋮</button>
