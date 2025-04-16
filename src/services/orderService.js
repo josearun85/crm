@@ -72,28 +72,46 @@ export function getPublicUrl(filePath) {
 
 export { deleteFile as deleteSupabaseFile };
 
+export async function deleteOrder(orderId) {
+  const { error } = await supabase
+    .from("orders")
+    .delete()
+    .eq("id", orderId);
+
+  if (error) throw error;
+}
+
 export async function deleteOrderFiles(orderId) {
   const bucket = supabase.storage.from("crm");
 
-  // Delete files directly under orders/{orderId}/
-  const { data: baseFiles, error: baseError } = await bucket.list(`orders/${orderId}`, { recursive: false });
-  if (baseError) throw baseError;
-  const basePaths = baseFiles?.map(f => `orders/${orderId}/${f.name}`) || [];
+  const pathsToDelete = [];
 
-  // Fetch step folders inside orders/{orderId}/steps/
-  const { data: stepFolders, error: stepsError } = await bucket.list(`orders/${orderId}/steps`, { recursive: false });
-  if (stepsError) throw stepsError;
+  // Attempt to list files directly under orders/{orderId}/
+  try {
+    const { data: baseFiles } = await bucket.list(`orders/${orderId}`, { recursive: false });
+    const basePaths = baseFiles?.map(f => `orders/${orderId}/${f.name}`) || [];
+    pathsToDelete.push(...basePaths);
+  } catch {}
 
-  let stepPaths = [];
-  for (const folder of stepFolders || []) {
-    const { data: stepFiles } = await bucket.list(`orders/${orderId}/steps/${folder.name}`, { recursive: true });
-    const paths = stepFiles?.map(f => `orders/${orderId}/steps/${folder.name}/${f.name}`) || [];
-    stepPaths = stepPaths.concat(paths);
-  }
+  // Attempt to list files inside step folders
+  try {
+    const { data: stepFolders } = await bucket.list(`orders/${orderId}/steps`, { recursive: false });
 
-  const allPaths = [...basePaths, ...stepPaths];
-  if (allPaths.length > 0) {
-    const { error: removeError } = await bucket.remove(allPaths);
-    if (removeError) throw removeError;
+    for (const folder of stepFolders || []) {
+      try {
+        const { data: stepFiles } = await bucket.list(`orders/${orderId}/steps/${folder.name}`, { recursive: true });
+        const paths = stepFiles?.map(f => `orders/${orderId}/steps/${folder.name}/${f.name}`) || [];
+        pathsToDelete.push(...paths);
+      } catch {}
+    }
+  } catch {}
+
+  // Attempt to delete files if any found
+  if (pathsToDelete.length > 0) {
+    try {
+      await bucket.remove(pathsToDelete);
+    } catch (removeError) {
+      console.warn("Some files may not have been removed:", removeError.message);
+    }
   }
 }

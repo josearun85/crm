@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { getOrderById, updateStep } from '../services/orderService';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getOrderById, updateStep, deleteOrder, deleteOrderFiles } from '../services/orderService';
 import './OrderPage.css';
 import StepModal from '../components/StepModal';
 import moment from "moment";
@@ -10,12 +10,16 @@ import "react-datepicker/dist/react-datepicker.css";
 
 export default function OrderPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [customerName, setCustomerName] = useState('');
   const [loading, setLoading] = useState(true);
   const [steps, setSteps] = useState([]);
   const [activeStep, setActiveStep] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [typedId, setTypedId] = useState('');
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -131,7 +135,17 @@ export default function OrderPage() {
     <div>
     <div className="orders-page">
       <h1>Order Details</h1>
-      <div className="order-card">
+      <div className="order-card" style={{ position: 'relative' }}>
+        <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+          <button onClick={() => setMenuOpen(prev => !prev)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>⋮</button>
+          {menuOpen && (
+            <div style={{ position: 'absolute', top: '2rem', right: 0, background: '#fff', border: '1px solid #ccc', padding: '0.5rem', borderRadius: '4px' }}>
+              <button onClick={() => { setMenuOpen(false); setConfirmingDelete(true); }} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>
+                Delete Order
+              </button>
+            </div>
+          )}
+        </div>
         <h3>{customerName}</h3>
         <div className="flex items-center gap-2 mb-2">
           <label>Status:</label>
@@ -181,7 +195,39 @@ export default function OrderPage() {
           onSave={fetchData}
         />
       )}
-      
+      {confirmingDelete && (
+        <div style={{ marginTop: '1rem', border: '1px solid #ccc', padding: '1rem', borderRadius: '6px' }}>
+          <p>Type <strong>{order.id}</strong> to confirm deletion:</p>
+          <input
+            type="text"
+            value={typedId}
+            onChange={(e) => setTypedId(e.target.value)}
+            style={{ padding: '6px', marginRight: '8px' }}
+          />
+          <button
+            disabled={typedId !== String(order.id)}
+            onClick={async () => {
+              try {
+                await deleteOrderFiles(order.id);
+                await deleteOrder(order.id);
+                navigate('/');
+              } catch (err) {
+                alert('Failed to delete order: ' + err.message);
+              }
+            }}
+            style={{
+              backgroundColor: typedId === String(order.id) ? '#dc2626' : '#ccc',
+              color: '#fff',
+              padding: '6px 12px',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: typedId === String(order.id) ? 'pointer' : 'not-allowed'
+            }}
+          >
+            Confirm Delete
+          </button>
+        </div>
+      )}
     </div>
     <div className="flex flex-wrap text-sm mt-6 gap-4">
         <div className="flex items-center gap-2">
