@@ -2,13 +2,17 @@ import supabase from "../supabaseClient";
 
 // Fetch full order details: order, customer, and steps
 export async function getOrderById(orderId) {
+  console.log("[getOrderById] Fetching order", orderId);
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select("*")
     .eq("id", orderId)
     .single();
 
-  if (orderError || !order) throw new Error("Order not found");
+  if (orderError || !order) {
+    console.error("[getOrderById] Order fetch failed", orderError, order);
+    throw new Error("Order not found");
+  }
 
   const { data: customer, error: customerError } = await supabase
     .from("customers")
@@ -16,11 +20,19 @@ export async function getOrderById(orderId) {
     .eq("id", order.customer_id)
     .single();
 
+  if (customerError) {
+    console.warn("[getOrderById] Customer fetch failed", customerError);
+  }
+
   const { data: steps, error: stepsError } = await supabase
     .from("order_steps")
     .select("*")
     .eq("order_id", orderId)
     .order("start_date", { ascending: true });
+
+  if (stepsError) {
+    console.warn("[getOrderById] Steps fetch failed", stepsError);
+  }
 
   return {
     ...order,
