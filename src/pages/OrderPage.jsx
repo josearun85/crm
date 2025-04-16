@@ -136,7 +136,6 @@ const id = parseInt(rawId, 10);
 
   const validatedTasks = steps
     .map((step, index) => {
-      console.log('Evaluating step:', step); // Add this
       if (!step || typeof step !== 'object') {
         console.log('Skipped invalid step object at index', index);
         return null;
@@ -175,7 +174,6 @@ const id = parseInt(rawId, 10);
         }
       };
 
-      console.log('Validated task:', task);
       return task;
     })
     .filter(Boolean);
