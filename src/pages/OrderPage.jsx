@@ -140,38 +140,63 @@ export default function OrderPage() {
           <button onClick={() => setMenuOpen(prev => !prev)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>⋮</button>
           {menuOpen && (
             <div style={{ position: 'absolute', top: '2rem', right: 0, background: '#fff', border: '1px solid #ccc', padding: '0.5rem', borderRadius: '4px', zIndex: 10, width: '220px' }}>
-              <p style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-                Type <strong>{order.id}</strong> to confirm:
-              </p>
-              <input
-                type="text"
-                value={typedId}
-                onChange={(e) => setTypedId(e.target.value)}
-                style={{ width: '100%', padding: '6px', marginBottom: '0.5rem' }}
-              />
-              <button
-                disabled={typedId !== String(order.id)}
-                onClick={async () => {
-                  try {
-                    await deleteOrderFiles(order.id);
-                    await deleteOrder(order.id);
-                    navigate('/');
-                  } catch (err) {
-                    alert('Failed to delete order: ' + err.message);
-                  }
-                }}
-                style={{
-                  backgroundColor: typedId === String(order.id) ? '#dc2626' : '#ccc',
-                  color: '#fff',
-                  padding: '6px 12px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: typedId === String(order.id) ? 'pointer' : 'not-allowed',
-                  width: '100%'
-                }}
-              >
-                Confirm Delete
-              </button>
+              {!confirmingDelete ? (
+                <button
+                  onClick={() => setConfirmingDelete(true)}
+                  style={{
+                    backgroundColor: '#dc2626',
+                    color: '#fff',
+                    padding: '6px 12px',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    width: '100%'
+                  }}
+                >
+                  Delete Order
+                </button>
+              ) : (
+                <>
+                  <p style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+                    Type <strong>{order.id}</strong> to confirm:
+                  </p>
+                  <input
+                    type="text"
+                    value={typedId}
+                    onChange={(e) => setTypedId(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '6px',
+                      marginBottom: '0.5rem',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px'
+                    }}
+                  />
+                  <button
+                    disabled={typedId !== String(order.id)}
+                    onClick={async () => {
+                      try {
+                        await deleteOrderFiles(order.id);
+                        await deleteOrder(order.id);
+                        navigate('/');
+                      } catch (err) {
+                        alert('Failed to delete order: ' + err.message);
+                      }
+                    }}
+                    style={{
+                      backgroundColor: typedId === String(order.id) ? '#dc2626' : '#ccc',
+                      color: '#fff',
+                      padding: '6px 12px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: typedId === String(order.id) ? 'pointer' : 'not-allowed',
+                      width: '100%'
+                    }}
+                  >
+                    Confirm Delete
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
