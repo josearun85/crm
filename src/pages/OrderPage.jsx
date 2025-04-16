@@ -114,7 +114,11 @@ export default function OrderPage() {
 
   const validatedTasks = steps
     .map((step, index) => {
-      if (!step || typeof step !== 'object') return null;
+      console.log("Validating step", index, step);
+      if (!step || typeof step !== 'object') {
+        console.warn("Invalid step skipped:", step);
+        return null;
+      }
       const parsedStart = moment(step.start_date);
       const parsedEnd = moment(step.end_date);
       if (!parsedStart.isValid() || !parsedEnd.isValid()) return null;
