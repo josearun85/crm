@@ -12,6 +12,7 @@ export default function OrderPage() {
   console.log('[OrderPage] Component mount');
   
   const { id } = useParams();
+  console.log('[OrderPage] useParams id:', id);
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [customerName, setCustomerName] = useState('');
@@ -32,7 +33,7 @@ export default function OrderPage() {
   }, []);
 
   useEffect(() => {
-    console.log('[OrderPage] going to fetch data');
+    console.log('[OrderPage] going to fetch data',id);
 
     fetchData();
   }, [id]);
