@@ -9,7 +9,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 export default function OrderPage() {
-  console.log("[OrderPage] Component mount");
+  console.log('[OrderPage] Component mount');
+  
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -31,18 +32,15 @@ export default function OrderPage() {
   }, []);
 
   useEffect(() => {
-    console.log("[OrderPage] useEffect triggered with id:", id);
     fetchData();
   }, [id]);
 
   const fetchData = async () => {
-    console.log("[OrderPage] fetchData start");
     setLoading(true);
     try {
       const data = await getOrderById(id);
-      console.log("[OrderPage] fetchData received data:", data);
+      console.log('[OrderPage] Fetched data:', data);
       if (data.due_date) data.due_date = new Date(data.due_date);
-      console.log("[OrderPage] setting order with:", data);
       setOrder({
         id: data.id,
         status: data.status || "new",
@@ -54,13 +52,13 @@ export default function OrderPage() {
     } catch (err) {
       console.error('Failed to fetch order:', err);
     } finally {
+      console.log('[OrderPage] Finished loading order with ID:', id);
       setLoading(false);
     }
   };
 
   useEffect(() => {
     if (!order?.id || !order.due_date) return;
-    console.log("[OrderPage] Updating order:", order);
     const patch = {
       status: order.status,
       due_date: order.due_date.toISOString().slice(0, 10),
@@ -115,6 +113,7 @@ export default function OrderPage() {
   }
 
   if (!order) {
+    console.log('[OrderPage] Order object is null:', order);
     return <p>Order not found.</p>;
   }
 
