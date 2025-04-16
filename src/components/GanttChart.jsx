@@ -81,6 +81,18 @@ export default function GanttChart({
   return (
     <div className="gantt-wrapper" style={{ maxWidth: '100vw' }}>
       <div className="overflow-x-auto border rounded bg-white">
+        <div className="task-list-mobile" style={{ display: 'none' }}>
+          {steps.map((step, index) => {
+            const formattedStartDate = new Date(step.start).toLocaleDateString();
+            const formattedEndDate = new Date(step.end).toLocaleDateString();
+            return (
+              <div key={index} style={{ margin: '10px 0', padding: '10px', border: '1px solid #ccc' }}>
+                <strong>{step.description}</strong>
+                <div>{formattedStartDate} - {formattedEndDate}</div>
+              </div>
+            );
+          })}
+        </div>
         <div className="relative">
           <Gantt
             tasks={styledTasks}
@@ -100,11 +112,12 @@ export default function GanttChart({
           }
 
           @media (max-width: 768px) {
-            .gantt .gantt-table .gantt-table-header,
-            .gantt .gantt-table .gantt-table-content {
-              font-size: 9px;
+            .gantt .gantt-table {
+              display: none;
             }
-
+            .task-list-mobile {
+              display: block;
+            }
             .gantt .gantt-container {
               min-width: 100vw;
             }
