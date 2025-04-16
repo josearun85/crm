@@ -114,20 +114,28 @@ export default function OrderPage() {
 
   const validatedTasks = steps
     .map((step, index) => {
-      console.log("Validating step", index, step);
+      console.log('Evaluating step:', step); // Add this
       if (!step || typeof step !== 'object') {
-        console.warn("Invalid step skipped:", step);
+        console.log('Skipped invalid step object at index', index);
         return null;
       }
+
       const parsedStart = moment(step.start_date);
       const parsedEnd = moment(step.end_date);
-      if (!parsedStart.isValid() || !parsedEnd.isValid()) return null;
+
+      if (!parsedStart.isValid() || !parsedEnd.isValid()) {
+        console.log('Invalid date range in step:', step);
+        return null;
+      }
 
       const start = parsedStart.toDate();
       const end = parsedEnd.toDate();
-      if (!(end > start)) return null;
+      if (!(end > start)) {
+        console.log('End date is not after start date in step:', step);
+        return null;
+      }
 
-      return {
+      const task = {
         id: `${order.id}-step-${index}`,
         name: step.description,
         start,
@@ -144,6 +152,9 @@ export default function OrderPage() {
             "#e5e7eb"
         }
       };
+
+      console.log('Validated task:', task);
+      return task;
     })
     .filter(Boolean);
 
