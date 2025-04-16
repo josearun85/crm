@@ -19,8 +19,7 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
       </div>
       <div className="order-summary">
         {customer.orders?.map(order => {
-          const isOverdue = moment(order.due_date).isBefore(moment(), 'day');
-
+          const isOverdue = moment(order.due_date).isBefore(moment(), 'day') && order.status !== 'CLOSED';
           const statusColorMap = {
             NEW: '#fff9c4',
             HOLD: '#ffe0b2',
