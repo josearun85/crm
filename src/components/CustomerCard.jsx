@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './CustomerCard.css';
 import { updateOrder } from '../services/orderService';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
+import { deleteCustomerWithFiles } from '../services/customerService';
 
 export default function CustomerCard({ customer, onOrderUpdated }) { 
   const navigate = useNavigate();
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [typedName, setTypedName] = useState('');
+
   const goToGantt = (orderId) => {
     navigate(`/orders/${orderId}`);
   };
@@ -16,10 +21,49 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
         <h3>{customer.name}</h3>
         <p>{customer.phone}</p>
         <p>{customer.email}</p>
+        <button onClick={() => setShowConfirm(true)} style={{ marginTop: '1rem', backgroundColor: '#f44336', color: '#fff', padding: '6px 10px', border: 'none', borderRadius: '4px' }}>
+          Delete Customer
+        </button>
+        {showConfirm && (
+          <div style={{ marginTop: '0.5rem' }}>
+            <p>Type <strong>{customer.name}</strong> to confirm deletion:</p>
+            <input
+              type="text"
+              value={typedName}
+              onChange={(e) => setTypedName(e.target.value)}
+              style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc', marginBottom: '6px' }}
+            />
+            <br />
+            <button
+              disabled={typedName !== customer.name}
+              onClick={async () => {
+                try {
+                  await deleteCustomerWithFiles(customer.id);
+                  if (onOrderUpdated) onOrderUpdated();
+                  setShowConfirm(false);
+                  setTypedName('');
+                } catch (err) {
+                  alert('Failed to delete customer: ' + err.message);
+                }
+              }}
+              style={{
+                backgroundColor: typedName === customer.name ? '#d32f2f' : '#ccc',
+                color: '#fff',
+                padding: '6px 10px',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: typedName === customer.name ? 'pointer' : 'not-allowed'
+              }}
+            >
+              Confirm Delete
+            </button>
+          </div>
+        )}
       </div>
       <div className="order-summary">
         {customer.orders?.map(order => {
-          const isOverdue = moment(order.due_date).isBefore(moment(), 'day') && order.status !== 'CLOSED';
+          const isOverdue = moment(order.due_date).isBefore(moment(), 'day') && order.status?.toUpperCase() !== 'CLOSED';
+
           const statusColorMap = {
             NEW: '#fff9c4',
             HOLD: '#ffe0b2',

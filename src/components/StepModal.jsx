@@ -53,7 +53,7 @@ export default function StepModal({ step, onClose, onSave }) {
     };
 
     if (file) {
-      const uploadedPath = await uploadFile(file);
+      const uploadedPath = await uploadFile(file, `orders/${step.order_id}/steps/${step.id}`);
       updates.files = [...(step.files || []), { name: file.name, path: uploadedPath }];
     }
 

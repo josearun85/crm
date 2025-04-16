@@ -71,3 +71,20 @@ export function getPublicUrl(filePath) {
 }
 
 export { deleteFile as deleteSupabaseFile };
+
+export async function deleteOrderFiles(orderId) {
+  // Step 1: Delete files from storage
+  const { data: files, error: listError } = await supabase
+    .storage
+    .from("crm")
+    .list(`orders/${orderId}`, { recursive: true });
+
+  if (listError) throw listError;
+
+  const paths = files?.map(f => `orders/${orderId}/${f.name}`) || [];
+
+  if (paths.length > 0) {
+    const { error: removeError } = await supabase.storage.from("crm").remove(paths);
+    if (removeError) throw removeError;
+  }
+}

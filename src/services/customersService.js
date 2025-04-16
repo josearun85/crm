@@ -5,3 +5,8 @@ export async function getCustomers() {
   if (error) throw error;
   return data;
 }
+
+export async function deleteCustomer(id) {
+  const { error } = await supabase.from('customers').delete().eq('id', id);
+  if (error) throw error;
+}
