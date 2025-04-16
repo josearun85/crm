@@ -73,18 +73,27 @@ export function getPublicUrl(filePath) {
 export { deleteFile as deleteSupabaseFile };
 
 export async function deleteOrderFiles(orderId) {
-  // Step 1: Delete files from storage
-  const { data: files, error: listError } = await supabase
-    .storage
-    .from("crm")
-    .list(`orders/${orderId}`, { recursive: true });
+  const bucket = supabase.storage.from("crm");
 
-  if (listError) throw listError;
+  // Delete files directly under orders/{orderId}/
+  const { data: baseFiles, error: baseError } = await bucket.list(`orders/${orderId}`, { recursive: false });
+  if (baseError) throw baseError;
+  const basePaths = baseFiles?.map(f => `orders/${orderId}/${f.name}`) || [];
 
-  const paths = files?.map(f => `orders/${orderId}/${f.name}`) || [];
+  // Fetch step folders inside orders/{orderId}/steps/
+  const { data: stepFolders, error: stepsError } = await bucket.list(`orders/${orderId}/steps`, { recursive: false });
+  if (stepsError) throw stepsError;
 
-  if (paths.length > 0) {
-    const { error: removeError } = await supabase.storage.from("crm").remove(paths);
+  let stepPaths = [];
+  for (const folder of stepFolders || []) {
+    const { data: stepFiles } = await bucket.list(`orders/${orderId}/steps/${folder.name}`, { recursive: true });
+    const paths = stepFiles?.map(f => `orders/${orderId}/steps/${folder.name}/${f.name}`) || [];
+    stepPaths = stepPaths.concat(paths);
+  }
+
+  const allPaths = [...basePaths, ...stepPaths];
+  if (allPaths.length > 0) {
+    const { error: removeError } = await bucket.remove(allPaths);
     if (removeError) throw removeError;
   }
 }
