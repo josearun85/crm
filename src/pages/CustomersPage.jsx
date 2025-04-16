@@ -98,26 +98,25 @@ export default function CustomersPage() {
         <p>Loading...</p>
       ) : (
         <table className="customers-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Sales Stage</th>
-              <th>Orders</th>
-              <th>Follow Up</th>
-            </tr>
-          </thead>
           <tbody>
             {customers.map(customer => (
               <tr key={customer.id}>
-                <td colSpan="6" style={{ padding: 0 }}>
-                  <>
-                    <CustomerCard customer={customer} onOrderUpdated={fetchData} />
-                    <div style={{ textAlign: 'right', padding: '0.5rem 1rem' }}>
+                <td style={{ padding: '1rem', background: '#f8f8f8', borderRadius: '8px' }}>
+                  <div style={{ padding: '1rem', border: '1px solid #ccc', borderRadius: '6px', background: '#fff' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div><strong>Customer:</strong> {customer.name}</div>
+                        <div><strong>Phone:</strong> {customer.phone}</div>
+                        <div><strong>Email:</strong> {customer.email}</div>
+                      </div>
+                      <div>
+                        <CustomerCard customer={customer} onOrderUpdated={fetchData} />
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', marginTop: '1rem' }}>
                       <button onClick={() => createOrderWithSteps(customer.id)}>+ Add Order</button>
                     </div>
-                  </>
+                  </div>
                 </td>
               </tr>
             ))}
