@@ -55,16 +55,16 @@ const id = parseInt(rawId, 10);
     }
   };
 
-  useEffect(() => {
-    if (!order?.id || !order.due_date) return;
-    const patch = {
-      status: order.status,
-      due_date: order.due_date.toISOString().slice(0, 10),
-    };
-    updateOrder(order.id, patch).catch(err => {
-      console.error('Failed to update order:', err);
-    });
-  }, [order.status, order.due_date]);
+  // useEffect(() => {
+  //   if (!order?.id || !order.due_date) return;
+  //   const patch = {
+  //     status: order.status,
+  //     due_date: order.due_date.toISOString().slice(0, 10),
+  //   };
+  //   updateOrder(order.id, patch).catch(err => {
+  //     console.error('Failed to update order:', err);
+  //   });
+  // }, [order.status, order.due_date]);
   useEffect(() => {
     console.log("heelo")
     fetchData();
