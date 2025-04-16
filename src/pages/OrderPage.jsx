@@ -13,7 +13,7 @@ export default function OrderPage() {
   
   const { id: rawId } = useParams();
 const id = parseInt(rawId, 10);
-  console.log('[OrderPage] useParams id:', id);
+  console.log('[OrderPage] useParams id:', id,rawId);
   console.trace('[TRACE] where is this bad id coming from?');
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
