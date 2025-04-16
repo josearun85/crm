@@ -27,20 +27,7 @@ const id = parseInt(rawId, 10);
   const [typedId, setTypedId] = useState('');
   console.log('28');
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-
-  useEffect(() => {
-    console.log('[OrderPage] going to fetch data',id);
-
-    fetchData();
-  }, [id]);
-  console.log('43');
+ 
 
   const fetchData = async () => {
     setLoading(true);
@@ -78,6 +65,20 @@ const id = parseInt(rawId, 10);
       console.error('Failed to update order:', err);
     });
   }, [order.status, order.due_date]);
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  useEffect(() => {
+    console.log('[OrderPage] going to fetch data',id);
+
+    fetchData();
+  }, [id]);
+  console.log('43');
 
   const handleDueDateChange = (date) => {
     setOrder(prev => ({ ...prev, due_date: date }));
