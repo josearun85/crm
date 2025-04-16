@@ -9,11 +9,9 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 export default function OrderPage() {
-  console.log('[OrderPage] Component mount');
   
   const { id: rawId } = useParams();
 const id = parseInt(rawId, 10);
-  console.log('[OrderPage] useParams id:', id,rawId);
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [customerName, setCustomerName] = useState('');
@@ -55,7 +53,7 @@ const id = parseInt(rawId, 10);
    useEffect(() => {
     fetchData();
   }, [id]);
-  
+
   useEffect(() => {
     console.log("heelo")
     const handleMouseMove = (e) => {

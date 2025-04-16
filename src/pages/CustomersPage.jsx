@@ -26,6 +26,7 @@ export default function CustomersPage() {
       console.error('Error fetching customers:', error);
     } else {
       setCustomers(data);
+      console.log('[CustomersPage] Order status for each customer:', data.map(c => ({ customer: c.name, orders: c.orders.map(o => o.status) })));
     }
 
     setLoading(false);
@@ -99,7 +100,7 @@ export default function CustomersPage() {
                         description: name,
                         start_date: start.toISOString().slice(0, 10),
                         end_date: end.toISOString().slice(0, 10),
-                        status: 'OPEN',
+                        status: 'NEW',
                         delayed: false,
                         files: [],
                         comments: []

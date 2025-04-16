@@ -71,16 +71,17 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
       </div>
       <div className="order-summary">
         {customer.orders?.map(order => {
-          const isOverdue = moment(order.due_date).isBefore(moment(), 'day') && order.status?.toUpperCase() !== 'CLOSED';
+          const normalizedStatus = order.status?.toUpperCase();
+          const isOverdue = moment(order.due_date).isBefore(moment(), 'day') && normalizedStatus !== 'CLOSED';
 
           const statusColorMap = {
             NEW: '#fff9c4',
+            "IN PROGRESS": '#fff9c4',
             HOLD: '#ffe0b2',
             CLOSED: '#c8e6c9',
             DELAYED: '#ffcdd2',
-            'IN PROGRESS': '#bbdefb'
           };
-          const bgColor = isOverdue ? '#ffcdd2' : (statusColorMap[order.status] || '#f5f5f5');
+          const bgColor = isOverdue ? '#ffcdd2' : (statusColorMap[normalizedStatus] || '#f5f5f5');
 
           return (
             <tr key={`order-${order.id}`}>
@@ -116,9 +117,9 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
                     <label>
                       Status:{' '}
                       <select
-                        value={order.status}
+                        value={normalizedStatus}
                         onChange={(e) => {
-                          updateOrder(order.id, { status: e.target.value });
+                          updateOrder(order.id, { status: e.target.value.toLowerCase() });
                           if (onOrderUpdated) onOrderUpdated();
                         }}
                         style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
