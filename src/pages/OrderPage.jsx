@@ -66,6 +66,7 @@ const id = parseInt(rawId, 10);
     });
   }, [order.status, order.due_date]);
   useEffect(() => {
+    console.log("heelo")
     fetchData();
     const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
