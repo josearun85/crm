@@ -10,6 +10,7 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
   const [typedName, setTypedName] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const goToGantt = (orderId) => {
     navigate(`/orders/${orderId}`);
@@ -19,11 +20,18 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
     <div className="customer-card"> 
       <div className="customer-info">
         <h3>{customer.name}</h3>
+        <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
+          <button onClick={() => setMenuOpen(prev => !prev)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>⋮</button>
+          {menuOpen && (
+            <div style={{ position: 'absolute', top: '1.5rem', right: 0, background: '#fff', border: '1px solid #ccc', padding: '0.5rem', borderRadius: '4px' }}>
+              <button onClick={() => { setMenuOpen(false); setShowConfirm(true); }} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>
+                Delete Customer
+              </button>
+            </div>
+          )}
+        </div>
         <p>{customer.phone}</p>
         <p>{customer.email}</p>
-        <button onClick={() => setShowConfirm(true)} style={{ marginTop: '1rem', backgroundColor: '#f44336', color: '#fff', padding: '6px 10px', border: 'none', borderRadius: '4px' }}>
-          Delete Customer
-        </button>
         {showConfirm && (
           <div style={{ marginTop: '0.5rem' }}>
             <p>Type <strong>{customer.name}</strong> to confirm deletion:</p>
