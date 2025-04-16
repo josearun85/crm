@@ -154,7 +154,42 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
               return;
             }
 
-            if (onOrderUpdated) onOrderUpdated();
+            const stepNames = [
+              'Site Visit',
+              'Design approval',
+              'Cost estimate',
+              'Advance payment',
+              'Letter cutting order',
+              'Template specification',
+              'Letter fixing preparation',
+              'Letter placement'
+            ];
+
+            const today = new Date();
+            const steps = stepNames.map((name, index) => {
+              const start = new Date(today);
+              start.setDate(start.getDate() + index * 2);
+              const end = new Date(start);
+              end.setDate(end.getDate() + 1);
+              return {
+                order_id: order.id,
+                description: name,
+                start_date: start.toISOString().slice(0, 10),
+                end_date: end.toISOString().slice(0, 10),
+                status: 'OPEN',
+                delayed: false,
+                files: [],
+                comments: []
+              };
+            });
+
+            const { error: stepError } = await supabase.from('order_steps').insert(steps);
+            if (stepError) {
+              console.error('Error inserting default steps:', stepError);
+              return;
+            }
+
+            navigate(`/orders/${order.id}`);
           }}
           style={{
             backgroundColor: '#1976d2',
