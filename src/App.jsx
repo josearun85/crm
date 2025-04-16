@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import CustomersPage from './pages/CustomersPage.jsx'
 import OrderPage from './pages/OrderPage.jsx'
-import InvoicesPage from './pages/InvoicesPage.jsx'
+// import InvoicesPage from './pages/InvoicesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import Navbar from './components/Navbar.jsx'
 import supabase from './supabaseClient'
@@ -39,21 +39,15 @@ export default function App() {
   return (
     <>
       {showNavbar && <Navbar session={session} />}
-      <Routes>
-        <Route path="/" element={<Navigate to="/customers" />} />
+      <Routes key={session ? 'auth' : 'guest'}>
         <Route path="/login" element={<LoginPage />} />
-
-        {session ? (
-          <>
-            <Route path="/customers" element={<CustomersPage />} />
-            <Route path="/orders/:id" element={<OrderPage />} />
-            <Route path="/invoices" element={<InvoicesPage />} />
-          </>
+        {!session ? (
+          <Route path="*" element={<Navigate to="/login" />} />
         ) : (
           <>
-            <Route path="/customers" element={<Navigate to="/login" />} />
-            <Route path="/orders/:id" element={<Navigate to="/login" />} />
-            <Route path="/invoices" element={<Navigate to="/login" />} />
+            <Route path="/" element={<Navigate to="/customers" />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/orders/:id" element={<OrderPage />} />
           </>
         )}
       </Routes>
