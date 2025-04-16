@@ -11,7 +11,8 @@ import "react-datepicker/dist/react-datepicker.css";
 export default function OrderPage() {
   console.log('[OrderPage] Component mount');
   
-  const { id } = useParams();
+  const { id: rawId } = useParams();
+const id = parseInt(rawId, 10);
   console.log('[OrderPage] useParams id:', id);
   console.trace('[TRACE] where is this bad id coming from?');
   const navigate = useNavigate();
