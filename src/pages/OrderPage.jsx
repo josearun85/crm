@@ -40,7 +40,7 @@ export default function OrderPage() {
       if (data.due_date) data.due_date = new Date(data.due_date);
       setOrder({
         id: data.id,
-        status: data.status,
+        status: data.status || "new",
         due_date: data.due_date,
         customer_id: data.customer_id
       });
