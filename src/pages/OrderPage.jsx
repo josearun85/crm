@@ -14,7 +14,6 @@ export default function OrderPage() {
   const { id: rawId } = useParams();
 const id = parseInt(rawId, 10);
   console.log('[OrderPage] useParams id:', id,rawId);
-  console.trace('[TRACE] where is this bad id coming from?');
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [customerName, setCustomerName] = useState('');
@@ -25,7 +24,6 @@ const id = parseInt(rawId, 10);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [typedId, setTypedId] = useState('');
-  console.log('29');
 
  
 
@@ -33,7 +31,6 @@ const id = parseInt(rawId, 10);
     setLoading(true);
     try {
       const data = await getOrderById(id);
-      console.log('[OrderPage] Raw response from getOrderById:', data);
       if (data && typeof data === 'object') {
         if (data.due_date) data.due_date = new Date(data.due_date);
         setOrder({
@@ -56,11 +53,9 @@ const id = parseInt(rawId, 10);
   };
 
    useEffect(() => {
-    console.log('[OrderPage] going to fetch data',id);
     fetchData();
-
-    
   }, [id]);
+  
   useEffect(() => {
     console.log("heelo")
     const handleMouseMove = (e) => {
