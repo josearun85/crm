@@ -4,7 +4,7 @@ import { updateOrder } from '../services/orderService';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { deleteCustomerWithFiles } from '../services/customersService';
+import { deleteCustomerWithFiles } from '../services/customerService';
 
 export default function CustomerCard({ customer, onOrderUpdated }) { 
   const navigate = useNavigate();
