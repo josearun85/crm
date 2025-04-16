@@ -55,9 +55,14 @@ const id = parseInt(rawId, 10);
     }
   };
 
+   useEffect(() => {
+    console.log('[OrderPage] going to fetch data',id);
+    fetchData();
+
+    
+  }, [id]);
   useEffect(() => {
     console.log("heelo")
-    fetchData();
     const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
     };
@@ -74,14 +79,10 @@ const id = parseInt(rawId, 10);
     updateOrder(order.id, patch).catch(err => {
       console.error('Failed to update order:', err);
     });
-  }, [order.status, order.due_date]);
+  }, [order]);
 
 
-  // useEffect(() => {
-  //   console.log('[OrderPage] going to fetch data',id);
-
-    
-  // }, [id]);
+ 
   // console.log('43');
 
   const handleDueDateChange = (date) => {
