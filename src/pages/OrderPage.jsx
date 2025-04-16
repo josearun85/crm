@@ -25,6 +25,7 @@ const id = parseInt(rawId, 10);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [typedId, setTypedId] = useState('');
+  console.log('28');
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -39,6 +40,7 @@ const id = parseInt(rawId, 10);
 
     fetchData();
   }, [id]);
+  console.log('43');
 
   const fetchData = async () => {
     setLoading(true);
