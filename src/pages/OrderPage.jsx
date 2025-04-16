@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderById, updateStep, deleteOrder, deleteOrderFiles } from '../services/orderService';
+import { getOrderById, updateStep, deleteOrder, deleteOrderFiles, updateOrder } from '../services/orderService';
 import './OrderPage.css';
 import StepModal from '../components/StepModal';
 import moment from "moment";
@@ -52,6 +52,17 @@ export default function OrderPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!order?.id) return;
+    const patch = {
+      status: order.status,
+      due_date: order.due_date.toISOString().slice(0, 10),
+    };
+    updateOrder(order.id, patch).catch(err => {
+      console.error('Failed to update order:', err);
+    });
+  }, [order.status, order.due_date]);
 
   const handleDueDateChange = (date) => {
     setOrder(prev => ({ ...prev, due_date: date }));
