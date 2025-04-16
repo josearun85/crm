@@ -54,7 +54,7 @@ export default function OrderPage() {
   };
 
   useEffect(() => {
-    if (!order?.id) return;
+    if (!order?.id || !order.due_date) return;
     const patch = {
       status: order.status,
       due_date: order.due_date.toISOString().slice(0, 10),
