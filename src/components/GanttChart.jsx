@@ -106,28 +106,7 @@ export default function GanttChart({
         </div>
       </div>
 
-      <style>
-        {`
-          .gantt .gantt-table .gantt-table-header,
-          .gantt .gantt-table .gantt-table-content {
-            font-size: 11px;
-          }
-
-          @media (max-width: 768px) {
-            .task-list-mobile {
-              display: block;
-            }
-            .gantt-wrapper .overflow-x-auto {
-              display: none;
-            }
-            .gantt .WuQQf,
-            .gantt .ZeEzQ {
-              min-width: unset !important;
-              width: auto !important;
-            }
-          }
-        `}
-      </style>
+      
     </div>
   );
 }
