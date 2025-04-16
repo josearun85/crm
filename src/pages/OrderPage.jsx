@@ -32,6 +32,8 @@ export default function OrderPage() {
   }, []);
 
   useEffect(() => {
+    console.log('[OrderPage] going to fetch data');
+
     fetchData();
   }, [id]);
 
@@ -39,16 +41,20 @@ export default function OrderPage() {
     setLoading(true);
     try {
       const data = await getOrderById(id);
-      console.log('[OrderPage] Fetched data:', data);
-      if (data.due_date) data.due_date = new Date(data.due_date);
-      setOrder({
-        id: data.id,
-        status: data.status || "new",
-        due_date: data.due_date,
-        customer_id: data.customer_id
-      });
-      setCustomerName(data.customer_name);
-      setSteps(data.steps || []);
+      console.log('[OrderPage] Raw response from getOrderById:', data);
+      if (data && typeof data === 'object') {
+        if (data.due_date) data.due_date = new Date(data.due_date);
+        setOrder({
+          id: data.id,
+          status: data.status || "new",
+          due_date: data.due_date,
+          customer_id: data.customer_id
+        });
+        setCustomerName(data.customer_name);
+        setSteps(data.steps || []);
+      } else {
+        console.warn('[OrderPage] Unexpected response format:', data);
+      }
     } catch (err) {
       console.error('Failed to fetch order:', err);
     } finally {
