@@ -17,9 +17,8 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
   };
 
   return (
-    <div className="customer-card"> 
-      <div className="customer-info" style={{ position: 'relative' }}>
-        <h3>{customer.name}</h3>
+    <div className="customer-card" style={{ background: '#fff', padding: '1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}> 
+      <div className="customer-info" style={{ marginBottom: '1rem', position: 'relative' }}>
         <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
           <button onClick={() => setMenuOpen(prev => !prev)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>⋮</button>
           {menuOpen && (
@@ -30,8 +29,10 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
             </div>
           )}
         </div>
-        <p>{customer.phone}</p>
-        <p>{customer.email}</p>
+        <p><strong>Customer:</strong> {customer.name}</p>
+        <p><strong>Phone:</strong> {customer.phone}</p>
+        <p><strong>Email:</strong> {customer.email}</p>
+
         {showConfirm && (
           <div style={{ marginTop: '0.5rem' }}>
             <p>Type <strong>{customer.name}</strong> to confirm deletion:</p>
@@ -135,6 +136,37 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
             </tr>
           );
         })}
+      </div>
+      <div style={{ marginTop: '1rem', textAlign: 'right' }}>
+        <button
+          onClick={async () => {
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 14);
+
+            const { data: order, error: orderError } = await supabase
+              .from('orders')
+              .insert([{ customer_id: customer.id, due_date: dueDate.toISOString().slice(0, 10) }])
+              .select()
+              .single();
+
+            if (orderError) {
+              console.error('Error creating order:', orderError);
+              return;
+            }
+
+            if (onOrderUpdated) onOrderUpdated();
+          }}
+          style={{
+            backgroundColor: '#1976d2',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '6px 12px',
+            cursor: 'pointer'
+          }}
+        >
+          + Add Order
+        </button>
       </div>
     </div>
   );
