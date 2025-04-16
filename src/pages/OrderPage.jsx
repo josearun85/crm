@@ -13,6 +13,7 @@ export default function OrderPage() {
   
   const { id } = useParams();
   console.log('[OrderPage] useParams id:', id);
+  console.trace('[TRACE] where is this bad id coming from?');
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [customerName, setCustomerName] = useState('');
