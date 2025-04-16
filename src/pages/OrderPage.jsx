@@ -25,7 +25,7 @@ const id = parseInt(rawId, 10);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [typedId, setTypedId] = useState('');
-  console.log('28');
+  console.log('29');
 
  
 
