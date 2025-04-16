@@ -98,8 +98,8 @@ export default function GanttChart({
           <Gantt
             tasks={styledTasks}
             viewMode={viewMode}
-            columnWidth={70}
-            listCellWidth="300px"
+            // columnWidth={70}
+            // listCellWidth="300px"
             onDateChange={onDateChange}
             onSelect={handleTaskClick}
           />
