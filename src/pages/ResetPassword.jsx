@@ -5,9 +5,16 @@ export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
   const [status, setStatus] = useState('');
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.substring(1));
+    const error_code = hash.get('error_code');
+    if (error_code === 'otp_expired') {
+      setError('This reset link has expired. Please request a new one.');
+      return;
+    }
+
     const access_token = hash.get('access_token');
     const refresh_token = hash.get('refresh_token');
     const type = hash.get('type');
@@ -51,7 +58,22 @@ export default function ResetPassword() {
         maxWidth: '400px'
       }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Reset Password</h2>
-        {ready ? (
+        {error ? (
+          <div>
+            <p style={{ color: '#b91c1c', marginBottom: '1rem' }}>{error}</p>
+            <a
+              href="/login"
+              style={{
+                color: '#1d4ed8',
+                textDecoration: 'underline',
+                fontWeight: 'bold',
+                display: 'inline-block'
+              }}
+            >
+              Go back to login
+            </a>
+          </div>
+        ) : ready ? (
           <form onSubmit={handleUpdatePassword}>
             <input
               type="password"
