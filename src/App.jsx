@@ -4,6 +4,7 @@ import CustomersPage from './pages/CustomersPage.jsx'
 import OrderPage from './pages/OrderPage.jsx'
 // import InvoicesPage from './pages/InvoicesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import ResetPassword from './pages/ResetPassword.jsx';
 import Navbar from './components/Navbar.jsx'
 import supabase from './supabaseClient'
 import './App.css'
@@ -41,6 +42,7 @@ export default function App() {
       {showNavbar && <Navbar session={session} />}
       <Routes key={session ? 'auth' : 'guest'}>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         {!session ? (
           <Route path="*" element={<Navigate to="/login" />} />
         ) : (

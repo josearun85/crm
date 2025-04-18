@@ -7,10 +7,10 @@ export default function ResetPassword() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const access_token = url.searchParams.get('access_token');
-    const refresh_token = url.searchParams.get('refresh_token');
-    const type = url.searchParams.get('type');
+    const hash = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = hash.get('access_token');
+    const refresh_token = hash.get('refresh_token');
+    const type = hash.get('type');
 
     if (type === 'recovery' && access_token && refresh_token) {
       supabase.auth.setSession({ access_token, refresh_token }).then(() => {
