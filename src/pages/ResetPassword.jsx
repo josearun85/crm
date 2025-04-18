@@ -11,6 +11,7 @@ export default function ResetPassword() {
     const hash = new URLSearchParams(window.location.hash.substring(1));
     const error_code = hash.get('error_code');
     if (error_code === 'otp_expired') {
+      console.warn('OTP expired error detected in URL hash');
       setError('This reset link has expired. Please request a new one.');
       return;
     }
@@ -18,9 +19,14 @@ export default function ResetPassword() {
     const access_token = hash.get('access_token');
     const refresh_token = hash.get('refresh_token');
     const type = hash.get('type');
+    console.log('Reset link hash:', window.location.hash);
+    console.log('Parsed access_token:', access_token);
+    console.log('Parsed refresh_token:', refresh_token);
+    console.log('Parsed type:', type);
 
     if (type === 'recovery' && access_token && refresh_token) {
       supabase.auth.setSession({ access_token, refresh_token }).then(() => {
+        console.log('Session set successfully, enabling reset form');
         setReady(true);
       });
     }

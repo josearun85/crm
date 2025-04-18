@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [showNewPasswordInput, setShowNewPasswordInput] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordUpdateMsg, setPasswordUpdateMsg] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -47,9 +48,11 @@ export default function LoginPage() {
 
   const handlePasswordReset = async (e) => {
     e.preventDefault()
+    setResetLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
       redirectTo: 'https://app.signcompany.in/reset-password',
     })
+    setResetLoading(false);
     if (error) {
       setResetMsg('Error: ' + error.message)
     } else {
@@ -100,74 +103,76 @@ export default function LoginPage() {
           maxWidth: '90vw'
         }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#000000' }}>Sign In</h2>
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '1rem' }}>
-              <input
-                type="email"
-                value={email}
-                placeholder="Email"
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: '0.5rem' }}>
-              <input
-                type="password"
-                value={password}
-                placeholder="Password"
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  fontSize: '1rem'
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem', textAlign: 'right' }}>
+          {!showResetForm && (
+            <form onSubmit={handleLogin}>
+              <div style={{ marginBottom: '1rem' }}>
+                <input
+                  type="email"
+                  value={email}
+                  placeholder="Email"
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    border: '1px solid #ccc',
+                    fontSize: '1rem'
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '0.5rem' }}>
+                <input
+                  type="password"
+                  value={password}
+                  placeholder="Password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    border: '1px solid #ccc',
+                    fontSize: '1rem'
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '1rem', textAlign: 'right' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowResetForm(!showResetForm)}
+                  style={{
+                    fontSize: '0.9rem',
+                    color: '#1d4ed8',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <button
-                type="button"
-                onClick={() => setShowResetForm(!showResetForm)}
+                type="submit"
+                disabled={loading}
                 style={{
-                  fontSize: '0.9rem',
-                  color: '#1d4ed8',
-                  background: 'none',
+                  backgroundColor: '#b91c1c',
+                  color: 'white',
                   border: 'none',
-                  cursor: 'pointer',
-                  textDecoration: 'underline'
+                  padding: '0.5rem 1rem',
+                  borderRadius: '4px',
+                  width: '100%',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
                 }}
               >
-                Forgot Password?
+                {loading ? 'Signing in...' : 'Login'}
               </button>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                backgroundColor: '#b91c1c',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '4px',
-                width: '100%',
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                cursor: 'pointer'
-              }}
-            >
-              {loading ? 'Signing in...' : 'Login'}
-            </button>
-            {message && <p style={{ marginTop: '1rem', color: '#333' }}>{message}</p>}
-          </form>
+              {message && <p style={{ marginTop: '1rem', color: '#333' }}>{message}</p>}
+            </form>
+          )}
 
           {showResetForm && (
             <form onSubmit={handlePasswordReset} style={{ marginTop: '1rem' }}>
@@ -188,6 +193,7 @@ export default function LoginPage() {
               />
               <button
                 type="submit"
+                disabled={resetLoading}
                 style={{
                   backgroundColor: '#1d4ed8',
                   color: 'white',
@@ -196,11 +202,12 @@ export default function LoginPage() {
                   fontSize: '0.9rem',
                   fontWeight: 'bold',
                   border: 'none',
-                  cursor: 'pointer',
-                  width: '100%'
+                  cursor: resetLoading ? 'not-allowed' : 'pointer',
+                  width: '100%',
+                  opacity: resetLoading ? 0.7 : 1
                 }}
               >
-                Send Reset Link
+                {resetLoading ? 'Sending...' : 'Send Reset Link'}
               </button>
               {resetMsg && <p style={{ marginTop: '0.5rem', color: '#333' }}>{resetMsg}</p>}
             </form>
