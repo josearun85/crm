@@ -8,26 +8,39 @@ export default function ResetPassword() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const hash = new URLSearchParams(window.location.hash.substring(1));
-    const error_code = hash.get('error_code');
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const error_code = hashParams.get('error_code');
     if (error_code === 'otp_expired') {
       console.warn('OTP expired error detected in URL hash');
       setError('This reset link has expired. Please request a new one.');
       return;
     }
 
-    const access_token = hash.get('access_token');
-    const refresh_token = hash.get('refresh_token');
-    const type = hash.get('type');
+    const access_token = hashParams.get('access_token');
+    const refresh_token = hashParams.get('refresh_token');
+    const type = hashParams.get('type');
+    const token = hashParams.get('token');
+
     console.log('Reset link hash:', window.location.hash);
     console.log('Parsed access_token:', access_token);
     console.log('Parsed refresh_token:', refresh_token);
     console.log('Parsed type:', type);
+    console.log('Parsed token:', token);
 
-    if (type === 'recovery' && access_token && refresh_token) {
+    if (access_token && refresh_token && type === 'recovery') {
       supabase.auth.setSession({ access_token, refresh_token }).then(() => {
         console.log('Session set successfully, enabling reset form');
         setReady(true);
+      });
+    } else if (token && type === 'recovery') {
+      supabase.auth.exchangeCodeForSession({ token }).then(({ data, error }) => {
+        if (error) {
+          console.error('Exchange failed:', error.message);
+          setError('Session could not be validated. Please request a new reset link.');
+        } else {
+          console.log('Session established via exchangeCodeForSession');
+          setReady(true);
+        }
       });
     }
   }, []);
