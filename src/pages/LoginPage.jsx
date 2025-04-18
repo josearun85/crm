@@ -48,7 +48,7 @@ export default function LoginPage() {
   const handlePasswordReset = async (e) => {
     e.preventDefault()
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: window.location.href
+      redirectTo: 'https://app.signcompany.in/reset-password',
     })
     if (error) {
       setResetMsg('Error: ' + error.message)
