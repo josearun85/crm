@@ -4,7 +4,6 @@ import supabase from '../supabaseClient';
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
   const [status, setStatus] = useState('');
-  const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -29,8 +28,7 @@ export default function ResetPassword() {
 
     if (access_token && refresh_token && type === 'recovery') {
       supabase.auth.setSession({ access_token, refresh_token }).then(() => {
-        console.log('Session set successfully, enabling reset form');
-        setReady(true);
+        console.log('Session set successfully');
       });
     } else if (token && type === 'recovery') {
       supabase.auth.exchangeCodeForSession({ token }).then(({ data, error }) => {
@@ -39,7 +37,6 @@ export default function ResetPassword() {
           setError('Session could not be validated. Please request a new reset link.');
         } else {
           console.log('Session established via exchangeCodeForSession');
-          setReady(true);
         }
       });
     }
@@ -92,7 +89,7 @@ export default function ResetPassword() {
               Go back to login
             </a>
           </div>
-        ) : ready ? (
+        ) : (
           <form onSubmit={handleUpdatePassword}>
             <input
               type="password"
@@ -126,8 +123,6 @@ export default function ResetPassword() {
             </button>
             {status && <p style={{ marginTop: '1rem', color: '#333' }}>{status}</p>}
           </form>
-        ) : (
-          <p>Loading reset form...</p>
         )}
       </div>
     </div>
