@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import supabase from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
 
@@ -10,7 +10,27 @@ export default function LoginPage() {
   const [showResetForm, setShowResetForm] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
   const [resetMsg, setResetMsg] = useState('')
+  const [showNewPasswordInput, setShowNewPasswordInput] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordUpdateMsg, setPasswordUpdateMsg] = useState('');
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const type = url.searchParams.get('type');
+    if (type === 'recovery') {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+          supabase.auth.setSession({
+            access_token: url.searchParams.get('access_token'),
+            refresh_token: url.searchParams.get('refresh_token'),
+          });
+        }
+        setShowResetForm(false);
+        setShowNewPasswordInput(true);
+      });
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -20,8 +40,6 @@ export default function LoginPage() {
       setMessage('Error: ' + error.message)
     } else {
       setMessage('')
-      // Make sure the '/customers' route is protected and only accessible to authenticated users.
-      // Consider adding a session check on that page.
       navigate('/customers')
     }
     setLoading(false)
@@ -30,7 +48,7 @@ export default function LoginPage() {
   const handlePasswordReset = async (e) => {
     e.preventDefault()
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: window.location.origin + '/reset-password'
+      redirectTo: window.location.href
     })
     if (error) {
       setResetMsg('Error: ' + error.message)
@@ -38,6 +56,17 @@ export default function LoginPage() {
       setResetMsg('✅ Password reset email sent')
     }
   }
+
+  const handleNewPasswordUpdate = async (e) => {
+    e.preventDefault();
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      setPasswordUpdateMsg('Error: ' + error.message);
+    } else {
+      setPasswordUpdateMsg('✅ Password updated successfully. Please login.');
+      setShowNewPasswordInput(false);
+    }
+  };
 
   return (
     <div style={{
@@ -174,6 +203,43 @@ export default function LoginPage() {
                 Send Reset Link
               </button>
               {resetMsg && <p style={{ marginTop: '0.5rem', color: '#333' }}>{resetMsg}</p>}
+            </form>
+          )}
+
+          {showNewPasswordInput && (
+            <form onSubmit={handleNewPasswordUpdate} style={{ marginTop: '1rem' }}>
+              <p style={{ marginBottom: '0.5rem' }}>Enter your new password:</p>
+              <input
+                type="password"
+                value={newPassword}
+                placeholder="New Password"
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  marginBottom: '0.5rem'
+                }}
+              />
+              <button
+                type="submit"
+                style={{
+                  backgroundColor: '#15803d',
+                  color: 'white',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '4px',
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold',
+                  border: 'none',
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
+              >
+                Update Password
+              </button>
+              {passwordUpdateMsg && <p style={{ marginTop: '0.5rem', color: '#333' }}>{passwordUpdateMsg}</p>}
             </form>
           )}
         </div>
