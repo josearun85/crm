@@ -4,6 +4,7 @@ import supabase from '../../supabaseClient';
 export default function CustomerQuickForm({ onCreated, onInputChange }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [followUpOn, setFollowUpOn] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -14,7 +15,7 @@ export default function CustomerQuickForm({ onCreated, onInputChange }) {
       return;
     }
     setSaving(true);
-    const { data, error: insertError } = await supabase.from('customers').insert({ name, phone }).select().single();
+    const { data, error: insertError } = await supabase.from('customers').insert({ name, phone, follow_up_on: followUpOn || null }).select().single();
     setSaving(false);
     if (insertError) {
       setError(insertError.message);
@@ -45,6 +46,12 @@ export default function CustomerQuickForm({ onCreated, onInputChange }) {
           onInputChange('phone', e.target.value);
         }}
         required
+        className="w-full border p-2 rounded"
+      />
+      <input
+        type="date"
+        value={followUpOn}
+        onChange={(e) => setFollowUpOn(e.target.value)}
         className="w-full border p-2 rounded"
       />
       {error && <p className="text-red-600 text-sm">{error}</p>}

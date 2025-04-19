@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import supabase from '../supabaseClient';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import CreateEnquiryModal from '../components/Enquiries/CreateEnquiryModal';
 
 const statusColors = {
@@ -12,6 +13,7 @@ const statusColors = {
 };
 
 export default function EnquiriesPage() {
+  const navigate = useNavigate();
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -20,7 +22,7 @@ export default function EnquiriesPage() {
     const { data, error } = await supabase
       .from('enquiries')
       .select(`
-        id, date, channel, description, status, converted_at, order_id,
+        id, date, channel, description, status, converted_at, order_id, follow_up_on,
         customers ( id, name )
       `)
       .order('date', { ascending: false });
@@ -57,6 +59,7 @@ export default function EnquiriesPage() {
               <th className="p-2">Status</th>
               <th className="p-2">Converted</th>
               <th className="p-2">Order ID</th>
+              <th className="p-2">Follow-up</th>
             </tr>
           </thead>
           <tbody>
@@ -69,10 +72,45 @@ export default function EnquiriesPage() {
                 <td className="p-2">{e.channel}</td>
                 <td className="p-2">{e.description}</td>
                 <td className="p-2">
-                  <span className={`px-2 py-1 rounded ${statusColors[e.status]}`}>{e.status}</span>
+                  <select
+                    value={e.status}
+                    onChange={async (ev) => {
+                      const newStatus = ev.target.value;
+                      let orderId = e.order_id;
+                      if (newStatus === 'converted' && !e.converted_at) {
+                        const { data: orderData, error: orderErr } = await supabase
+                          .from('orders')
+                          .insert({ enquiry_id: e.id })
+                          .select()
+                          .single();
+
+                        if (orderErr || !orderData) {
+                          alert('Failed to create order');
+                          return;
+                        }
+                        orderId = orderData.id;
+                        await supabase.from('enquiries').update({
+                          status: newStatus,
+                          converted_at: new Date().toISOString(),
+                          order_id: orderId
+                        }).eq('id', e.id);
+                        fetchEnquiries();
+                        navigate(`/orders/${orderId}`);
+                      } else {
+                        await supabase.from('enquiries').update({ status: newStatus }).eq('id', e.id);
+                        fetchEnquiries();
+                      }
+                    }}
+                    className={`px-2 py-1 rounded ${statusColors[e.status]}`}
+                  >
+                    {Object.keys(statusColors).map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
                 </td>
                 <td className="p-2">{e.converted_at ? format(new Date(e.converted_at), 'dd-MMM-yyyy') : '—'}</td>
                 <td className="p-2">{e.order_id || '—'}</td>
+                <td className="p-2">{e.follow_up_on ? format(new Date(e.follow_up_on), 'dd-MMM-yyyy') : '—'}</td>
               </tr>
             ))}
           </tbody>

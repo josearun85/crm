@@ -7,6 +7,7 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [channel, setChannel] = useState('');
   const [description, setDescription] = useState('');
+  const [followUpOn, setFollowUpOn] = useState('');
   const [useNewCustomer, setUseNewCustomer] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -52,6 +53,7 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
       date: new Date().toISOString().split('T')[0],
       channel,
       description,
+      follow_up_on: followUpOn || null,
     });
 
     setLoading(false);
@@ -95,6 +97,12 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
             <CustomerQuickForm onInputChange={(field, value) => setNewCustomer(prev => ({ ...prev, [field]: value }))} />
           )}
 
+          <input
+            type="date"
+            value={followUpOn}
+            onChange={(e) => setFollowUpOn(e.target.value)}
+            className="w-full border p-2 rounded"
+          />
           <input
             type="text"
             placeholder="Channel (e.g. phone, whatsapp)"
