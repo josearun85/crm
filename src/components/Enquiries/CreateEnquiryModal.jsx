@@ -9,6 +9,7 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
   const [description, setDescription] = useState('');
   const [useNewCustomer, setUseNewCustomer] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     if (!show) return;
@@ -21,7 +22,10 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedCustomer || !description) return;
+    if (!selectedCustomer || !description) {
+      setErrorMsg('Customer and description are required.');
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.from('enquiries').insert({
       customer_id: selectedCustomer,
@@ -30,15 +34,20 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
       description,
     });
     setLoading(false);
-    if (!error) {
+    if (error) {
+      setErrorMsg(error.message);
+    } else {
+      setErrorMsg('');
       onClose();
       onCreated();
+      window.scrollTo(0, 0);
     }
   };
 
   const handleCustomerCreated = (newCustomerId) => {
     setSelectedCustomer(newCustomerId);
     setUseNewCustomer(false);
+    window.scrollTo(0, 0);
   };
 
   if (!show) return null;
@@ -47,6 +56,7 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
         <h2 className="text-lg font-semibold mb-4">Create New Enquiry</h2>
+        {errorMsg && <p className="text-red-600 text-sm">{errorMsg}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           {!useNewCustomer ? (
             <>
