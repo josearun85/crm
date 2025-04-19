@@ -1,23 +1,7 @@
-// pages/enquiries.tsx
-
 import { useEffect, useState } from 'react';
 import supabase from '../supabaseClient';
 
 import { format } from 'date-fns';
-
-interface Enquiry {
-  id: string;
-  date: string;
-  channel: string;
-  description: string;
-  status: 'new' | 'in_progress' | 'converted' | 'closed' | 'dropped';
-  converted_at: string | null;
-  customers: {
-    id: string;
-    name: string;
-  };
-  order_id: string | null;
-}
 
 const statusColors: Record<string, string> = {
   new: 'bg-blue-200',
@@ -28,7 +12,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function EnquiriesPage() {
-  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
+  const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +28,7 @@ export default function EnquiriesPage() {
       if (error) {
         console.error('Error fetching enquiries:', error);
       } else {
-        setEnquiries(data as Enquiry[]);
+        setEnquiries(data);
       }
       setLoading(false);
     };
