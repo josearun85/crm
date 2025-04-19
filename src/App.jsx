@@ -48,6 +48,7 @@ export default function App() {
         ) : (
           <>
             <Route path="/" element={<Navigate to="/customers" />} />
+            <Route path="/enquiries" element={<EnquiriesPage />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/orders/:id" element={<OrderPage />} />
           </>
