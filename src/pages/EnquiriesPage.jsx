@@ -108,9 +108,27 @@ export default function EnquiriesPage() {
                       const newStatus = ev.target.value;
                       let orderId = e.order_id;
                       if (newStatus === 'converted' && !e.converted_at) {
+                        // Fetch customer_id for this enquiry
+                        const { data: enquiryDetail, error: enquiryError } = await supabase
+                          .from('enquiries')
+                          .select('customer_id')
+                          .eq('id', e.id)
+                          .single();
+
+                        if (enquiryError || !enquiryDetail) {
+                          alert('Failed to fetch enquiry details');
+                          return;
+                        }
+
+                        // Create order with both enquiry_id and customer_id
                         const { data: orderData, error: orderErr } = await supabase
                           .from('orders')
-                          .insert({ enquiry_id: e.id })
+                          .insert({
+                            enquiry_id: e.id,
+                            customer_id: enquiryDetail.customer_id,
+                            status: 'pending',
+                            gst_percent: 18
+                          })
                           .select()
                           .single();
 
@@ -118,12 +136,15 @@ export default function EnquiriesPage() {
                           alert('Failed to create order');
                           return;
                         }
+
                         orderId = orderData.id;
+
                         await supabase.from('enquiries').update({
                           status: newStatus,
                           converted_at: new Date().toISOString(),
                           order_id: orderId
                         }).eq('id', e.id);
+
                         fetchEnquiries();
                         navigate(`/orders/${orderId}`);
                       } else {
