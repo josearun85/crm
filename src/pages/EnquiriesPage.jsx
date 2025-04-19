@@ -69,8 +69,38 @@ export default function EnquiriesPage() {
                 <td className="p-2 text-blue-600 hover:underline cursor-pointer">
                   {e.customers?.name || '—'}
                 </td>
-                <td className="p-2">{e.channel}</td>
-                <td className="p-2">{e.description}</td>
+                <td className="p-2">
+                  <input
+                    className="w-full border border-gray-200 rounded px-2 py-1"
+                    defaultValue={e.channel || ''}
+                    onBlur={async (ev) => {
+                      const value = ev.target.value;
+                      if (value !== e.channel) {
+                        await supabase.from('enquiries').update({ channel: value }).eq('id', e.id);
+                        fetchEnquiries();
+                      }
+                    }}
+                    onKeyDown={async (ev) => {
+                      if (ev.key === 'Enter') ev.target.blur();
+                    }}
+                  />
+                </td>
+                <td className="p-2">
+                  <input
+                    className="w-full border border-gray-200 rounded px-2 py-1"
+                    defaultValue={e.description || ''}
+                    onBlur={async (ev) => {
+                      const value = ev.target.value;
+                      if (value !== e.description) {
+                        await supabase.from('enquiries').update({ description: value }).eq('id', e.id);
+                        fetchEnquiries();
+                      }
+                    }}
+                    onKeyDown={async (ev) => {
+                      if (ev.key === 'Enter') ev.target.blur();
+                    }}
+                  />
+                </td>
                 <td className="p-2">
                   <select
                     value={e.status}
@@ -110,7 +140,21 @@ export default function EnquiriesPage() {
                 </td>
                 <td className="p-2">{e.converted_at ? format(new Date(e.converted_at), 'dd-MMM-yyyy') : '—'}</td>
                 <td className="p-2">{e.order_id || '—'}</td>
-                <td className="p-2">{e.follow_up_on ? format(new Date(e.follow_up_on), 'dd-MMM-yyyy') : '—'}</td>
+                <td className="p-2">
+                  <input
+                    type="date"
+                    className="border border-gray-200 rounded px-2 py-1"
+                    defaultValue={e.follow_up_on ? new Date(e.follow_up_on).toISOString().split('T')[0] : ''}
+                    onBlur={async (ev) => {
+                      const value = ev.target.value || null;
+                      const current = e.follow_up_on ? new Date(e.follow_up_on).toISOString().split('T')[0] : '';
+                      if (value !== current) {
+                        await supabase.from('enquiries').update({ follow_up_on: value }).eq('id', e.id);
+                        fetchEnquiries();
+                      }
+                    }}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
