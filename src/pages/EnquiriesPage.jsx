@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import supabase from '../supabaseClient';
-
 import { format } from 'date-fns';
+import CreateEnquiryModal from '../components/Enquiries/CreateEnquiryModal';
 
 const statusColors = {
   new: 'bg-blue-200',
@@ -14,31 +14,36 @@ const statusColors = {
 export default function EnquiriesPage() {
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+
+  const fetchEnquiries = async () => {
+    const { data, error } = await supabase
+      .from('enquiries')
+      .select(`
+        id, date, channel, description, status, converted_at, order_id,
+        customers ( id, name )
+      `)
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching enquiries:', error);
+    } else {
+      setEnquiries(data);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const fetchEnquiries = async () => {
-      const { data, error } = await supabase
-        .from('enquiries')
-        .select(`
-          id, date, channel, description, status, converted_at, order_id,
-          customers ( id, name )
-        `)
-        .order('date', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching enquiries:', error);
-      } else {
-        setEnquiries(data);
-      }
-      setLoading(false);
-    };
-
     fetchEnquiries();
   }, []);
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Enquiries</h1>
+      <button onClick={() => setShowModal(true)} className="mb-4 bg-blue-600 text-white px-4 py-2 rounded">
+        + Create Enquiry
+      </button>
+      <CreateEnquiryModal show={showModal} onClose={() => setShowModal(false)} onCreated={() => fetchEnquiries()} />
       {loading ? (
         <p>Loading...</p>
       ) : (
