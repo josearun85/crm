@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import supabase from '../../supabaseClient';
 
-export default function CustomerQuickForm({ onCreated }) {
+export default function CustomerQuickForm({ onCreated, onInputChange }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
@@ -24,12 +24,15 @@ export default function CustomerQuickForm({ onCreated }) {
   };
 
   return (
-    <form onSubmit={handleCreate} className="space-y-2">
+    <div className="space-y-2">
       <input
         type="text"
         placeholder="Customer Name"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => {
+          setName(e.target.value);
+          onInputChange('name', e.target.value);
+        }}
         required
         className="w-full border p-2 rounded"
       />
@@ -37,14 +40,14 @@ export default function CustomerQuickForm({ onCreated }) {
         type="text"
         placeholder="Phone Number"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={(e) => {
+          setPhone(e.target.value);
+          onInputChange('phone', e.target.value);
+        }}
         required
         className="w-full border p-2 rounded"
       />
       {error && <p className="text-red-600 text-sm">{error}</p>}
-      <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-500 text-white rounded">
-        {saving ? 'Adding...' : 'Create Customer'}
-      </button>
-    </form>
+    </div>
   );
 }

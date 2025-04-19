@@ -10,6 +10,7 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
   const [useNewCustomer, setUseNewCustomer] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [newCustomer, setNewCustomer] = useState({ name: '', phone: '' });
 
   useEffect(() => {
     if (!show) return;
@@ -22,17 +23,37 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedCustomer || !description) {
-      setErrorMsg('Customer and description are required.');
+    if (!description || (useNewCustomer && (!newCustomer.name || !newCustomer.phone))) {
+      setErrorMsg('All required fields must be filled.');
       return;
     }
     setLoading(true);
+    let finalCustomerId = selectedCustomer;
+
+    if (useNewCustomer) {
+      const { data: newData, error: insertError } = await supabase
+        .from('customers')
+        .insert({ name: newCustomer.name, phone: newCustomer.phone })
+        .select()
+        .single();
+
+      if (insertError || !newData) {
+        setLoading(false);
+        setErrorMsg(insertError?.message || 'Failed to create customer');
+        return;
+      }
+
+      finalCustomerId = newData.id;
+      setCustomers(prev => [...prev, { id: newData.id, name: newData.name }]);
+    }
+
     const { error } = await supabase.from('enquiries').insert({
-      customer_id: selectedCustomer,
+      customer_id: finalCustomerId,
       date: new Date().toISOString().split('T')[0],
       channel,
       description,
     });
+
     setLoading(false);
     if (error) {
       setErrorMsg(error.message);
@@ -71,7 +92,7 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
               </button>
             </>
           ) : (
-            <CustomerQuickForm onCreated={handleCustomerCreated} />
+            <CustomerQuickForm onInputChange={(field, value) => setNewCustomer(prev => ({ ...prev, [field]: value }))} />
           )}
 
           <input
