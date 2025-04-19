@@ -133,7 +133,8 @@ export default function EnquiriesPage() {
                           .single();
 
                         if (orderErr || !orderData) {
-                          alert('Failed to create order');
+                          console.error('Order insert error:', orderErr);
+                          alert(orderErr?.message || 'Failed to create order');
                           return;
                         }
 
