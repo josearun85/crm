@@ -3,7 +3,7 @@ import supabase from '../supabaseClient';
 
 import { format } from 'date-fns';
 
-const statusColors: Record<string, string> = {
+const statusColors = {
   new: 'bg-blue-200',
   in_progress: 'bg-yellow-200',
   converted: 'bg-green-200',
