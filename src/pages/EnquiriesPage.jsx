@@ -60,6 +60,7 @@ export default function EnquiriesPage() {
               <th className="p-2">Converted</th>
               <th className="p-2">Order ID</th>
               <th className="p-2">Follow-up</th>
+              <th className="p-2">Notes</th>
             </tr>
           </thead>
           <tbody>
@@ -68,6 +69,14 @@ export default function EnquiriesPage() {
                 <td className="p-2">{format(new Date(e.date), 'dd-MMM-yyyy')}</td>
                 <td className="p-2 text-blue-600 hover:underline cursor-pointer">
                   {e.customers?.name || '—'}
+                </td>
+                <td className="p-2">
+                  <button
+                    className="text-blue-600 underline text-sm"
+                    onClick={() => navigate(`/notes?enquiry_id=${e.id}`)}
+                  >
+                    View/Add
+                  </button>
                 </td>
                 <td className="p-2">
                   <input
@@ -139,6 +148,23 @@ export default function EnquiriesPage() {
                         }
 
                         orderId = orderData.id;
+                        
+                        // Insert default order steps
+                        const defaultSteps = [
+                          { type: 'site_visit', step_name: 'Site Visit' },
+                          { type: 'design', step_name: 'Design approval' },
+                          { type: 'procurement', step_name: 'Cost estimate' },
+                          { type: 'production', step_name: 'Template specification' },
+                          { type: 'installation', step_name: 'Letter installation' },
+                          { type: 'feedback', step_name: 'Final feedback' }
+                        ];
+                        
+                        await supabase.from('order_steps').insert(
+                          defaultSteps.map(s => ({
+                            order_id: orderId,
+                            ...s
+                          }))
+                        );
 
                         await supabase.from('enquiries').update({
                           status: newStatus,
@@ -163,19 +189,12 @@ export default function EnquiriesPage() {
                 <td className="p-2">{e.converted_at ? format(new Date(e.converted_at), 'dd-MMM-yyyy') : '—'}</td>
                 <td className="p-2">{e.order_id || '—'}</td>
                 <td className="p-2">
-                  <input
-                    type="date"
-                    className="border border-gray-200 rounded px-2 py-1"
-                    defaultValue={e.follow_up_on ? new Date(e.follow_up_on).toISOString().split('T')[0] : ''}
-                    onBlur={async (ev) => {
-                      const value = ev.target.value || null;
-                      const current = e.follow_up_on ? new Date(e.follow_up_on).toISOString().split('T')[0] : '';
-                      if (value !== current) {
-                        await supabase.from('enquiries').update({ follow_up_on: value }).eq('id', e.id);
-                        fetchEnquiries();
-                      }
-                    }}
-                  />
+                  <button
+                    className="text-blue-600 underline text-sm"
+                    onClick={() => navigate(`/notes?enquiry_id=${e.id}`)}
+                  >
+                    View/Add
+                  </button>
                 </td>
               </tr>
             ))}
