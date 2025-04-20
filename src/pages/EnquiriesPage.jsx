@@ -284,21 +284,18 @@ export default function EnquiriesPage() {
                         <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
                           <div>
                             <div className="text-xs text-gray-500">{format(new Date(note.created_at), 'dd-MMM HH:mm')}</div>
-                            <textarea
-                              value={note.content}
-                              onChange={(e) => {
-                                const updated = notesByEnquiry[e.id].map(n => n.id === note.id ? { ...n, content: e.target.value } : n);
-                                setNotesByEnquiry(prev => ({ ...prev, [e.id]: updated }));
-                              }}
+                          <textarea
+                              defaultValue={note.content}
+                              ref={el => note.ref = el}
                               onBlur={async (e) => {
-                                const newContent = e.target.value;
+                                const newContent = note.ref.value;
                                 if (newContent !== note.content) {
                                   await supabase.from('notes').update({ content: newContent }).eq('id', note.id);
                                   refreshNotes(e.id);
                                 }
                               }}
                               className="w-full border rounded px-2 py-1 text-sm mt-1"
-                            />
+                          />
                           </div>
                           <button
                             onClick={async () => {
