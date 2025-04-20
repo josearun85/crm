@@ -120,8 +120,8 @@ export default function EnquiriesPage() {
             <tr className="bg-gray-100 text-left">
               <th className="p-2">Date</th>
               <th className="p-2">Customer</th>
-              <th className="p-2">Channel</th>
               <th className="p-2">Description</th>
+              <th className="p-2">Channel</th>
               <th className="p-2">Status</th>
               <th className="p-2">Converted</th>
               <th className="p-2">Order ID</th>
@@ -138,21 +138,13 @@ export default function EnquiriesPage() {
                     {e.customers?.name || '—'}
                   </td>
                   <td className="p-2">
-                    <button
-                      className="text-blue-600 underline text-sm"
-                      onClick={() => navigate(`/notes?enquiry_id=${e.id}`)}
-                    >
-                      View/Add
-                    </button>
-                  </td>
-                  <td className="p-2">
                     <input
                       className="w-full border border-gray-200 rounded px-2 py-1"
-                      defaultValue={e.channel || ''}
+                      defaultValue={e.description || ''}
                       onBlur={async (ev) => {
                         const value = ev.target.value;
-                        if (value !== e.channel) {
-                          await supabase.from('enquiries').update({ channel: value }).eq('id', e.id);
+                        if (value !== e.description) {
+                          await supabase.from('enquiries').update({ description: value }).eq('id', e.id);
                           fetchEnquiries();
                         }
                       }}
@@ -164,11 +156,11 @@ export default function EnquiriesPage() {
                   <td className="p-2">
                     <input
                       className="w-full border border-gray-200 rounded px-2 py-1"
-                      defaultValue={e.description || ''}
+                      defaultValue={e.channel || ''}
                       onBlur={async (ev) => {
                         const value = ev.target.value;
-                        if (value !== e.description) {
-                          await supabase.from('enquiries').update({ description: value }).eq('id', e.id);
+                        if (value !== e.channel) {
+                          await supabase.from('enquiries').update({ channel: value }).eq('id', e.id);
                           fetchEnquiries();
                         }
                       }}
