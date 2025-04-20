@@ -24,6 +24,7 @@ export default function EnquiriesPage() {
   const [expandedNotes, setExpandedNotes] = useState({});
   const [notesByEnquiry, setNotesByEnquiry] = useState({});
   const [newNoteContent, setNewNoteContent] = useState({});
+  const [pendingEdits, setPendingEdits] = useState({});
 
   const fetchNoteCounts = async () => {
     const { data, error } = await supabase
@@ -284,19 +285,28 @@ export default function EnquiriesPage() {
                         <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
                           <div>
                             <div className="text-xs text-gray-500">{format(new Date(note.created_at), 'dd-MMM HH:mm')}</div>
-                          <textarea
+                            <textarea
                               defaultValue={note.content}
-                              ref={el => note.ref = el}
-                              onBlur={async (e) => {
-                                const newContent = note.ref.value;
-                                if (newContent !== note.content) {
-                                  await supabase.from('notes').update({ content: newContent }).eq('id', note.id);
-                                  refreshNotes(e.id);
-                                }
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                setPendingEdits(prev => ({ ...prev, [note.id]: newValue }));
                               }}
                               className="w-full border rounded px-2 py-1 text-sm mt-1"
-                          />
+                            />
                           </div>
+                          <button
+                            onClick={async () => {
+                              const updatedContent = pendingEdits[note.id];
+                              if (updatedContent && updatedContent !== note.content) {
+                                await supabase.from('notes').update({ content: updatedContent }).eq('id', note.id);
+                                refreshNotes(e.id);
+                                toast.success('Note updated');
+                              }
+                            }}
+                            className="text-sm text-blue-600 hover:underline ml-1"
+                          >
+                            Save Edits
+                          </button>
                           <button
                             onClick={async () => {
                               if (confirm('Delete this note?')) {
