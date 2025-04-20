@@ -3,6 +3,8 @@ import supabase from '../supabaseClient';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import CreateEnquiryModal from '../components/Enquiries/CreateEnquiryModal';
+import { ChatBubbleLeftEllipsisIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
 
 const statusColors = {
   new: 'bg-blue-200',
@@ -17,6 +19,25 @@ export default function EnquiriesPage() {
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [noteCounts, setNoteCounts] = useState({});
+  const [expandedNotes, setExpandedNotes] = useState({});
+  const [notesByEnquiry, setNotesByEnquiry] = useState({});
+  const [newNoteContent, setNewNoteContent] = useState({});
+
+  const fetchNoteCounts = async () => {
+    const { data, error } = await supabase
+      .from('notes')
+      .select('enquiry_id, count:enquiry_id', { count: 'exact' })
+      .group('enquiry_id');
+
+    if (!error && data) {
+      const countMap = {};
+      data.forEach(({ enquiry_id, count }) => {
+        countMap[enquiry_id] = count;
+      });
+      setNoteCounts(countMap);
+    }
+  };
 
   const fetchEnquiries = async () => {
     const { data, error } = await supabase
@@ -37,7 +58,48 @@ export default function EnquiriesPage() {
 
   useEffect(() => {
     fetchEnquiries();
+    fetchNoteCounts();
   }, []);
+
+  const toggleNotes = async (enquiryId) => {
+    setExpandedNotes(prev => ({
+      ...prev,
+      [enquiryId]: !prev[enquiryId]
+    }));
+    if (!notesByEnquiry[enquiryId]) {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('id, content, created_at')
+        .eq('enquiry_id', enquiryId)
+        .order('created_at', { ascending: false });
+      if (!error) {
+        setNotesByEnquiry(prev => ({ ...prev, [enquiryId]: data }));
+      }
+    }
+  };
+
+  const handleAddNote = (enquiryId) => {
+    setExpandedNotes(prev => ({ ...prev, [enquiryId]: true }));
+    setNewNoteContent(prev => ({ ...prev, [enquiryId]: '' }));
+  };
+
+  const submitNewNote = async (enquiryId) => {
+    const user = await supabase.auth.getUser();
+    const content = newNoteContent[enquiryId];
+    if (!content) return;
+    const { error } = await supabase.from('notes').insert({
+      enquiry_id: enquiryId,
+      content,
+      type: 'internal',
+      created_by: user?.data?.user?.id || null
+    });
+    if (!error) {
+      setNewNoteContent(prev => ({ ...prev, [enquiryId]: '' }));
+      fetchNoteCounts();
+      toggleNotes(enquiryId); // refresh notes
+      toast.success('Note added');
+    }
+  };
 
   return (
     <div className="p-6">
@@ -65,138 +127,201 @@ export default function EnquiriesPage() {
           </thead>
           <tbody>
             {enquiries.map((e) => (
-              <tr key={e.id} className="border-b hover:bg-gray-50">
-                <td className="p-2">{format(new Date(e.date), 'dd-MMM-yyyy')}</td>
-                <td className="p-2 text-blue-600 hover:underline cursor-pointer">
-                  {e.customers?.name || '—'}
-                </td>
-                <td className="p-2">
-                  <button
-                    className="text-blue-600 underline text-sm"
-                    onClick={() => navigate(`/notes?enquiry_id=${e.id}`)}
-                  >
-                    View/Add
-                  </button>
-                </td>
-                <td className="p-2">
-                  <input
-                    className="w-full border border-gray-200 rounded px-2 py-1"
-                    defaultValue={e.channel || ''}
-                    onBlur={async (ev) => {
-                      const value = ev.target.value;
-                      if (value !== e.channel) {
-                        await supabase.from('enquiries').update({ channel: value }).eq('id', e.id);
-                        fetchEnquiries();
-                      }
-                    }}
-                    onKeyDown={async (ev) => {
-                      if (ev.key === 'Enter') ev.target.blur();
-                    }}
-                  />
-                </td>
-                <td className="p-2">
-                  <input
-                    className="w-full border border-gray-200 rounded px-2 py-1"
-                    defaultValue={e.description || ''}
-                    onBlur={async (ev) => {
-                      const value = ev.target.value;
-                      if (value !== e.description) {
-                        await supabase.from('enquiries').update({ description: value }).eq('id', e.id);
-                        fetchEnquiries();
-                      }
-                    }}
-                    onKeyDown={async (ev) => {
-                      if (ev.key === 'Enter') ev.target.blur();
-                    }}
-                  />
-                </td>
-                <td className="p-2">
-                  <select
-                    value={e.status}
-                    onChange={async (ev) => {
-                      const newStatus = ev.target.value;
-                      let orderId = e.order_id;
-                      if (newStatus === 'converted' && !e.converted_at) {
-                        // Fetch customer_id for this enquiry
-                        const { data: enquiryDetail, error: enquiryError } = await supabase
-                          .from('enquiries')
-                          .select('customer_id')
-                          .eq('id', e.id)
-                          .single();
-
-                        if (enquiryError || !enquiryDetail) {
-                          alert('Failed to fetch enquiry details');
-                          return;
+              <React.Fragment key={e.id}>
+                <tr className="border-b hover:bg-gray-50">
+                  <td className="p-2">{format(new Date(e.date), 'dd-MMM-yyyy')}</td>
+                  <td className="p-2 text-blue-600 hover:underline cursor-pointer">
+                    {e.customers?.name || '—'}
+                  </td>
+                  <td className="p-2">
+                    <button
+                      className="text-blue-600 underline text-sm"
+                      onClick={() => navigate(`/notes?enquiry_id=${e.id}`)}
+                    >
+                      View/Add
+                    </button>
+                  </td>
+                  <td className="p-2">
+                    <input
+                      className="w-full border border-gray-200 rounded px-2 py-1"
+                      defaultValue={e.channel || ''}
+                      onBlur={async (ev) => {
+                        const value = ev.target.value;
+                        if (value !== e.channel) {
+                          await supabase.from('enquiries').update({ channel: value }).eq('id', e.id);
+                          fetchEnquiries();
                         }
-
-                        // Create order with both enquiry_id and customer_id
-                        const { data: orderData, error: orderErr } = await supabase
-                          .from('orders')
-                          .insert({
-                            enquiry_id: e.id,
-                            customer_id: enquiryDetail.customer_id,
-                            status: 'pending',
-                            gst_percent: 18
-                          })
-                          .select()
-                          .single();
-
-                        if (orderErr || !orderData) {
-                          console.error('Order insert error:', orderErr);
-                          alert(orderErr?.message || 'Failed to create order');
-                          return;
+                      }}
+                      onKeyDown={async (ev) => {
+                        if (ev.key === 'Enter') ev.target.blur();
+                      }}
+                    />
+                  </td>
+                  <td className="p-2">
+                    <input
+                      className="w-full border border-gray-200 rounded px-2 py-1"
+                      defaultValue={e.description || ''}
+                      onBlur={async (ev) => {
+                        const value = ev.target.value;
+                        if (value !== e.description) {
+                          await supabase.from('enquiries').update({ description: value }).eq('id', e.id);
+                          fetchEnquiries();
                         }
+                      }}
+                      onKeyDown={async (ev) => {
+                        if (ev.key === 'Enter') ev.target.blur();
+                      }}
+                    />
+                  </td>
+                  <td className="p-2">
+                    <select
+                      value={e.status}
+                      onChange={async (ev) => {
+                        const newStatus = ev.target.value;
+                        let orderId = e.order_id;
+                        if (newStatus === 'converted' && !e.converted_at) {
+                          // Fetch customer_id for this enquiry
+                          const { data: enquiryDetail, error: enquiryError } = await supabase
+                            .from('enquiries')
+                            .select('customer_id')
+                            .eq('id', e.id)
+                            .single();
 
-                        orderId = orderData.id;
-                        
-                        // Insert default order steps
-                        const defaultSteps = [
-                          { type: 'site_visit', step_name: 'Site Visit' },
-                          { type: 'design', step_name: 'Design approval' },
-                          { type: 'procurement', step_name: 'Cost estimate' },
-                          { type: 'production', step_name: 'Template specification' },
-                          { type: 'installation', step_name: 'Letter installation' },
-                          { type: 'feedback', step_name: 'Final feedback' }
-                        ];
-                        
-                        await supabase.from('order_steps').insert(
-                          defaultSteps.map(s => ({
-                            order_id: orderId,
-                            ...s
-                          }))
-                        );
+                          if (enquiryError || !enquiryDetail) {
+                            alert('Failed to fetch enquiry details');
+                            return;
+                          }
 
-                        await supabase.from('enquiries').update({
-                          status: newStatus,
-                          converted_at: new Date().toISOString(),
-                          order_id: orderId
-                        }).eq('id', e.id);
+                          // Create order with both enquiry_id and customer_id
+                          const { data: orderData, error: orderErr } = await supabase
+                            .from('orders')
+                            .insert({
+                              enquiry_id: e.id,
+                              customer_id: enquiryDetail.customer_id,
+                              status: 'pending',
+                              gst_percent: 18
+                            })
+                            .select()
+                            .single();
 
-                        fetchEnquiries();
-                        navigate(`/orders/${orderId}`);
-                      } else {
-                        await supabase.from('enquiries').update({ status: newStatus }).eq('id', e.id);
-                        fetchEnquiries();
-                      }
-                    }}
-                    className={`px-2 py-1 rounded ${statusColors[e.status]}`}
-                  >
-                    {Object.keys(statusColors).map((status) => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </td>
-                <td className="p-2">{e.converted_at ? format(new Date(e.converted_at), 'dd-MMM-yyyy') : '—'}</td>
-                <td className="p-2">{e.order_id || '—'}</td>
-                <td className="p-2">
-                  <button
-                    className="text-blue-600 underline text-sm"
-                    onClick={() => navigate(`/notes?enquiry_id=${e.id}`)}
-                  >
-                    View/Add
-                  </button>
-                </td>
-              </tr>
+                          if (orderErr || !orderData) {
+                            console.error('Order insert error:', orderErr);
+                            alert(orderErr?.message || 'Failed to create order');
+                            return;
+                          }
+
+                          orderId = orderData.id;
+                          
+                          // Insert default order steps
+                          const defaultSteps = [
+                            { type: 'site_visit', step_name: 'Site Visit' },
+                            { type: 'design', step_name: 'Design approval' },
+                            { type: 'procurement', step_name: 'Cost estimate' },
+                            { type: 'production', step_name: 'Template specification' },
+                            { type: 'installation', step_name: 'Letter installation' },
+                            { type: 'feedback', step_name: 'Final feedback' }
+                          ];
+                          
+                          await supabase.from('order_steps').insert(
+                            defaultSteps.map(s => ({
+                              order_id: orderId,
+                              ...s
+                            }))
+                          );
+
+                          await supabase.from('enquiries').update({
+                            status: newStatus,
+                            converted_at: new Date().toISOString(),
+                            order_id: orderId
+                          }).eq('id', e.id);
+
+                          fetchEnquiries();
+                          navigate(`/orders/${orderId}`);
+                        } else {
+                          await supabase.from('enquiries').update({ status: newStatus }).eq('id', e.id);
+                          fetchEnquiries();
+                        }
+                      }}
+                      className={`px-2 py-1 rounded ${statusColors[e.status]}`}
+                    >
+                      {Object.keys(statusColors).map((status) => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-2">{e.converted_at ? format(new Date(e.converted_at), 'dd-MMM-yyyy') : '—'}</td>
+                  <td className="p-2">{e.order_id || '—'}</td>
+                  <td className="p-2">
+                    <div className="flex flex-col sm:flex-row gap-1 items-start sm:items-center">
+                      <button
+                        title="Toggle Notes"
+                        onClick={() => toggleNotes(e.id)}
+                        className="flex items-center gap-1 text-gray-600"
+                      >
+                        <ChatBubbleLeftEllipsisIcon className="h-5 w-5" />
+                        <span>{noteCounts[e.id] || 0}</span>
+                      </button>
+                      <button title="Add Note" onClick={() => handleAddNote(e.id)}>
+                        <PlusCircleIcon className="h-5 w-5 text-blue-500 hover:text-blue-700" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {expandedNotes[e.id] && (
+                  <tr className="bg-gray-50">
+                    <td colSpan="9" className="p-3">
+                      <div className="text-xs text-gray-500 mb-1">Most recent first</div>
+                      {(notesByEnquiry[e.id] || []).length === 0 && <div className="text-gray-400 italic">No notes yet</div>}
+                      {(notesByEnquiry[e.id] || []).map(note => (
+                        <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
+                          <div>
+                            <div className="text-xs text-gray-500">{format(new Date(note.created_at), 'dd-MMM HH:mm')}</div>
+                            <textarea
+                              defaultValue={note.content}
+                              onBlur={async (e) => {
+                                const newContent = e.target.value;
+                                if (newContent !== note.content) {
+                                  await supabase.from('notes').update({ content: newContent }).eq('id', note.id);
+                                }
+                              }}
+                              className="w-full border rounded px-2 py-1 text-sm mt-1"
+                            />
+                          </div>
+                          <button
+                            onClick={async () => {
+                              if (confirm('Delete this note?')) {
+                                await supabase.from('notes').delete().eq('id', note.id);
+                                toggleNotes(e.id); // refresh
+                                toast.success('Note deleted');
+                                fetchNoteCounts();
+                              }
+                            }}
+                            className="text-red-500 hover:text-red-700 text-xs ml-2"
+                            title="Delete note"
+                          >
+                            🗑
+                          </button>
+                        </div>
+                      ))}
+                      <div className="mt-2 flex flex-col sm:flex-row gap-2">
+                        <textarea
+                          value={newNoteContent[e.id] || ''}
+                          onChange={(e) => setNewNoteContent(prev => ({ ...prev, [e.id]: e.target.value }))}
+                          className="w-full border px-2 py-1 rounded"
+                          placeholder="Write a note..."
+                        />
+                        <button
+                          onClick={() => submitNewNote(e.id)}
+                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
+                          title="Add Note"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
