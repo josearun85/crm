@@ -256,6 +256,18 @@ export default function EnquiriesPage() {
                   <td className="p-2">{e.converted_at ? format(new Date(e.converted_at), 'dd-MMM-yyyy') : '—'}</td>
                   <td className="p-2">{e.order_id || '—'}</td>
                   <td className="p-2">
+                    <input
+                      type="date"
+                      className="border border-gray-200 rounded px-2 py-1"
+                      value={e.follow_up_on ? format(new Date(e.follow_up_on), 'yyyy-MM-dd') : ''}
+                      onChange={async (ev) => {
+                        const value = ev.target.value;
+                        await supabase.from('enquiries').update({ follow_up_on: value }).eq('id', e.id);
+                        fetchEnquiries();
+                      }}
+                    />
+                  </td>
+                  <td className="p-2">
                     <div className="flex flex-col sm:flex-row gap-1 items-start sm:items-center">
                       <button
                         title="Toggle Notes"
