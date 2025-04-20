@@ -27,13 +27,12 @@ export default function EnquiriesPage() {
   const fetchNoteCounts = async () => {
     const { data, error } = await supabase
       .from('notes')
-      .select('enquiry_id, count:enquiry_id', { count: 'exact' })
-      .group('enquiry_id');
+      .select('enquiry_id');
 
     if (!error && data) {
       const countMap = {};
-      data.forEach(({ enquiry_id, count }) => {
-        countMap[enquiry_id] = count;
+      data.forEach(({ enquiry_id }) => {
+        countMap[enquiry_id] = (countMap[enquiry_id] || 0) + 1;
       });
       setNoteCounts(countMap);
     }
@@ -61,20 +60,24 @@ export default function EnquiriesPage() {
     fetchNoteCounts();
   }, []);
 
-  const toggleNotes = async (enquiryId) => {
+  const toggleNotes = (enquiryId) => {
     setExpandedNotes(prev => ({
       ...prev,
       [enquiryId]: !prev[enquiryId]
     }));
     if (!notesByEnquiry[enquiryId]) {
-      const { data, error } = await supabase
-        .from('notes')
-        .select('id, content, created_at')
-        .eq('enquiry_id', enquiryId)
-        .order('created_at', { ascending: false });
-      if (!error) {
-        setNotesByEnquiry(prev => ({ ...prev, [enquiryId]: data }));
-      }
+      refreshNotes(enquiryId);
+    }
+  };
+
+  const refreshNotes = async (enquiryId) => {
+    const { data, error } = await supabase
+      .from('notes')
+      .select('id, content, created_at')
+      .eq('enquiry_id', enquiryId)
+      .order('created_at', { ascending: false });
+    if (!error) {
+      setNotesByEnquiry(prev => ({ ...prev, [enquiryId]: data }));
     }
   };
 
@@ -96,7 +99,7 @@ export default function EnquiriesPage() {
     if (!error) {
       setNewNoteContent(prev => ({ ...prev, [enquiryId]: '' }));
       fetchNoteCounts();
-      toggleNotes(enquiryId); // refresh notes
+      refreshNotes(enquiryId);
       toast.success('Note added');
     }
   };
@@ -291,7 +294,7 @@ export default function EnquiriesPage() {
                             onClick={async () => {
                               if (confirm('Delete this note?')) {
                                 await supabase.from('notes').delete().eq('id', note.id);
-                                toggleNotes(e.id); // refresh
+                                refreshNotes(e.id);
                                 toast.success('Note deleted');
                                 fetchNoteCounts();
                               }
