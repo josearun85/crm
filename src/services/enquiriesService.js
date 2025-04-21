@@ -5,8 +5,14 @@ export async function uploadEnquiryFile(file, enquiryId) {
   const fileName = `enquiries/${enquiryId}/${Date.now()}-${file.name}`;
   const { data, error } = await supabase.storage.from("crm").upload(fileName, file);
   if (error) throw error;
-  const publicUrl = supabase.storage.from("crm").getPublicUrl(fileName).data.publicUrl;
-  return { fileName, publicUrl };
+  
+  // Get signed URL for authenticated access
+  const { data: signedData, error: signedError } = await supabase.storage
+    .from("crm")
+    .createSignedUrl(fileName, 3600); // 1 hour
+  
+  if (signedError) throw signedError;
+  return { fileName, publicUrl: signedData.signedUrl };
 }
 
 export async function deleteEnquiryFile(filePath) {
@@ -14,8 +20,9 @@ export async function deleteEnquiryFile(filePath) {
   if (error) throw error;
 }
 export async function getEnquiryFileUrl(filePath) {
-  const { data } = supabase.storage.from("crm").getPublicUrl(filePath);
-  return data.publicUrl;
+  const { data, error } = await supabase.storage.from("crm").createSignedUrl(filePath, 3600);
+  if (error) throw error;
+  return data.signedUrl;
 }
 export async function getEnquiryById(enquiryId) {
   const { data, error } = await supabase
