@@ -85,7 +85,7 @@ export default function EnquiriesPage() {
 
   const handleAddNote = (enquiryId) => {
     setExpandedNotes(prev => ({ ...prev, [enquiryId]: true }));
-    setNewNoteContent(prev => ({ ...prev, [enquiryId]: '' }));
+    setNewNoteContent(prev => ({ ...prev, [enquiryId]: prev[enquiryId] ?? '' }));
   };
 
   const submitNewNote = async (enquiryId) => {
