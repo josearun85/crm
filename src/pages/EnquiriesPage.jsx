@@ -83,12 +83,12 @@ export default function EnquiriesPage() {
 
   const handleAddNote = async (enquiryId) => {
     const user = await supabase.auth.getUser();
-    const { data: newNote, error } = await supabase.from('notes').insert({
+    const { data: newNote, error } = await supabase.from('notes').insert([{
       enquiry_id: enquiryId,
       content: '',
       type: 'internal',
       created_by: user?.data?.user?.id || null
-    }).select().single();
+    }]).select().single();
 
     if (!error && newNote) {
       setExpandedNotes(prev => ({ ...prev, [enquiryId]: true }));
