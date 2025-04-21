@@ -6,8 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import CreateEnquiryModal from '../components/Enquiries/CreateEnquiryModal';
 import { ChatBubbleLeftEllipsisIcon, PlusCircleIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
-import { uploadEnquiryFile } from '../services/enquiryService';
-import { handleUploadFile } from '../services/enquiriesService';
+import { uploadEnquiryFile } from '../services/enquiriesService';
 
 const statusColors = {
   new: 'bg-blue-200',
@@ -104,7 +103,7 @@ export default function EnquiriesPage() {
 
   const handleUploadFileLocal = async (enquiryId) => {
     try {
-      await handleUploadFile(enquiryId);
+      await uploadEnquiryFile(enquiryId);
       toast.success("File uploaded");
       refreshNotes(enquiryId);
       fetchNoteCounts();
