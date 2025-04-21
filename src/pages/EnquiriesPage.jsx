@@ -23,7 +23,6 @@ export default function EnquiriesPage() {
   const [noteCounts, setNoteCounts] = useState({});
   const [expandedNotes, setExpandedNotes] = useState({});
   const [notesByEnquiry, setNotesByEnquiry] = useState({});
-  const [newNoteContent, setNewNoteContent] = useState({});
 
   const fetchNoteCounts = async () => {
     const { data, error } = await supabase
@@ -82,28 +81,24 @@ export default function EnquiriesPage() {
     }
   };
 
-  const handleAddNote = (enquiryId) => {
-    setExpandedNotes(prev => ({ ...prev, [enquiryId]: true }));
-    setNewNoteContent(prev => ({ ...prev, [enquiryId]: prev[enquiryId] ?? '' }));
-  };
-
-  const submitNewNote = async (enquiryId) => {
+  const handleAddNote = async (enquiryId) => {
     const user = await supabase.auth.getUser();
-    const content = newNoteContent[enquiryId];
-    if (!content) return;
-    const { error } = await supabase.from('notes').insert({
+    const { data: newNote, error } = await supabase.from('notes').insert({
       enquiry_id: enquiryId,
-      content,
+      content: '',
       type: 'internal',
       created_by: user?.data?.user?.id || null
-    });
-    if (!error) {
-      setNewNoteContent(prev => ({ ...prev, [enquiryId]: '' }));
-      fetchNoteCounts();
+    }).select().single();
+
+    if (!error && newNote) {
+      setExpandedNotes(prev => ({ ...prev, [enquiryId]: true }));
       refreshNotes(enquiryId);
-      toast.success('Note added');
+      fetchNoteCounts();
+    } else {
+      toast.error('Failed to create note');
     }
   };
+
 
   return (
     <div className="p-6">
@@ -328,21 +323,6 @@ export default function EnquiriesPage() {
                           </button>
                         </div>
                       ))}
-                      <div className="mt-2 flex flex-col sm:flex-row gap-2">
-                        <textarea
-                          value={newNoteContent[e.id] || ''}
-                          onChange={(e) => setNewNoteContent(prev => ({ ...prev, [e.id]: e.target.value }))}
-                          className="w-full border px-2 py-1 rounded"
-                          placeholder="Write a note..."
-                        />
-                        <button
-                          onClick={() => submitNewNote(e.id)}
-                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
-                          title="Add Note"
-                        >
-                          Save
-                        </button>
-                      </div>
                     </td>
                   </tr>
                 )}
