@@ -284,21 +284,28 @@ export default function EnquiriesPage() {
                         <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
                           <div>
                             <div className="text-xs text-gray-500">{format(new Date(note.created_at), 'dd-MMM HH:mm')}</div>
-                          <textarea
-                              value={note.content}
-                              onChange={(ev) => {
-                                const updated = notesByEnquiry[e.id].map(n => n.id === note.id ? { ...n, content: ev.target.value } : n);
-                                setNotesByEnquiry(prev => ({ ...prev, [e.id]: updated }));
-                              }}
+                            <textarea
+                              defaultValue={note.content}
                               className="w-full border rounded px-2 py-1 text-sm mt-1"
-                          />
+                              ref={(el) => note._ref = el}
+                            />
                           </div>
                           <button
                             onClick={async () => {
-                              if (note.content) {
-                                await supabase.from('notes').update({ content: note.content }).eq('id', note.id);
-                                refreshNotes(e.id);
-                                toast.success('Note updated');
+                              const newContent = note._ref?.value;
+                              if (newContent && newContent !== note.content) {
+                                const user = await supabase.auth.getUser();
+                                const { error } = await supabase.from('notes')
+                                  .update({ content: newContent, created_by: user?.data?.user?.id || null })
+                                  .eq('id', note.id);
+
+                                if (error) {
+                                  console.error('Failed to update note:', error);
+                                  toast.error('Note update failed');
+                                } else {
+                                  refreshNotes(e.id);
+                                  toast.success('Note updated');
+                                }
                               }
                             }}
                             className="text-sm text-blue-600 hover:underline ml-1"
