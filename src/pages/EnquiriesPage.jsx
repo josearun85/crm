@@ -392,17 +392,18 @@ export default function EnquiriesPage() {
                             onClick={async () => {
                               if (confirm('Delete this note?')) {
                                 try {
-                                  if (note.file_path) {
+                                  if (note.type === 'file' && note.file_path) {
                                     await deleteEnquiryFile(note.file_path);
                                     console.log("File deleted:", note.file_path);
                                   }
+                                  await supabase.from('notes').delete().eq('id', note.id);
+                                  refreshNotes(e.id);
+                                  toast.success('Note deleted');
+                                  fetchNoteCounts();
                                 } catch (err) {
-                                  console.error("Error deleting file from storage:", err);
+                                  console.error("Error deleting note or file:", err);
+                                  toast.error("Failed to delete note or file");
                                 }
-                                await supabase.from('notes').delete().eq('id', note.id);
-                                refreshNotes(e.id);
-                                toast.success('Note deleted');
-                                fetchNoteCounts();
                               }
                             }}
                             className="text-red-500 hover:text-red-700 text-xs ml-2"
