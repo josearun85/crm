@@ -339,6 +339,7 @@ export default function EnquiriesPage() {
                                       ⬇️
                                     </a>
                                   </div>
+                                    
                                 ) : (
                                   <div className="mt-1">{note.content}</div>
                                 )}
