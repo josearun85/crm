@@ -75,7 +75,7 @@ export default function EnquiriesPage() {
   const refreshNotes = async (enquiryId) => {
     const { data, error } = await supabase
       .from('notes')
-      .select('id, content, file_url, type, created_at, updated_at')
+      .select('id, content, file_url, type, created_at, updated_at, created_by ( id, email )')
       .eq('enquiry_id', enquiryId)
       .order('created_at', { ascending: false });
     if (!error) {
@@ -114,12 +114,7 @@ export default function EnquiriesPage() {
         const fileURL = publicUrlData?.publicUrl;
 
         const user = await supabase.auth.getUser();
-        await supabase.from("notes").insert({
-          enquiry_id: enquiryId,
-          content: `File uploaded: ${file.name}\n${fileURL}`,
-          type: "internal",
-          created_by: user?.data?.user?.id || null
-        });
+        await createFileNote(enquiryId, file.name, fileURL, user?.data?.user?.id || null);
 
         toast.success("File uploaded");
         refreshNotes(enquiryId);
@@ -315,7 +310,7 @@ export default function EnquiriesPage() {
                         <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
                       <div>
                         <div className="text-xs text-gray-400 italic">
-                          Created: {format(new Date(note.created_at), 'dd-MMM HH:mm')}
+                          Created: {format(new Date(note.created_at), 'dd-MMM HH:mm')} by {note.created_by?.email || 'Unknown'}
                           {note.updated_at && ` • Updated: ${format(new Date(note.updated_at), 'dd-MMM HH:mm')}`}
                         </div>
                       {(note.content && !editingNotes[note.id]) ? (
