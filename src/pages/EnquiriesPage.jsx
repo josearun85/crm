@@ -109,14 +109,18 @@ export default function EnquiriesPage() {
       if (!file) return;
 
       const uploadedPath = await uploadEnquiryFile(file, enquiryId);
+      const publicURL = `https://YOUR_SUPABASE_PROJECT.supabase.co/storage/v1/object/public/crm/${uploadedPath}`;
       await supabase.from('notes').insert({
         enquiry_id: enquiryId,
-        content: `File uploaded: ${file.name}`,
+        content: `File uploaded: ${file.name}\n${publicURL}`,
+        file_url: publicURL,
         type: 'internal',
         created_by: (await supabase.auth.getUser())?.data?.user?.id || null
       });
 
       toast.success("File uploaded");
+      refreshNotes(enquiryId);
+      fetchNoteCounts();
     };
     input.click();
   };
@@ -303,7 +307,29 @@ export default function EnquiriesPage() {
                       {(notesByEnquiry[e.id] || []).map(note => (
                         <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
                           <div>
-                            {editingNotes[note.id] ? (
+                      {(note.content && !editingNotes[note.id]) ? (
+                              <>
+                                { note.content.startsWith("File uploaded:") ? (
+                                  (() => {
+                                    const lines = note.content.split('\n');
+                                    return (
+                                      <div>
+                                        <div className="text-blue-600">{lines[0]}</div>
+                                        <a href={lines[1]} className="text-blue-600 underline text-sm" target="_blank" rel="noreferrer">View File</a>
+                                      </div>
+                                    );
+                                  })()
+                                ) : (
+                                  <div className="mt-1">{note.content}</div>
+                                )}
+                                <button
+                                  onClick={() => setEditingNotes(prev => ({ ...prev, [note.id]: true }))}
+                                  className="text-sm text-blue-600 hover:underline ml-1"
+                                >
+                                  Edit
+                                </button>
+                              </>
+                            ) : (
                               <>
                                 <textarea
                                   defaultValue={note.content}
@@ -318,7 +344,7 @@ export default function EnquiriesPage() {
                                       const { error } = await supabase.from('notes')
                                         .update({ content: newContent, created_by: user?.data?.user?.id || null })
                                         .eq('id', note.id);
-
+ 
                                       if (error) {
                                         console.error('Failed to update note:', error);
                                         toast.error('Note update failed');
@@ -332,16 +358,6 @@ export default function EnquiriesPage() {
                                   className="text-sm text-blue-600 hover:underline ml-1"
                                 >
                                   Save Edits
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <div className="mt-1">{note.content}</div>
-                                <button
-                                  onClick={() => setEditingNotes(prev => ({ ...prev, [note.id]: true }))}
-                                  className="text-sm text-blue-600 hover:underline ml-1"
-                                >
-                                  Edit
                                 </button>
                               </>
                             )}
