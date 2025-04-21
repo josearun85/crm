@@ -310,7 +310,7 @@ export default function EnquiriesPage() {
                         <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
                       <div>
                         <div className="text-xs text-gray-400 italic">
-                          Created: {format(new Date(note.created_at), 'dd-MMM HH:mm')} by {note.created_by?.email || 'Unknown'}
+                          Created: {format(new Date(note.created_at), 'dd-MMM HH:mm')} by {note.created_by_email || 'Unknown'}
                           {note.updated_at && ` • Updated: ${format(new Date(note.updated_at), 'dd-MMM HH:mm')}`}
                         </div>
                       {(note.content && !editingNotes[note.id]) ? (
