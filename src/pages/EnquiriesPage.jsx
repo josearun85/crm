@@ -6,7 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import CreateEnquiryModal from '../components/Enquiries/CreateEnquiryModal';
 import { ChatBubbleLeftEllipsisIcon, PlusCircleIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
-import { uploadEnquiryFile } from '../services/orderService';
+import { uploadEnquiryFile } from '../services/enquiryService';
+import { handleUploadFile } from '../services/enquiriesService';
 
 const statusColors = {
   new: 'bg-blue-200',
@@ -101,28 +102,16 @@ export default function EnquiriesPage() {
     }
   };
 
-  const handleUploadFile = async (enquiryId) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const uploadedPath = await uploadEnquiryFile(file, enquiryId);
-      const publicURL = `https://YOUR_SUPABASE_PROJECT.supabase.co/storage/v1/object/public/crm/${uploadedPath}`;
-      await supabase.from('notes').insert({
-        enquiry_id: enquiryId,
-        content: `File uploaded: ${file.name}\n${publicURL}`,
-        file_url: publicURL,
-        type: 'internal',
-        created_by: (await supabase.auth.getUser())?.data?.user?.id || null
-      });
-
+  const handleUploadFileLocal = async (enquiryId) => {
+    try {
+      await handleUploadFile(enquiryId);
       toast.success("File uploaded");
       refreshNotes(enquiryId);
       fetchNoteCounts();
-    };
-    input.click();
+    } catch (err) {
+      console.error("File upload failed", err);
+      toast.error("File upload failed");
+    }
   };
 
 
@@ -293,7 +282,7 @@ export default function EnquiriesPage() {
                       <button title="Add Note" onClick={() => handleAddNote(e.id)}>
                         <PlusCircleIcon className="h-5 w-5 text-blue-500 hover:text-blue-700" />
                       </button>
-                      <button title="Upload File" onClick={() => handleUploadFile(e.id)}>
+                      <button title="Upload File" onClick={() => handleUploadFileLocal(e.id)}>
                         <ArrowUpTrayIcon className="h-5 w-5 text-green-500 hover:text-green-700" />
                       </button>
                     </div>
