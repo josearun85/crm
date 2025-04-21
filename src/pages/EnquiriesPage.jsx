@@ -273,7 +273,17 @@ export default function EnquiriesPage() {
                     </select>
                   </td>
                   <td className="p-2">{e.converted_at ? format(new Date(e.converted_at), 'dd-MMM-yyyy') : '—'}</td>
-                  <td className="p-2">{e.order_id || '—'}</td>
+                  <td className="p-2">
+                    {e.order_id ? (
+                      <a
+                        href={`/orders/${e.order_id}`}
+                        className="text-blue-600 hover:underline"
+                        title="View Order"
+                      >
+                        {e.order_id}
+                      </a>
+                    ) : '—'}
+                  </td>
                   <td className="p-2">
                     <input
                       type="date"
