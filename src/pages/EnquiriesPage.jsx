@@ -102,15 +102,23 @@ export default function EnquiriesPage() {
   };
 
   const handleUploadFileLocal = async (enquiryId) => {
-    try {
-      await uploadEnquiryFile(enquiryId);
-      toast.success("File uploaded");
-      refreshNotes(enquiryId);
-      fetchNoteCounts();
-    } catch (err) {
-      console.error("File upload failed", err);
-      toast.error("File upload failed");
-    }
+    const input = document.createElement("input");
+    input.type = "file";
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        await uploadEnquiryFile(file, enquiryId);
+        toast.success("File uploaded");
+        refreshNotes(enquiryId);
+        fetchNoteCounts();
+      } catch (err) {
+        console.error("File upload failed", err);
+        toast.error("File upload failed");
+      }
+    };
+    input.click();
   };
 
 
