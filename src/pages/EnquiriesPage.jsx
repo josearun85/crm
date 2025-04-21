@@ -4,8 +4,9 @@ import supabase from '../supabaseClient';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import CreateEnquiryModal from '../components/Enquiries/CreateEnquiryModal';
-import { ChatBubbleLeftEllipsisIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftEllipsisIcon, PlusCircleIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
+import { uploadEnquiryFile } from '../services/orderService';
 
 const statusColors = {
   new: 'bg-blue-200',
@@ -23,6 +24,7 @@ export default function EnquiriesPage() {
   const [noteCounts, setNoteCounts] = useState({});
   const [expandedNotes, setExpandedNotes] = useState({});
   const [notesByEnquiry, setNotesByEnquiry] = useState({});
+  const [editingNotes, setEditingNotes] = useState({});
 
   const fetchNoteCounts = async () => {
     const { data, error } = await supabase
@@ -97,6 +99,26 @@ export default function EnquiriesPage() {
     } else {
       toast.error('Failed to create note');
     }
+  };
+
+  const handleUploadFile = async (enquiryId) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const uploadedPath = await uploadEnquiryFile(file, enquiryId);
+      await supabase.from('notes').insert({
+        enquiry_id: enquiryId,
+        content: `File uploaded: ${file.name}`,
+        type: 'internal',
+        created_by: (await supabase.auth.getUser())?.data?.user?.id || null
+      });
+
+      toast.success("File uploaded");
+    };
+    input.click();
   };
 
 
@@ -267,6 +289,9 @@ export default function EnquiriesPage() {
                       <button title="Add Note" onClick={() => handleAddNote(e.id)}>
                         <PlusCircleIcon className="h-5 w-5 text-blue-500 hover:text-blue-700" />
                       </button>
+                      <button title="Upload File" onClick={() => handleUploadFile(e.id)}>
+                        <ArrowUpTrayIcon className="h-5 w-5 text-green-500 hover:text-green-700" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -278,42 +303,49 @@ export default function EnquiriesPage() {
                       {(notesByEnquiry[e.id] || []).map(note => (
                         <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
                           <div>
-                          <div className="text-xs text-gray-500">
-                            Created: {format(new Date(note.created_at), 'dd-MMM HH:mm')}
-                            {note.updated_at && (
-                              <span className="ml-2 text-gray-400 italic">
-                                (Updated: {format(new Date(note.updated_at), 'dd-MMM HH:mm')})
-                              </span>
+                            {editingNotes[note.id] ? (
+                              <>
+                                <textarea
+                                  defaultValue={note.content}
+                                  className="w-full border rounded px-2 py-1 text-sm mt-1"
+                                  ref={(el) => note._ref = el}
+                                />
+                                <button
+                                  onClick={async () => {
+                                    const newContent = note._ref?.value;
+                                    if (newContent && newContent !== note.content) {
+                                      const user = await supabase.auth.getUser();
+                                      const { error } = await supabase.from('notes')
+                                        .update({ content: newContent, created_by: user?.data?.user?.id || null })
+                                        .eq('id', note.id);
+
+                                      if (error) {
+                                        console.error('Failed to update note:', error);
+                                        toast.error('Note update failed');
+                                      } else {
+                                        refreshNotes(e.id);
+                                        toast.success('Note updated');
+                                        setEditingNotes(prev => ({ ...prev, [note.id]: false }));
+                                      }
+                                    }
+                                  }}
+                                  className="text-sm text-blue-600 hover:underline ml-1"
+                                >
+                                  Save Edits
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <div className="mt-1">{note.content}</div>
+                                <button
+                                  onClick={() => setEditingNotes(prev => ({ ...prev, [note.id]: true }))}
+                                  className="text-sm text-blue-600 hover:underline ml-1"
+                                >
+                                  Edit
+                                </button>
+                              </>
                             )}
                           </div>
-                            <textarea
-                              defaultValue={note.content}
-                              className="w-full border rounded px-2 py-1 text-sm mt-1"
-                              ref={(el) => note._ref = el}
-                            />
-                          </div>
-                          <button
-                            onClick={async () => {
-                              const newContent = note._ref?.value;
-                              if (newContent && newContent !== note.content) {
-                                const user = await supabase.auth.getUser();
-                                const { error } = await supabase.from('notes')
-                                  .update({ content: newContent, created_by: user?.data?.user?.id || null })
-                                  .eq('id', note.id);
-
-                                if (error) {
-                                  console.error('Failed to update note:', error);
-                                  toast.error('Note update failed');
-                                } else {
-                                  refreshNotes(e.id);
-                                  toast.success('Note updated');
-                                }
-                              }
-                            }}
-                            className="text-sm text-blue-600 hover:underline ml-1"
-                          >
-                            Save Edits
-                          </button>
                           <button
                             onClick={async () => {
                               if (confirm('Delete this note?')) {
