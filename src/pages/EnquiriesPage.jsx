@@ -391,7 +391,7 @@ export default function EnquiriesPage() {
                             onClick={async () => {
                               if (confirm('Delete this note?')) {
                                 if (note.type === 'file' && note.file_url) {
-                                  const match = note.file_url.match(/\/object\/public\/crm\/(.+)$/);
+                                      const match = note.file_url.match(/\/storage\/v1\/object\/sign\/crm\/(.+)$/);
                                   if (match) {
                                     const filePath = match[1];
                                     await deleteEnquiryFile(filePath);
