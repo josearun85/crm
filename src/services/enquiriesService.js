@@ -6,13 +6,12 @@ export async function uploadEnquiryFile(file, enquiryId) {
   const { data, error } = await supabase.storage.from("crm").upload(fileName, file);
   if (error) throw error;
   
-  const filePath = fileName;
   const { data: signedData, error: signedError } = await supabase.storage
     .from("crm")
-    .createSignedUrl(filePath, 3600); // 1 hour
+    .createSignedUrl(fileName, 3600); // 1 hour
   
   if (signedError) throw signedError;
-  return { filePath, fileUrl: signedData.signedUrl };
+  return { filePath: fileName, fileUrl: signedData.signedUrl };
 }
 
 export async function deleteEnquiryFile(filePath) {

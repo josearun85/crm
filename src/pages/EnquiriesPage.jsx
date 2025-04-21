@@ -390,6 +390,9 @@ export default function EnquiriesPage() {
                           </div>
                           <button
                             onClick={async () => {
+                            if (note.type === 'file') {
+                              console.log("Clicked delete on note:", note.id, note.type, note.file_path);
+                            }
                               if (confirm('Delete this note?')) {
                                 try {
                                   if (note.type === 'file' && note.file_path) {
