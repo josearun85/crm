@@ -73,7 +73,7 @@ export default function EnquiriesPage() {
   const refreshNotes = async (enquiryId) => {
     const { data, error } = await supabase
       .from('notes')
-      .select('id, content, created_at')
+      .select('id, content, created_at, updated_at')
       .eq('enquiry_id', enquiryId)
       .order('created_at', { ascending: false });
     if (!error) {
@@ -278,7 +278,14 @@ export default function EnquiriesPage() {
                       {(notesByEnquiry[e.id] || []).map(note => (
                         <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
                           <div>
-                            <div className="text-xs text-gray-500">{format(new Date(note.created_at), 'dd-MMM HH:mm')}</div>
+                          <div className="text-xs text-gray-500">
+                            Created: {format(new Date(note.created_at), 'dd-MMM HH:mm')}
+                            {note.updated_at && (
+                              <span className="ml-2 text-gray-400 italic">
+                                (Updated: {format(new Date(note.updated_at), 'dd-MMM HH:mm')})
+                              </span>
+                            )}
+                          </div>
                             <textarea
                               defaultValue={note.content}
                               className="w-full border rounded px-2 py-1 text-sm mt-1"
