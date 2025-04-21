@@ -114,8 +114,13 @@ export default function EnquiriesPage() {
         const fileURL = publicUrlData?.publicUrl;
 
         const user = await supabase.auth.getUser();
-        await createFileNote(enquiryId, file.name, fileURL, user?.data?.user?.id || null);
-
+        await createFileNote(
+          enquiryId,
+          file.name,
+          fileURL,
+          user?.data?.user?.id || null,
+          user?.data?.user?.email || null
+        );
         toast.success("File uploaded");
         refreshNotes(enquiryId);
         fetchNoteCounts();

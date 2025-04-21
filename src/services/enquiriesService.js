@@ -81,13 +81,14 @@ export async function getEnquiriesByDateRange(startDate, endDate) {
   return data;
 }
 
-export async function createFileNote(enquiryId, fileName, fileURL, userId) {
+export async function createFileNote(enquiryId, fileName, fileURL, userId, userEmail) {
   const { error } = await supabase.from('notes').insert({
     enquiry_id: enquiryId,
     content: `File uploaded: ${fileName}`,
     file_url: fileURL,
     type: 'file',
-    created_by: userId
+    created_by: userId,
+    created_by_email: userEmail
   });
   if (error) throw error;
 }
