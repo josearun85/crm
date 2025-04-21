@@ -12,7 +12,7 @@ export async function uploadEnquiryFile(file, enquiryId) {
     .createSignedUrl(filePath, 3600); // 1 hour
   
   if (signedError) throw signedError;
-  return { filePath, publicUrl: signedData.signedUrl };
+  return { filePath, fileUrl: signedData.signedUrl };
 }
 
 export async function deleteEnquiryFile(filePath) {
@@ -89,11 +89,12 @@ export async function getEnquiriesByDateRange(startDate, endDate) {
   return data;
 }
 
-export async function createFileNote(enquiryId, fileName, fileURL, userId, userEmail) {
+export async function createFileNote(enquiryId, fileName, filePath, userId, userEmail, fileUrl) {
   const { error } = await supabase.from('notes').insert({
     enquiry_id: enquiryId,
     content: `File uploaded: ${fileName}`,
-    file_url: fileURL,
+    file_url: fileUrl,
+    file_path: filePath,
     type: 'file',
     created_by: userId,
     created_by_email: userEmail

@@ -390,13 +390,9 @@ export default function EnquiriesPage() {
                           <button
                             onClick={async () => {
                               if (confirm('Delete this note?')) {
-                                if (note.type === 'file' && note.file_url) {
-                                      const match = note.file_url.match(/\/storage\/v1\/object\/sign\/crm\/(.+)$/);
-                                  if (match) {
-                                    const filePath = match[1];
-                                    await deleteEnquiryFile(filePath);
-                                  }
-                                }
+                              if (note.file_path) {
+                                    await deleteEnquiryFile(note.file_path);
+                              }
                                 await supabase.from('notes').delete().eq('id', note.id);
                                 refreshNotes(e.id);
                                 toast.success('Note deleted');
