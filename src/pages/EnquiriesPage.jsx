@@ -109,7 +109,18 @@ export default function EnquiriesPage() {
       if (!file) return;
 
       try {
-        await uploadEnquiryFile(file, enquiryId);
+        const filePath = await uploadEnquiryFile(file, enquiryId);
+        const { data: publicUrlData } = supabase.storage.from("crm").getPublicUrl(filePath);
+        const fileURL = publicUrlData?.publicUrl;
+
+        const user = await supabase.auth.getUser();
+        await supabase.from("notes").insert({
+          enquiry_id: enquiryId,
+          content: `File uploaded: ${file.name}\n${fileURL}`,
+          type: "internal",
+          created_by: user?.data?.user?.id || null
+        });
+
         toast.success("File uploaded");
         refreshNotes(enquiryId);
         fetchNoteCounts();
@@ -308,10 +319,17 @@ export default function EnquiriesPage() {
                                 { note.content.startsWith("File uploaded:") ? (
                                   (() => {
                                     const lines = note.content.split('\n');
+                                    const url = lines[1];
+                                    const fileName = lines[0].replace('File uploaded: ', '');
+                                    const isImage = /\.(png|jpe?g|gif|bmp|webp)$/i.test(url);
                                     return (
                                       <div>
-                                        <div className="text-blue-600">{lines[0]}</div>
-                                        <a href={lines[1]} className="text-blue-600 underline text-sm" target="_blank" rel="noreferrer">View File</a>
+                                        <div className="text-blue-600 font-medium">{fileName}</div>
+                                        {isImage ? (
+                                          <img src={url} alt={fileName} className="mt-1 max-w-xs rounded shadow border" />
+                                        ) : (
+                                          <a href={url} className="text-blue-600 underline text-sm" target="_blank" rel="noreferrer">Download File</a>
+                                        )}
                                       </div>
                                     );
                                   })()
