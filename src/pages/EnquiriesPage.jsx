@@ -286,7 +286,7 @@ export default function EnquiriesPage() {
                           <div>
                             <div className="text-xs text-gray-500">{format(new Date(note.created_at), 'dd-MMM HH:mm')}</div>
                             <textarea
-                              defaultValue={note.content}
+                              value={pendingEdits[note.id] ?? note.content}
                               onChange={(e) => {
                                 const newValue = e.target.value;
                                 setPendingEdits(prev => ({ ...prev, [note.id]: newValue }));
