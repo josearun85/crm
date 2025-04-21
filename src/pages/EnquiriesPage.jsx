@@ -110,8 +110,7 @@ export default function EnquiriesPage() {
 
       try {
         const filePath = await uploadEnquiryFile(file, enquiryId);
-        const { data: publicUrlData } = supabase.storage.from("crm").getPublicUrl(filePath);
-        const fileURL = publicUrlData?.publicUrl;
+      const fileURL = supabase.storage.from("crm").getPublicUrl(filePath).data.publicUrl;
 
         const user = await supabase.auth.getUser();
         await createFileNote(
