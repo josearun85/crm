@@ -391,9 +391,14 @@ export default function EnquiriesPage() {
                           <button
                             onClick={async () => {
                               if (confirm('Delete this note?')) {
-                              if (note.file_path) {
+                                try {
+                                  if (note.file_path) {
                                     await deleteEnquiryFile(note.file_path);
-                              }
+                                    console.log("File deleted:", note.file_path);
+                                  }
+                                } catch (err) {
+                                  console.error("Error deleting file from storage:", err);
+                                }
                                 await supabase.from('notes').delete().eq('id', note.id);
                                 refreshNotes(e.id);
                                 toast.success('Note deleted');
