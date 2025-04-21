@@ -5,7 +5,8 @@ export async function uploadEnquiryFile(file, enquiryId) {
   const fileName = `enquiries/${enquiryId}/${Date.now()}-${file.name}`;
   const { data, error } = await supabase.storage.from("crm").upload(fileName, file);
   if (error) throw error;
-  return fileName;
+  const publicUrl = supabase.storage.from("crm").getPublicUrl(fileName).data.publicUrl;
+  return { fileName, publicUrl };
 }
 
 export async function deleteEnquiryFile(filePath) {
