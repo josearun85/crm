@@ -316,36 +316,29 @@ export default function EnquiriesPage() {
                       {(note.content && !editingNotes[note.id]) ? (
                               <>
                                 { note.type === 'file' ? (
-                                  (() => {
-                                    const url = note.file_url;
-                                    const fileName = note.content?.replace('File uploaded: ', '');
-                                    const isImage = /\.(png|jpe?g|gif|bmp|webp)$/i.test(url);
-                                    return (
-                                      <div className="flex items-start gap-2">
-                                        <div>
-                                          <a
-                                            href={url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-blue-600 font-medium hover:underline"
-                                          >
-                                            {fileName}
-                                          </a>
-                                          {isImage && (
-                                            <img src={url} alt={fileName} className="mt-1 max-w-xs rounded shadow border" />
-                                          )}
-                                        </div>
-                                        <a
-                                          href={url}
-                                          download
-                                          title="Download file"
-                                          className="text-gray-500 hover:text-gray-700"
-                                        >
-                                          ⬇️
-                                        </a>
-                                      </div>
-                                    );
-                                  })()
+                                  <div className="flex items-start gap-2">
+                                    <div>
+                                      <a
+                                        href={note.file_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-blue-600 font-medium hover:underline"
+                                      >
+                                        {note.content.replace('File uploaded: ', '')}
+                                      </a>
+                                      {/\.(png|jpe?g|gif|bmp|webp)$/i.test(note.file_url) && (
+                                        <img src={note.file_url} alt={note.content} className="mt-1 max-w-xs rounded shadow border" />
+                                      )}
+                                    </div>
+                                    <a
+                                      href={note.file_url}
+                                      download
+                                      title="Download file"
+                                      className="text-gray-500 hover:text-gray-700"
+                                    >
+                                      ⬇️
+                                    </a>
+                                  </div>
                                 ) : (
                                   <div className="mt-1">{note.content}</div>
                                 )}
