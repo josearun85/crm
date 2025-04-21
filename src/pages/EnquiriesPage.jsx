@@ -75,7 +75,7 @@ export default function EnquiriesPage() {
   const refreshNotes = async (enquiryId) => {
     const { data, error } = await supabase
       .from('notes')
-      .select('id, content, file_url, type, created_at, updated_at, created_by_email')
+    .select('id, content, file_url, file_path, type, created_at, updated_at, created_by_email')
       .eq('enquiry_id', enquiryId)
       .order('created_at', { ascending: false });
     if (!error) {
