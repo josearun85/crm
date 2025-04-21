@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import CreateEnquiryModal from '../components/Enquiries/CreateEnquiryModal';
 import { ChatBubbleLeftEllipsisIcon, PlusCircleIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
-import { uploadEnquiryFile, createFileNote } from '../services/enquiriesService';
+import { uploadEnquiryFile, createFileNote, deleteEnquiryFile } from '../services/enquiriesService';
 
 const statusColors = {
   new: 'bg-blue-200',
@@ -391,6 +391,13 @@ export default function EnquiriesPage() {
                           <button
                             onClick={async () => {
                               if (confirm('Delete this note?')) {
+                                if (note.type === 'file' && note.file_url) {
+                                  const match = note.file_url.match(/\/object\/public\/crm\/(.+)$/);
+                                  if (match) {
+                                    const filePath = match[1];
+                                    await deleteEnquiryFile(filePath);
+                                  }
+                                }
                                 await supabase.from('notes').delete().eq('id', note.id);
                                 refreshNotes(e.id);
                                 toast.success('Note deleted');
