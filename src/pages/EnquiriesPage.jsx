@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import CreateEnquiryModal from '../components/Enquiries/CreateEnquiryModal';
 import { ChatBubbleLeftEllipsisIcon, PlusCircleIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
-import { uploadEnquiryFile } from '../services/enquiriesService';
+import { uploadEnquiryFile, createFileNote } from '../services/enquiriesService';
 
 const statusColors = {
   new: 'bg-blue-200',
@@ -75,7 +75,7 @@ export default function EnquiriesPage() {
   const refreshNotes = async (enquiryId) => {
     const { data, error } = await supabase
       .from('notes')
-      .select('id, content, created_at, updated_at')
+      .select('id, content, file_url, type, created_at, updated_at')
       .eq('enquiry_id', enquiryId)
       .order('created_at', { ascending: false });
     if (!error) {
@@ -313,35 +313,55 @@ export default function EnquiriesPage() {
                       {(notesByEnquiry[e.id] || []).length === 0 && <div className="text-gray-400 italic">No notes yet</div>}
                       {(notesByEnquiry[e.id] || []).map(note => (
                         <div key={note.id} className="mb-2 text-sm text-gray-800 border-b pb-1 flex justify-between">
-                          <div>
+                      <div>
+                        <div className="text-xs text-gray-400 italic">
+                          Created: {format(new Date(note.created_at), 'dd-MMM HH:mm')}
+                          {note.updated_at && ` • Updated: ${format(new Date(note.updated_at), 'dd-MMM HH:mm')}`}
+                        </div>
                       {(note.content && !editingNotes[note.id]) ? (
                               <>
-                                { note.content.startsWith("File uploaded:") ? (
+                                { note.type === 'file' ? (
                                   (() => {
-                                    const lines = note.content.split('\n');
-                                    const url = lines[1];
-                                    const fileName = lines[0].replace('File uploaded: ', '');
+                                    const url = note.file_url;
+                                    const fileName = note.content?.replace('File uploaded: ', '');
                                     const isImage = /\.(png|jpe?g|gif|bmp|webp)$/i.test(url);
                                     return (
-                                      <div>
-                                        <div className="text-blue-600 font-medium">{fileName}</div>
-                                        {isImage ? (
-                                          <img src={url} alt={fileName} className="mt-1 max-w-xs rounded shadow border" />
-                                        ) : (
-                                          <a href={url} className="text-blue-600 underline text-sm" target="_blank" rel="noreferrer">Download File</a>
-                                        )}
+                                      <div className="flex items-start gap-2">
+                                        <div>
+                                          <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-blue-600 font-medium hover:underline"
+                                          >
+                                            {fileName}
+                                          </a>
+                                          {isImage && (
+                                            <img src={url} alt={fileName} className="mt-1 max-w-xs rounded shadow border" />
+                                          )}
+                                        </div>
+                                        <a
+                                          href={url}
+                                          download
+                                          title="Download file"
+                                          className="text-gray-500 hover:text-gray-700"
+                                        >
+                                          ⬇️
+                                        </a>
                                       </div>
                                     );
                                   })()
                                 ) : (
                                   <div className="mt-1">{note.content}</div>
                                 )}
-                                <button
-                                  onClick={() => setEditingNotes(prev => ({ ...prev, [note.id]: true }))}
-                                  className="text-sm text-blue-600 hover:underline ml-1"
-                                >
-                                  Edit
-                                </button>
+                                { note.type !== 'file' && (
+                                  <button
+                                    onClick={() => setEditingNotes(prev => ({ ...prev, [note.id]: true }))}
+                                    className="text-sm text-blue-600 hover:underline ml-1"
+                                  >
+                                    Edit
+                                  </button>
+                                )}
                               </>
                             ) : (
                               <>
@@ -353,20 +373,19 @@ export default function EnquiriesPage() {
                                 <button
                                   onClick={async () => {
                                     const newContent = note._ref?.value;
-                                    if (newContent && newContent !== note.content) {
-                                      const user = await supabase.auth.getUser();
-                                      const { error } = await supabase.from('notes')
-                                        .update({ content: newContent, created_by: user?.data?.user?.id || null })
-                                        .eq('id', note.id);
+                                    const user = await supabase.auth.getUser();
  
-                                      if (error) {
-                                        console.error('Failed to update note:', error);
-                                        toast.error('Note update failed');
-                                      } else {
-                                        refreshNotes(e.id);
-                                        toast.success('Note updated');
-                                        setEditingNotes(prev => ({ ...prev, [note.id]: false }));
-                                      }
+                                    const { error } = await supabase.from('notes')
+                                      .update({ content: newContent, created_by: user?.data?.user?.id || null })
+                                      .eq('id', note.id);
+ 
+                                    if (error) {
+                                      console.error('Failed to update note:', error);
+                                      toast.error('Note update failed');
+                                    } else {
+                                      toast.success('Note updated');
+                                      setEditingNotes(prev => ({ ...prev, [note.id]: false }));
+                                      refreshNotes(e.id);
                                     }
                                   }}
                                   className="text-sm text-blue-600 hover:underline ml-1"
