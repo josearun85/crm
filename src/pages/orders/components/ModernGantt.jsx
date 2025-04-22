@@ -130,6 +130,20 @@ for (let i = 0; i < allTasks.length; i++) {
           console.error("❌ Failed to update task", err);
         }
       });
+
+      apiRef.current.on("drag-task", (ev) => {
+        console.log("📦 Dragged task:", ev);
+      });
+
+      apiRef.current.on("delete-task", async (ev) => {
+        console.log("🗑️ Deleted task:", ev);
+        try {
+          await updateOrderStep(ev.id, { deleted: true }); // Optional flag if soft-delete is needed
+          onRefresh?.(); // Refresh view
+        } catch (err) {
+          console.error("❌ Failed to delete task", err);
+        }
+      });
     }
   }, [steps]);
 
