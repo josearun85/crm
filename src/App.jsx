@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import CustomersPage from './pages/CustomersPage.jsx'
 import OrderPage from './pages/OrderPage.jsx'
 import EnquiriesPage from './pages/EnquiriesPage.jsx'
-import OrderDetailPage from './pages/OrderDetailPage.jsx';
+import OrderDetailPage from './pages/orders/OrderDetailPage.jsx';
 // import InvoicesPage from './pages/InvoicesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import ResetPassword from './pages/ResetPassword.jsx';
