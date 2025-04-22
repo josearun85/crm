@@ -242,26 +242,25 @@ export default function SignageItemsTab({ orderId }) {
                               setBoqs(updatedBoqs);
                             }}
                             onBlur={
-                              field === "cost_per_unit"
+                              field === "cost_per_unit" || field === "unit"
                                 ? async (e) => {
-                                    const newCost = e.target.value;
-                                    const updated = await updateBoqItem(boq.id, { ...boq, cost_per_unit: newCost });
+                                    const newValue = e.target.value;
+                                    const updated = await updateBoqItem(boq.id, { ...boq, [field]: newValue });
                                     const updatedBoqs = boqs.map(b => b.id === boq.id ? updated : b);
                                     setBoqs(updatedBoqs);
 
-                                    // propagate the cost change to other matching materials in the same order
                                     const othersWithSameMaterial = allBoqs.filter(
-                                      b => b.material === boq.material && b.id !== boq.id && b.cost_per_unit !== newCost
+                                      b => b.material === boq.material && b.id !== boq.id && b[field] !== newValue
                                     );
 
                                     if (othersWithSameMaterial.length > 0) {
-                                      alert(`Updating ${othersWithSameMaterial.length} other entries with new cost/unit`);
+                                      alert(`Updating ${othersWithSameMaterial.length} other entries with new ${field}`);
                                       for (const other of othersWithSameMaterial) {
-                                        await updateBoqItem(other.id, { ...other, cost_per_unit: newCost });
+                                        await updateBoqItem(other.id, { ...other, [field]: newValue });
                                       }
 
                                       const refreshedAllBoqs = allBoqs.map(b =>
-                                        b.material === boq.material ? { ...b, cost_per_unit: newCost } : b
+                                        b.material === boq.material ? { ...b, [field]: newValue } : b
                                       );
                                       setAllBoqs(refreshedAllBoqs);
 
@@ -335,6 +334,7 @@ export default function SignageItemsTab({ orderId }) {
                 const updatedBoqs = [...allBoqs, boq];
                 setAllBoqs(updatedBoqs);
 
+                // Cost propagation
                 const costDiffItems = updatedBoqs.filter(
                   b => b.material === boq.material &&
                   b.id !== boq.id &&
@@ -350,6 +350,24 @@ export default function SignageItemsTab({ orderId }) {
                     b.material === boq.material
                       ? { ...b, cost_per_unit: boq.cost_per_unit }
                       : b
+                  );
+                  setAllBoqs(refreshedBoqs);
+                  setBoqs(refreshedBoqs.filter(b => b.signage_item_id === selectedItemId));
+                }
+
+                // Unit propagation
+                const unitDiffItems = updatedBoqs.filter(
+                  b => b.material === boq.material &&
+                  b.id !== boq.id &&
+                  b.unit !== boq.unit
+                );
+                if (unitDiffItems.length > 0) {
+                  alert(`Updating ${unitDiffItems.length} other entries with new unit`);
+                  for (const b of unitDiffItems) {
+                    await updateBoqItem(b.id, { unit: boq.unit });
+                  }
+                  const refreshedBoqs = updatedBoqs.map(b =>
+                    b.material === boq.material ? { ...b, unit: boq.unit } : b
                   );
                   setAllBoqs(refreshedBoqs);
                   setBoqs(refreshedBoqs.filter(b => b.signage_item_id === selectedItemId));

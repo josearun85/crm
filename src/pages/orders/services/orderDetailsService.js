@@ -357,3 +357,26 @@ export async function updateOrderDetails(orderId, updates) {
   }
   return data;
 }
+// Update all BOQ items in an order by material
+export async function updateBoqItemsByMaterial(orderId, material, updates) {
+  const { data: items, error: itemError } = await supabase
+    .from("signage_items")
+    .select("id")
+    .eq("order_id", orderId);
+  if (itemError) {
+    console.error(itemError);
+    throw itemError;
+  }
+
+  const itemIds = items.map(i => i.id);
+  const { error } = await supabase
+    .from("boq_items")
+    .update(updates)
+    .in("signage_item_id", itemIds)
+    .eq("material", material);
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+}
