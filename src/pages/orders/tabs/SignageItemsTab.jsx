@@ -112,7 +112,12 @@ export default function SignageItemsTab({ orderId }) {
                 className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
                 onClick={async () => {
                   try {
-                    const created = await addSignageItem(orderId, newItem);
+                    console.log("Saving signage item for order:", orderId);
+                    const created = await addSignageItem(Number(orderId), {
+                      ...newItem,
+                      quantity: Number(newItem.quantity),
+                      cost: Number(newItem.cost),
+                    });
                     setItems([...items, created]);
                     setNewItem({ name: "", description: "", quantity: "", cost: "" });
                     setShowAddModal(false);

@@ -1,6 +1,3 @@
-
-
-
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import OrderHeader from "./components/OrderHeader";
 import TabNav from "./components/TabNav";

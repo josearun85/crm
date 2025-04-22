@@ -42,6 +42,7 @@ export async function fetchSignageItems(orderId) {
 }
 
 export async function addSignageItem(orderId, itemData) {
+  console.log("Inserting signage item with order_id", orderId, "and data", itemData);
   const { data, error } = await supabase
     .from("signage_items")
     .insert([{ ...itemData, order_id: orderId }])
