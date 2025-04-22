@@ -11,7 +11,23 @@ export default function ModernGantt({ steps, onRefresh }) {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const typeGroups = {};
+    if (!steps || steps.length === 0) {
+      console.warn("No steps found for Gantt rendering.");
+      setTasks([]);
+      setLinks([]);
+      return;
+    }
+
+    const toIST = (date) => new Date(date.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+
+    const typeColorMap = {
+      Design: "#4caf50",
+      Procurement: "#2196f3",
+      Fabrication: "#ff9800",
+      Installation: "#9c27b0",
+      Uncategorized: "#9e9e9e",
+    };
+
     const summaryTasks = [];
     const childTasks = [];
     let taskIdCounter = 1000;
@@ -31,23 +47,24 @@ export default function ModernGantt({ steps, onRefresh }) {
         summaryTasks.push({
           id: summaryId,
           text: type,
-          start: new Date(),
-          end: new Date(),
+          start: toIST(new Date()),
+          end: toIST(new Date()),
           duration: 1,
           progress: 0,
           type: "summary",
           parent: null,
           lazy: false,
+          color: typeColorMap[type] || "#607d8b",
         });
       }
 
       stepsOfType.forEach((step, index) => {
-        const start = step.start_date ? new Date(step.start_date) : new Date();
+        const start = step.start_date ? toIST(new Date(step.start_date)) : toIST(new Date());
         const end = step.end_date
-          ? new Date(step.end_date)
+          ? toIST(new Date(step.end_date))
           : step.duration
-          ? new Date(start.getTime() + step.duration * 86400000)
-          : new Date(start.getTime() + 86400000);
+          ? toIST(new Date(start.getTime() + step.duration * 86400000))
+          : toIST(new Date(start.getTime() + 86400000));
 
         childTasks.push({
           id: step.id || taskIdCounter++,
@@ -59,6 +76,7 @@ export default function ModernGantt({ steps, onRefresh }) {
           type: "task",
           parent: summaryId,
           lazy: false,
+          color: typeColorMap[type] || "#607d8b",
         });
       });
     });
@@ -67,8 +85,8 @@ export default function ModernGantt({ steps, onRefresh }) {
     summaryTasks.forEach(summary => {
       const children = childTasks.filter(t => t.parent === summary.id);
       if (children.length > 0) {
-        summary.start = new Date(Math.min(...children.map(c => c.start)));
-        summary.end = new Date(Math.max(...children.map(c => c.end)));
+        summary.start = toIST(new Date(Math.min(...children.map(c => c.start))));
+        summary.end = toIST(new Date(Math.max(...children.map(c => c.end))));
       }
     });
 
@@ -101,6 +119,7 @@ export default function ModernGantt({ steps, onRefresh }) {
       await updateOrderStep(task.id, updates);
     } catch (err) {
       console.error("Failed to update task", err);
+      alert("Failed to update task. Please try again.");
     }
   };
 
@@ -112,6 +131,10 @@ export default function ModernGantt({ steps, onRefresh }) {
   // Handler for creating a new dependency link via drag-and-drop
   const onLinkCreate = async (newLink) => {
     try {
+      if (newLink.source === newLink.target) {
+        alert("Circular dependency not allowed.");
+        return;
+      }
       const target = steps.find(s => s.id === newLink.target);
       if (!target) return;
 
@@ -135,8 +158,9 @@ export default function ModernGantt({ steps, onRefresh }) {
   // Handler for new task creation via Gantt's built-in "Add" button
   const onTaskAdd = async (newTask) => {
     try {
-      // Try to infer group type from parent summary (e.g., "summary-Design" => "Design")
-      const groupType = newTask.parent?.replace("summary-", "") || "Uncategorized";
+      // Try to infer group type from parent summary (e.g., find summary task by id)
+      const summary = tasks.find(t => t.id === newTask.parent && t.type === "summary");
+      const groupType = summary?.text || "Uncategorized";
 
       const today = new Date();
       const end = new Date(today.getTime() + 2 * 86400000); // default 2-day task
@@ -157,6 +181,7 @@ export default function ModernGantt({ steps, onRefresh }) {
       onRefresh?.(); // trigger re-fetch of steps
     } catch (err) {
       console.error("Failed to add new task:", err);
+      alert("Failed to add new task. Please try again.");
     }
   };
 
