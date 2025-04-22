@@ -53,7 +53,7 @@ export default function App() {
             <Route path="/enquiries" element={<EnquiriesPage />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/orders/:id" element={<OrderPage />} />
-            <Route path="/orders-v2/:id" element={<OrderDetailPage />} />
+            <Route path="/orders-v2/:orderId" element={<OrderDetailPage />} />
           </>
         )}
       </Routes>
