@@ -47,8 +47,8 @@ export default function ModernGantt({ steps, onRefresh }) {
         summaryTasks.push({
           id: summaryId,
           text: type,
-          start: toIST(new Date()),
-          end: toIST(new Date()),
+          start: null,
+          end: null,
           duration: 1,
           progress: 0,
           type: "summary",
@@ -68,7 +68,7 @@ export default function ModernGantt({ steps, onRefresh }) {
 
         childTasks.push({
           id: step.id || taskIdCounter++,
-          text: step.description || step.status || `Step ${index + 1}`,
+          text: step.description || type || `Step ${index + 1}`,
           start,
           end,
           duration: step.duration || 1,
@@ -85,8 +85,8 @@ export default function ModernGantt({ steps, onRefresh }) {
     summaryTasks.forEach(summary => {
       const children = childTasks.filter(t => t.parent === summary.id);
       if (children.length > 0) {
-        summary.start = toIST(new Date(Math.min(...children.map(c => c.start))));
-        summary.end = toIST(new Date(Math.max(...children.map(c => c.end))));
+        summary.start = toIST(new Date(Math.min(...children.map(c => c.start.getTime()))));
+        summary.end = toIST(new Date(Math.max(...children.map(c => c.end.getTime()))));
       }
     });
 
