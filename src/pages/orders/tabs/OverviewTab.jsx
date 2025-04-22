@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchOrderOverview, updateOrderStatus } from "../services/orderDetailsService";
+import { fetchOrderOverview, updateOrderDetails } from "../services/orderDetailsService";
 
 export default function OverviewTab({ orderId }) {
   const [order, setOrder] = useState(null);
@@ -17,8 +17,8 @@ export default function OverviewTab({ orderId }) {
   const handleChange = (field, value) => {
     const updated = { ...order, [field]: value };
     setOrder(updated);
-    updateOrderStatus(orderId, updated.status)
-      .then(() => console.log("Status updated"))
+    updateOrderDetails(orderId, { [field]: value })
+      .then(() => console.log(`${field} updated`))
       .catch((err) => console.error("Update failed", err));
   };
 
