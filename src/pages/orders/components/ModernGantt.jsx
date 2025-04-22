@@ -27,12 +27,32 @@ export default function ModernGantt({ steps, onRefresh }) {
       return new Date(utc + 19800000); // offset for IST
     };
 
-    const typeColorMap = {
-      Design: "#4caf50",
-      Procurement: "#2196f3",
-      Fabrication: "#ff9800",
-      Installation: "#9c27b0",
-    };
+  // Dynamically generate typeColorMap based on unique step types
+  const uniqueTypes = steps && steps.length > 0
+    ? [...new Set(steps.map(step => step.type).filter(Boolean))]
+    : [];
+  const predefinedColors = [
+    "#4caf50", "#2196f3", "#ff9800", "#9c27b0", "#607d8b", "#e91e63", "#00bcd4"
+  ];
+  const typeColorMap = {};
+  const allTasks = [];
+
+  uniqueTypes.forEach((type, idx) => {
+    typeColorMap[type] = predefinedColors[idx % predefinedColors.length];
+  });
+steps.forEach((step) => {
+  allTasks.push({
+    id: step.id ,
+    text: step.description,
+    start: validStart,
+    end: validEnd,
+    duration: step.duration || 1,
+    progress: step.progress || 0,
+    type: step.type,
+    // parent:  parentId,
+    color: typeColorMap[step.type],
+  });
+});
 
     const generatedTaskTypes = Object.entries(typeColorMap).map(([key]) => ({
       id: key.toLowerCase(),
@@ -40,71 +60,7 @@ export default function ModernGantt({ steps, onRefresh }) {
     }));
     setTaskTypes(generatedTaskTypes);
 
-    const allTasks = [];
-    let taskIdCounter = 1000;
-    const groupedTypes = {};
-
-    steps.forEach((step) => {
-      if (!groupedTypes[step.type]) groupedTypes[step.type] = [];
-      groupedTypes[step.type].push(step);
-    });
-
-    Object.entries(groupedTypes).forEach(([type, stepsOfType]) => {
-      if (!type) return;
-      const stepColor = typeColorMap[type] || "#607d8b";
-      const isGrouped = stepsOfType.length > 1;
-      let parentId = null;
-
-      if (isGrouped) {
-        parentId = `summary-${type}`;
-        const summaryStart = Math.min(...stepsOfType.map(s => new Date(s.start_date || "").getTime()));
-        const summaryEnd = Math.max(...stepsOfType.map(s => new Date(s.end_date || "").getTime()));
-        if (isNaN(summaryStart) || isNaN(summaryEnd)) return;
-        allTasks.push({
-          id: parentId,
-          text: type,
-          start: new Date(summaryStart),
-          end: new Date(summaryEnd),
-          duration: (summaryEnd - summaryStart) / 86400000,
-          progress: 0,
-          type: type,
-          open: true,
-          color: stepColor,
-        });
-      }
-
-      stepsOfType.forEach((step, i) => {
-        console.log("Step:", step);
-        const validStart = new Date(step.start_date);
-        const validEnd = new Date(step.end_date);
-        // if (isNaN(validStart) || isNaN(validEnd)) return;
-        if(isGrouped){
-          allTasks.push({
-            id: step.id || taskIdCounter++,
-            text: step.description,
-            start: validStart,
-            end: validEnd,
-            duration: step.duration || 1,
-            progress: step.progress || 0,
-            type: step.type,
-            parent:  parentId,
-            color: stepColor,
-          });
-        }else{
-          allTasks.push({
-            id: step.id || taskIdCounter++,
-            text: step.description,
-            start: validStart,
-            end: validEnd,
-            duration: step.duration || 1,
-            progress: step.progress || 0,
-            type: step.type,
-            color: stepColor,
-          });
-        }
-       
-      });
-    });
+    
 
     const deps = steps
       .filter(step => Array.isArray(step.dependency_ids))
