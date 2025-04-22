@@ -55,8 +55,8 @@ export default function BoqTab({ orderId }) {
         </thead>
         <tbody>
           {materials.map(m => (
-            <tr key={m.material}>
-              <td className="p-2 border">{m.material}</td>
+            <tr key={m.material} className="hover:bg-gray-50">
+              <td className="p-2 border font-medium">{m.material}</td>
               <td className="p-2 border">{m.unit}</td>
               <td className="p-2 border">{m.quantity}</td>
               <td className="p-2 border">{m.cost_per_unit}</td>
@@ -68,6 +68,9 @@ export default function BoqTab({ orderId }) {
       <div className="text-right font-semibold mt-2">
         Total BOQ Cost: ₹{totalBoqCost.toFixed(2)}
       </div>
+      <p className="text-sm text-gray-500 mt-2">
+        Click on a material above to view which signage items use it — (feature coming soon).
+      </p>
     </div>
   );
 }

@@ -22,7 +22,15 @@ export default function SignageItemsTab({ orderId }) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Signage Items</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Signage Items</h2>
+        <button
+          onClick={() => alert("TODO: Open add signage item modal")}
+          className="text-sm px-3 py-1 bg-blue-600 text-white rounded"
+        >
+          + Add Item
+        </button>
+      </div>
       <table className="min-w-full border text-sm">
         <thead className="bg-gray-100 text-left">
           <tr>
@@ -44,7 +52,27 @@ export default function SignageItemsTab({ orderId }) {
               <td className="p-2 border">{item.name}</td>
               <td className="p-2 border">{item.description}</td>
               <td className="p-2 border">{item.quantity}</td>
-              <td className="p-2 border">{item.cost}</td>
+              <td className="p-2 border flex justify-between items-center">
+                {item.cost}
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    alert("TODO: Open edit modal");
+                  }}
+                  className="ml-2 text-blue-500 cursor-pointer"
+                >
+                  ✎
+                </span>
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    alert("TODO: Trigger delete");
+                  }}
+                  className="ml-2 text-red-500 cursor-pointer"
+                >
+                  🗑
+                </span>
+              </td>
             </tr>
           ))}
         </tbody>

@@ -1,13 +1,14 @@
 import { Gantt } from "wx-react-gantt";
 import "wx-react-gantt/dist/gantt.css";
 import React, { useEffect, useState } from "react";
-import { fetchOrderSteps, updateOrderStep } from "../services/orderDetailsService";
+import { fetchOrderSteps, updateOrderStep, addOrderStep } from "../services/orderDetailsService";
+import StepModal from "./StepModal";
 
-
-
-export default function ModernGantt({ steps }) {
+export default function ModernGantt({ steps, onRefresh }) {
   const [tasks, setTasks] = useState([]);
   const [links, setLinks] = useState([]);
+  const [selectedStep, setSelectedStep] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     // Group steps by type
@@ -100,5 +101,78 @@ export default function ModernGantt({ steps }) {
     { unit: "day", step: 1, format: "d" },
   ];
 
-  return <Gantt tasks={tasks} links={links} scales={scales} onTaskChange={onTaskChange} />;
+  // Handler for creating a new dependency link via drag-and-drop
+  const onLinkCreate = async (newLink) => {
+    try {
+      const target = steps.find(s => s.id === newLink.target);
+      if (!target) return;
+
+      const existingDeps = Array.isArray(target.dependency_ids) ? target.dependency_ids : [];
+      const updatedDeps = [...new Set([...existingDeps, newLink.source])];
+
+      await updateOrderStep(target.id, { dependency_ids: updatedDeps });
+    } catch (err) {
+      console.error("Failed to create link", err);
+    }
+  };
+
+  const handleTaskClick = (task) => {
+    const step = steps.find(s => s.id === task.id);
+    if (step) {
+      setSelectedStep(step);
+      setShowModal(true);
+    }
+  };
+
+  // Handler for new task creation via Gantt's built-in "Add" button
+  const onTaskAdd = async (newTask) => {
+    try {
+      // Try to infer group type from parent summary (e.g., "summary-Design" => "Design")
+      const groupType = newTask.parent?.replace("summary-", "") || "Uncategorized";
+
+      const today = new Date();
+      const end = new Date(today.getTime() + 2 * 86400000); // default 2-day task
+
+      // Try to infer order_id from newTask, fallback to selectedStep if available
+      const orderId = newTask.order_id || selectedStep?.order_id || steps[0]?.order_id;
+
+      await addOrderStep(orderId, {
+        description: newTask.text || "New Task",
+        start_date: today.toISOString().split("T")[0],
+        end_date: end.toISOString().split("T")[0],
+        duration: 2,
+        progress: 0,
+        type: groupType,
+        status: "new",
+      });
+
+      onRefresh?.(); // trigger re-fetch of steps
+    } catch (err) {
+      console.error("Failed to add new task:", err);
+    }
+  };
+
+  return (
+    <>
+      <Gantt
+        tasks={tasks}
+        links={links}
+        scales={scales}
+        onTaskChange={onTaskChange}
+        onLinkCreate={onLinkCreate}
+        onTaskClick={handleTaskClick}
+        onTaskAdd={onTaskAdd}
+      />
+      {showModal && selectedStep && (
+        <StepModal
+          step={selectedStep}
+          onClose={() => setShowModal(false)}
+          onSave={() => {
+            setShowModal(false);
+            onRefresh?.();  // if passed, triggers parent refresh
+          }}
+        />
+      )}
+    </>
+  );
 }
