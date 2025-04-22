@@ -20,7 +20,11 @@ export default function ModernGantt({ steps, onRefresh }) {
       return;
     }
 
-    const toIST = (date) => new Date(date.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const toIST = (date) => {
+      if (!(date instanceof Date)) date = new Date(date);
+      const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+      return new Date(utc + 19800000); // offset for IST
+    };
 
     const typeColorMap = {
       Design: "#4caf50",
@@ -29,82 +33,59 @@ export default function ModernGantt({ steps, onRefresh }) {
       Installation: "#9c27b0",
     };
 
-    const summaryTasks = [];
-    const childTasks = [];
+    const taskTypes = Object.entries(typeColorMap).map(([key, color]) => ({
+      id: key.toLowerCase(),
+      label: key,
+    }));
+
+    const allTasks = [];
     let taskIdCounter = 1000;
+    const groupedTypes = {};
 
-   // Smarter grouping: only group if >1 steps share the same type, else treat each step as its own group
-   const typeCounts = steps.reduce((acc, step) => {
-     if (step.type) {
-       acc[step.type] = (acc[step.type] || 0) + 1;
-     }
-     return acc;
-   }, {});
-   const groupedSteps = steps.reduce((acc, step) => {
-     if (!step.type || typeCounts[step.type] === 1) {
-       // No type, or only one step of this type: treat as its own group
-       acc[`__single__${step.id}`] = [step];
-     } else {
-       if (!acc[step.type]) acc[step.type] = [];
-       acc[step.type].push(step);
-     }
-     return acc;
-   }, {});
+    steps.forEach((step) => {
+      const start = toIST(new Date(step.start_date));
+      const end = toIST(new Date(step.end_date));
+      const color = typeColorMap[step.type] || "#607d8b";
 
-    console.log("🧩 Grouped Steps:", groupedSteps);
+      if (!groupedTypes[step.type]) groupedTypes[step.type] = [];
+      groupedTypes[step.type].push(step);
+    });
 
-    Object.entries(groupedSteps).forEach(([type, stepsOfType]) => {
-      if (!type) return;
+    Object.entries(groupedTypes).forEach(([type, stepsOfType]) => {
+      const isGrouped = stepsOfType.length > 1;
+      let parentId = null;
 
-      let summaryId = null;
-      const showAsGroup = stepsOfType.length > 1;
+      if (isGrouped) {
+        parentId = `summary-${type}`;
+        const summaryStart = Math.min(...stepsOfType.map(s => new Date(s.start_date).getTime()));
+        const summaryEnd = Math.max(...stepsOfType.map(s => new Date(s.end_date).getTime()));
 
-      if (showAsGroup) {
-        summaryId = `summary-${type}`;
-        summaryTasks.push({
-          id: summaryId,
+        allTasks.push({
+          id: parentId,
           text: type,
-          start: null,
-          end: null,
-          duration: 1,
+          start: new Date(summaryStart),
+          end: new Date(summaryEnd),
+          duration: (summaryEnd - summaryStart) / 86400000,
           progress: 0,
           type: "summary",
-          parent: null,
-          lazy: false,
-          color: typeColorMap[type] || "#607d8b",
+          open: true,
+          color,
         });
       }
 
-      stepsOfType.forEach((step, index) => {
-        const start = step.start_date ? toIST(new Date(step.start_date)) : toIST(new Date());
-        const end = step.end_date
-          ? toIST(new Date(step.end_date))
-          : step.duration
-          ? toIST(new Date(start.getTime() + step.duration * 86400000))
-          : toIST(new Date(start.getTime() + 86400000));
-
-        childTasks.push({
+      stepsOfType.forEach((step, i) => {
+        allTasks.push({
           id: step.id || taskIdCounter++,
-          text: step.description || `Step ${index + 1}`,
-          start,
-          end,
+          text: step.description || `Step ${i + 1}`,
+          start: new Date(step.start_date),
+          end: new Date(step.end_date),
           duration: step.duration || 1,
           progress: step.progress || 0,
           type: "task",
-          parent: showAsGroup ? summaryId : null,
-          lazy: false,
-          color: typeColorMap[type] || "#607d8b",
+          parent: isGrouped ? parentId : null,
+          color,
         });
       });
-    });
-
-    // Update summary task start/end bounds
-    summaryTasks.forEach(summary => {
-      const children = childTasks.filter(t => t.parent === summary.id);
-      if (children.length > 0) {
-        summary.start = toIST(new Date(Math.min(...children.map(c => c.start.getTime()))));
-        summary.end = toIST(new Date(Math.max(...children.map(c => c.end.getTime()))));
-      }
     });
 
     const deps = steps
@@ -118,9 +99,9 @@ export default function ModernGantt({ steps, onRefresh }) {
         }))
       );
 
-    console.log("📊 Final Gantt Tasks:", [...summaryTasks, ...childTasks]);
+    console.log("✅ Final Gantt Tasks:", allTasks);
     console.log("🔗 Final Gantt Links:", deps);
-    setTasks([...summaryTasks, ...childTasks]);
+    setTasks(allTasks);
     setLinks(deps);
   }, [steps]);
 
@@ -216,6 +197,7 @@ export default function ModernGantt({ steps, onRefresh }) {
           onLinkCreate={onLinkCreate}
           onTaskClick={handleTaskClick}
           onTaskAdd={onTaskAdd}
+          taskTypes={taskTypes}
         />
       </Willow>
       {showModal && selectedStep && (
