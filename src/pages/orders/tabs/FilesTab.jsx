@@ -1,22 +1,50 @@
 import { useState, useEffect } from "react";
+import {
+  fetchOrderFiles,
+  uploadOrderFile,
+  deleteOrderFile,
+} from "../services/orderDetailsService";
 
 export default function FilesTab({ orderId }) {
   const [files, setFiles] = useState([]);
 
   useEffect(() => {
-    // Placeholder fetch
-    setFiles([
-      { name: "design-spec.pdf", url: "#" },
-      { name: "invoice-2304.pdf", url: "#" },
-    ]);
+    refreshFiles();
   }, [orderId]);
 
-  const handleUpload = () => {
-    alert("TODO: Open file picker and upload logic");
+  const refreshFiles = async () => {
+    try {
+      const list = await fetchOrderFiles(orderId);
+      setFiles(list);
+    } catch (err) {
+      console.error("Failed to fetch files", err);
+    }
   };
 
-  const handleDelete = (fileName) => {
-    alert(`TODO: Delete file: ${fileName}`);
+  const handleUpload = async () => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.onchange = async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      try {
+        await uploadOrderFile(orderId, { name: file.name, url: URL.createObjectURL(file) });
+        refreshFiles();
+      } catch (err) {
+        console.error("Upload failed", err);
+      }
+    };
+    fileInput.click();
+  };
+
+  const handleDelete = async (fileName) => {
+    try {
+      await deleteOrderFile(orderId, fileName);
+      refreshFiles();
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
   };
 
   return (
@@ -32,7 +60,12 @@ export default function FilesTab({ orderId }) {
       <ul className="text-sm divide-y border rounded">
         {files.map((file, index) => (
           <li key={index} className="flex items-center justify-between p-2">
-            <a href={file.url} target="_blank" rel="noreferrer" className="text-blue-600 underline">
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 underline"
+            >
               {file.name}
             </a>
             <button
