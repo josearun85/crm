@@ -1,4 +1,4 @@
-import { Gantt } from "wx-react-gantt";
+import { Gantt, Willow } from "wx-react-gantt";
 import "wx-react-gantt/dist/gantt.css";
 import React, { useEffect, useState } from "react";
 import { fetchOrderSteps, updateOrderStep, addOrderStep } from "../services/orderDetailsService";
@@ -154,15 +154,17 @@ export default function ModernGantt({ steps, onRefresh }) {
 
   return (
     <>
-      <Gantt
-        tasks={tasks}
-        links={links}
-        scales={scales}
-        onTaskChange={onTaskChange}
-        onLinkCreate={onLinkCreate}
-        onTaskClick={handleTaskClick}
-        onTaskAdd={onTaskAdd}
-      />
+      <Willow>
+        <Gantt
+          tasks={tasks}
+          links={links}
+          scales={scales}
+          onTaskChange={onTaskChange}
+          onLinkCreate={onLinkCreate}
+          onTaskClick={handleTaskClick}
+          onTaskAdd={onTaskAdd}
+        />
+      </Willow>
       {showModal && selectedStep && (
         <StepModal
           step={selectedStep}
