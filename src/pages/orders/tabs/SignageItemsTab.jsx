@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem } from "../services/orderDetailsService";
+import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem } from "../services/orderDetailsService";
 
 export default function SignageItemsTab({ orderId }) {
   const [items, setItems] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [boqs, setBoqs] = useState([]);
+  const [allBoqs, setAllBoqs] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newItem, setNewItem] = useState({ name: "", description: "", quantity: "", cost: "" });
   const [newBoq, setNewBoq] = useState({ material: "", quantity: "", unit: "", cost_per_unit: "" });
@@ -15,6 +16,10 @@ export default function SignageItemsTab({ orderId }) {
 
   useEffect(() => {
     fetchSignageItems(orderId).then(setItems).catch(console.error);
+  }, [orderId]);
+
+  useEffect(() => {
+    fetchBoqItems(orderId).then(setAllBoqs).catch(console.error);
   }, [orderId]);
 
   useEffect(() => {
@@ -134,9 +139,13 @@ export default function SignageItemsTab({ orderId }) {
                   }}>{item.cost}</span>
                 )}
                 <span
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
-                    alert("TODO: Trigger delete");
+                    const confirmed = confirm("Are you sure you want to delete this item?");
+                    if (confirmed) {
+                      await deleteSignageItem(item.id);
+                      setItems(items.filter(it => it.id !== item.id));
+                    }
                   }}
                   className="ml-2 text-red-500 cursor-pointer"
                 >
@@ -242,8 +251,11 @@ export default function SignageItemsTab({ orderId }) {
                       <td className="p-2 border text-right">
                         <span
                           onClick={async () => {
-                            await deleteBoqItem(boq.id);
-                            setBoqs(boqs.filter(b => b.id !== boq.id));
+                            const confirmed = confirm("Delete this BOQ entry?");
+                            if (confirmed) {
+                              await deleteBoqItem(boq.id);
+                              setBoqs(boqs.filter(b => b.id !== boq.id));
+                            }
                           }}
                           className="ml-2 text-red-500 cursor-pointer"
                         >
@@ -267,6 +279,20 @@ export default function SignageItemsTab({ orderId }) {
                   type={field === "quantity" || field === "cost_per_unit" ? "number" : "text"}
                   value={newBoq[field]}
                   onChange={(e) => setNewBoq({ ...newBoq, [field]: e.target.value })}
+                  onBlur={
+                    field === "material"
+                      ? () => {
+                          const match = allBoqs.find(b => b.material === newBoq.material);
+                          if (match) {
+                            setNewBoq(prev => ({
+                              ...prev,
+                              unit: match.unit,
+                              cost_per_unit: match.cost_per_unit,
+                            }));
+                          }
+                        }
+                      : undefined
+                  }
                 />
               ))}
             </div>
@@ -276,6 +302,29 @@ export default function SignageItemsTab({ orderId }) {
                 const boq = await addBoqItem(selectedItemId, newBoq);
                 setBoqs([...boqs, boq]);
                 setNewBoq({ material: "", quantity: "", unit: "", cost_per_unit: "" });
+
+                const updatedBoqs = [...allBoqs, boq];
+                setAllBoqs(updatedBoqs);
+
+                const costDiffItems = updatedBoqs.filter(
+                  b => b.material === boq.material &&
+                  b.id !== boq.id &&
+                  b.cost_per_unit !== boq.cost_per_unit
+                );
+
+                if (costDiffItems.length > 0) {
+                  alert(`Updating ${costDiffItems.length} other entries with new cost/unit`);
+                  for (const b of costDiffItems) {
+                    await updateBoqItem(b.id, { cost_per_unit: boq.cost_per_unit });
+                  }
+                  const refreshedBoqs = updatedBoqs.map(b =>
+                    b.material === boq.material
+                      ? { ...b, cost_per_unit: boq.cost_per_unit }
+                      : b
+                  );
+                  setAllBoqs(refreshedBoqs);
+                  setBoqs(refreshedBoqs.filter(b => b.signage_item_id === selectedItemId));
+                }
               }}
             >
               Add BOQ
