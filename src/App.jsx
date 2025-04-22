@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import CustomersPage from './pages/CustomersPage.jsx'
 import OrderPage from './pages/OrderPage.jsx'
 import EnquiriesPage from './pages/EnquiriesPage.jsx'
+import OrderDetailPage from './pages/OrderDetailPage.jsx';
 // import InvoicesPage from './pages/InvoicesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import ResetPassword from './pages/ResetPassword.jsx';
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="/enquiries" element={<EnquiriesPage />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/orders/:id" element={<OrderPage />} />
+            <Route path="/orders-v2/:id" element={<OrderDetailPage />} />
           </>
         )}
       </Routes>
