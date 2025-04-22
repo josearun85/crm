@@ -11,53 +11,59 @@ export default function ModernGantt({ steps, onRefresh }) {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // Group steps by type
     const typeGroups = {};
     const summaryTasks = [];
     const childTasks = [];
     let taskIdCounter = 1000;
 
-    steps.forEach((step, index) => {
-      const groupType = step.type || "Uncategorized";
-      if (!typeGroups[groupType]) {
-        const summaryId = `summary-${groupType}`;
-        typeGroups[groupType] = {
+    const groupedSteps = steps.reduce((acc, step) => {
+      const type = step.type || "Uncategorized";
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(step);
+      return acc;
+    }, {});
+
+    Object.entries(groupedSteps).forEach(([type, stepsOfType]) => {
+      let summaryId = null;
+
+      if (stepsOfType.length > 1) {
+        summaryId = `summary-${type}`;
+        summaryTasks.push({
           id: summaryId,
-          text: groupType,
+          text: type,
           start: new Date(),
           end: new Date(),
           duration: 1,
           progress: 0,
           type: "summary",
-          parent: 0,
+          parent: null,
           lazy: false,
-        };
-        summaryTasks.push(typeGroups[groupType]);
+        });
       }
 
-      const start = step.start_date ? new Date(step.start_date) : new Date();
-      const end = step.end_date
-        ? new Date(step.end_date)
-        : step.duration
-        ? new Date(start.getTime() + step.duration * 86400000)
-        : new Date(start.getTime() + 86400000);
+      stepsOfType.forEach((step, index) => {
+        const start = step.start_date ? new Date(step.start_date) : new Date();
+        const end = step.end_date
+          ? new Date(step.end_date)
+          : step.duration
+          ? new Date(start.getTime() + step.duration * 86400000)
+          : new Date(start.getTime() + 86400000);
 
-      const child = {
-        id: step.id || taskIdCounter++,
-        text: step.description || step.status || `Step ${index + 1}`,
-        start,
-        end,
-        duration: step.duration || 1,
-        progress: step.progress || 0,
-        type: "task",
-        parent: typeGroups[groupType].id,
-        lazy: false,
-      };
-
-      childTasks.push(child);
+        childTasks.push({
+          id: step.id || taskIdCounter++,
+          text: step.description || step.status || `Step ${index + 1}`,
+          start,
+          end,
+          duration: step.duration || 1,
+          progress: step.progress || 0,
+          type: "task",
+          parent: summaryId,
+          lazy: false,
+        });
+      });
     });
 
-    // Set summary bounds based on their children
+    // Update summary task start/end bounds
     summaryTasks.forEach(summary => {
       const children = childTasks.filter(t => t.parent === summary.id);
       if (children.length > 0) {
