@@ -65,6 +65,7 @@ export default function SignageItemsTab({ orderId }) {
                 {editingItemId === item.id ? (
                   <input
                     className="w-full border px-1 py-0.5 text-sm"
+                    type="text"
                     value={editedItem.name}
                     onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
                     onBlur={async () => {
@@ -74,16 +75,26 @@ export default function SignageItemsTab({ orderId }) {
                     }}
                   />
                 ) : (
-                  <span onClick={() => {
-                    setEditingItemId(item.id);
-                    setEditedItem({ name: item.name, description: item.description, quantity: item.quantity, cost: item.cost });
-                  }}>{item.name}</span>
+                  <span
+                    onClick={() => {
+                      setEditingItemId(item.id);
+                      setEditedItem({
+                        name: item.name,
+                        description: item.description,
+                        quantity: item.quantity,
+                        cost: item.cost,
+                      });
+                    }}
+                  >
+                    {item.name}
+                  </span>
                 )}
               </td>
               <td className="p-2 border">
                 {editingItemId === item.id ? (
                   <input
                     className="w-full border px-1 py-0.5 text-sm"
+                    type="text"
                     value={editedItem.description}
                     onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
                     onBlur={async () => {
@@ -93,10 +104,19 @@ export default function SignageItemsTab({ orderId }) {
                     }}
                   />
                 ) : (
-                  <span onClick={() => {
-                    setEditingItemId(item.id);
-                    setEditedItem({ name: item.name, description: item.description, quantity: item.quantity, cost: item.cost });
-                  }}>{item.description}</span>
+                  <span
+                    onClick={() => {
+                      setEditingItemId(item.id);
+                      setEditedItem({
+                        name: item.name,
+                        description: item.description,
+                        quantity: item.quantity,
+                        cost: item.cost,
+                      });
+                    }}
+                  >
+                    {item.description}
+                  </span>
                 )}
               </td>
               <td className="p-2 border">
@@ -113,10 +133,19 @@ export default function SignageItemsTab({ orderId }) {
                     }}
                   />
                 ) : (
-                  <span onClick={() => {
-                    setEditingItemId(item.id);
-                    setEditedItem({ name: item.name, description: item.description, quantity: item.quantity, cost: item.cost });
-                  }}>{item.quantity}</span>
+                  <span
+                    onClick={() => {
+                      setEditingItemId(item.id);
+                      setEditedItem({
+                        name: item.name,
+                        description: item.description,
+                        quantity: item.quantity,
+                        cost: item.cost,
+                      });
+                    }}
+                  >
+                    {item.quantity}
+                  </span>
                 )}
               </td>
               <td className="p-2 border flex justify-between items-center">
@@ -133,10 +162,19 @@ export default function SignageItemsTab({ orderId }) {
                     }}
                   />
                 ) : (
-                  <span onClick={() => {
-                    setEditingItemId(item.id);
-                    setEditedItem({ name: item.name, description: item.description, quantity: item.quantity, cost: item.cost });
-                  }}>{item.cost}</span>
+                  <span
+                    onClick={() => {
+                      setEditingItemId(item.id);
+                      setEditedItem({
+                        name: item.name,
+                        description: item.description,
+                        quantity: item.quantity,
+                        cost: item.cost,
+                      });
+                    }}
+                  >
+                    {item.cost}
+                  </span>
                 )}
                 <span
                   onClick={async (e) => {
