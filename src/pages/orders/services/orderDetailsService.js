@@ -196,8 +196,9 @@ export async function insertDefaultOrderSteps(orderId) {
 
   const stepsWithOrderId = defaultSteps.map(step => {
     const start = new Date(currentDate);
-    const end = new Date(currentDate.getDate() + step.duration); //change this to plus one day
-    currentDate = new Date(currentDate.getDate() + step.duration); //change this to plus one day
+    const end = new Date(start);
+    end.setDate(end.getDate() + step.duration - 1); // inclusive of start date
+
     const stepEntry = {
       ...step,
       order_id: orderId,
@@ -211,8 +212,9 @@ export async function insertDefaultOrderSteps(orderId) {
       comments: [],
       dependency_ids: []
     };
-    // Move to next day for the next step
-    currentDate.setDate(currentDate.getDate() + 1);
+
+    currentDate = new Date(end);
+    currentDate.setDate(currentDate.getDate() + 1); // move to day after this step ends
     return stepEntry;
   });
 
