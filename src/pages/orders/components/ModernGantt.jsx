@@ -42,6 +42,7 @@ export default function ModernGantt({ steps, onRefresh }) {
     typeColorMap[type] = predefinedColors[idx % predefinedColors.length];
   });
 steps.forEach((step) => {
+  console.log(step);
   allTasks.push({
     id: step.id ,
     text: step.description,
