@@ -45,15 +45,12 @@ export default function ModernGantt({ steps, onRefresh }) {
     const groupedTypes = {};
 
     steps.forEach((step) => {
-      const start = toIST(new Date(step.start_date));
-      const end = toIST(new Date(step.end_date));
-      const color = typeColorMap[step.type] || "#607d8b";
-
       if (!groupedTypes[step.type]) groupedTypes[step.type] = [];
       groupedTypes[step.type].push(step);
     });
 
     Object.entries(groupedTypes).forEach(([type, stepsOfType]) => {
+      const stepColor = typeColorMap[type] || "#607d8b";
       const isGrouped = stepsOfType.length > 1;
       let parentId = null;
 
@@ -71,7 +68,7 @@ export default function ModernGantt({ steps, onRefresh }) {
           progress: 0,
           type: "summary",
           open: true,
-          color,
+          color: stepColor,
         });
       }
 
@@ -85,7 +82,7 @@ export default function ModernGantt({ steps, onRefresh }) {
           progress: step.progress || 0,
           type: "task",
           parent: isGrouped ? parentId : null,
-          color,
+          color: stepColor,
         });
       });
     });
