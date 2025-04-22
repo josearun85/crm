@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { uploadFile, getPublicUrl, deleteSupabaseFile } from "../services/orderService";
+import { uploadFile, getPublicUrl, deleteSupabaseFile } from "../../../services/orderService";
 import { updateOrderStep } from "../services/orderDetailsService";
 
 export default function StepModal({ step, onClose, onSave }) {
