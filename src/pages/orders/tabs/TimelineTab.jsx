@@ -28,13 +28,7 @@ export default function TimelineTab({ orderId }) {
     loadSteps();
   }, [orderId]);
 
-  const steps = rawSteps.map(step => ({
-    id: step.id.toString(),
-    name: step.description || step.type || "Untitled",
-    start: new Date(step.start_date),
-    end: new Date(step.end_date),
-    progress: 0,
-  }));
+
 
   return (
     <div className="mt-4">
@@ -43,7 +37,7 @@ export default function TimelineTab({ orderId }) {
       ) : error ? (
         <p className="text-sm text-red-600">{error}</p>
       ) : (
-        <ModernGantt steps={steps} />
+        <ModernGantt steps={rawSteps} />
       )}
     </div>
   );
