@@ -205,6 +205,7 @@ for (let i = 0; i < allTasks.length; i++) {
             links={links}
             scales={scales}
             onTaskChange={onTaskChange}
+            onTaskDragEnd={onTaskChange}
             onLinkCreate={onLinkCreate}
             onTaskClick={handleTaskClick}
             onTaskAdd={onTaskAdd}
