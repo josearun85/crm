@@ -1,4 +1,4 @@
-import { supabase } from "../../../supabaseClient";
+import supabase from "../../../supabaseClient";
 
 // Overview tab
 export async function fetchOrderOverview(orderId) {
