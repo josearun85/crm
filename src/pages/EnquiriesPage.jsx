@@ -276,7 +276,7 @@ export default function EnquiriesPage() {
                   <td className="p-2">
                     {e.order_id ? (
                       <a
-                        href={`/orders/${e.order_id}`}
+                        href={`/orders-v2/${e.order_id}`}
                         className="text-blue-600 hover:underline"
                         title="View Order"
                       >
