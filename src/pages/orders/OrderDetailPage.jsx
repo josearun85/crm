@@ -1,6 +1,3 @@
-
-
-
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import OrderHeader from "./components/OrderHeader";
 import TabNav from "./components/TabNav";
@@ -23,7 +20,8 @@ const tabMap = {
 };
 
 export default function OrderDetailPage() {
-  const { orderId } = useParams();
+  const { orderId: orderIdRaw } = useParams();
+  const orderId = Number(orderIdRaw);
   const location = useLocation();
   const navigate = useNavigate();
   const tab = new URLSearchParams(location.search).get("tab") || "overview";
