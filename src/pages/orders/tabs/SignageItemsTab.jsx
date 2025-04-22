@@ -61,12 +61,23 @@ export default function SignageItemsTab({ orderId }) {
               }
               className={`cursor-pointer ${selectedItemId === item.id ? "bg-yellow-50" : ""}`}
             >
-              <td className="p-2 border">
+              {/* Name */}
+              <td className="p-2 border" onClick={editingItemId === item.id ? undefined : (e) => {
+                e.stopPropagation();
+                setEditingItemId(item.id);
+                setEditedItem({
+                  name: item.name,
+                  description: item.description,
+                  quantity: item.quantity,
+                  cost: item.cost,
+                });
+              }}>
                 {editingItemId === item.id ? (
                   <input
                     className="w-full border px-1 py-0.5 text-sm"
                     type="text"
                     value={editedItem.name}
+                    autoFocus
                     onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
                     onBlur={async () => {
                       const updated = await updateSignageItem(item.id, editedItem);
@@ -75,22 +86,20 @@ export default function SignageItemsTab({ orderId }) {
                     }}
                   />
                 ) : (
-                  <span
-                    onClick={() => {
-                      setEditingItemId(item.id);
-                      setEditedItem({
-                        name: item.name,
-                        description: item.description,
-                        quantity: item.quantity,
-                        cost: item.cost,
-                      });
-                    }}
-                  >
-                    {item.name}
-                  </span>
+                  <span>{item.name}</span>
                 )}
               </td>
-              <td className="p-2 border">
+              {/* Description */}
+              <td className="p-2 border" onClick={editingItemId === item.id ? undefined : (e) => {
+                e.stopPropagation();
+                setEditingItemId(item.id);
+                setEditedItem({
+                  name: item.name,
+                  description: item.description,
+                  quantity: item.quantity,
+                  cost: item.cost,
+                });
+              }}>
                 {editingItemId === item.id ? (
                   <input
                     className="w-full border px-1 py-0.5 text-sm"
@@ -104,22 +113,20 @@ export default function SignageItemsTab({ orderId }) {
                     }}
                   />
                 ) : (
-                  <span
-                    onClick={() => {
-                      setEditingItemId(item.id);
-                      setEditedItem({
-                        name: item.name,
-                        description: item.description,
-                        quantity: item.quantity,
-                        cost: item.cost,
-                      });
-                    }}
-                  >
-                    {item.description}
-                  </span>
+                  <span>{item.description}</span>
                 )}
               </td>
-              <td className="p-2 border">
+              {/* Quantity */}
+              <td className="p-2 border" onClick={editingItemId === item.id ? undefined : (e) => {
+                e.stopPropagation();
+                setEditingItemId(item.id);
+                setEditedItem({
+                  name: item.name,
+                  description: item.description,
+                  quantity: item.quantity,
+                  cost: item.cost,
+                });
+              }}>
                 {editingItemId === item.id ? (
                   <input
                     className="w-full border px-1 py-0.5 text-sm"
@@ -133,22 +140,20 @@ export default function SignageItemsTab({ orderId }) {
                     }}
                   />
                 ) : (
-                  <span
-                    onClick={() => {
-                      setEditingItemId(item.id);
-                      setEditedItem({
-                        name: item.name,
-                        description: item.description,
-                        quantity: item.quantity,
-                        cost: item.cost,
-                      });
-                    }}
-                  >
-                    {item.quantity}
-                  </span>
+                  <span>{item.quantity}</span>
                 )}
               </td>
-              <td className="p-2 border flex justify-between items-center">
+              {/* Cost */}
+              <td className="p-2 border flex justify-between items-center" onClick={editingItemId === item.id ? undefined : (e) => {
+                e.stopPropagation();
+                setEditingItemId(item.id);
+                setEditedItem({
+                  name: item.name,
+                  description: item.description,
+                  quantity: item.quantity,
+                  cost: item.cost,
+                });
+              }}>
                 {editingItemId === item.id ? (
                   <input
                     className="w-full border px-1 py-0.5 text-sm"
@@ -162,19 +167,7 @@ export default function SignageItemsTab({ orderId }) {
                     }}
                   />
                 ) : (
-                  <span
-                    onClick={() => {
-                      setEditingItemId(item.id);
-                      setEditedItem({
-                        name: item.name,
-                        description: item.description,
-                        quantity: item.quantity,
-                        cost: item.cost,
-                      });
-                    }}
-                  >
-                    {item.cost}
-                  </span>
+                  <span>{item.cost}</span>
                 )}
                 <span
                   onClick={async (e) => {
