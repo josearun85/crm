@@ -44,8 +44,8 @@ steps.forEach((step) => {
   allTasks.push({
     id: step.id ,
     text: step.description,
-    start: validStart,
-    end: validEnd,
+    start: toIST(step.start_date),
+    end: toIST(step.end_date),
     duration: step.duration || 1,
     progress: step.progress || 0,
     type: step.type,
