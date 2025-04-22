@@ -77,6 +77,8 @@ export default function ModernGantt({ steps, onRefresh }) {
         }))
       );
 
+    console.log("Final Gantt Tasks:", [...summaryTasks, ...childTasks]);
+    console.log("Final Gantt Links:", deps);
     setTasks([...summaryTasks, ...childTasks]);
     setLinks(deps);
   }, [steps]);
@@ -152,6 +154,9 @@ export default function ModernGantt({ steps, onRefresh }) {
     }
   };
 
+  // Logging tasks and links every render before sending to <Gantt />
+  console.log("🚀 Gantt Tasks:", tasks);
+  console.log("🔗 Gantt Links:", links);
   return (
     <>
       <Willow>
