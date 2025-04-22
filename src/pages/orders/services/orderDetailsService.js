@@ -208,7 +208,7 @@ export async function insertDefaultOrderSteps(orderId) {
       delayed: false,
       files: [],
       comments: [],
-      dependency_id: null
+      dependency_ids: []
     };
     // Move to next day for the next step
     currentDate.setDate(currentDate.getDate() + 1);
