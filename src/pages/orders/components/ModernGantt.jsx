@@ -33,13 +33,23 @@ export default function ModernGantt({ steps, onRefresh }) {
     const childTasks = [];
     let taskIdCounter = 1000;
 
-    const groupedSteps = steps.reduce((acc, step) => {
-      const type = step.type || null;
-      if (!type) return acc;
-      if (!acc[type]) acc[type] = [];
-      acc[type].push(step);
-      return acc;
-    }, {});
+   // Smarter grouping: only group if >1 steps share the same type, else treat each step as its own group
+   const typeCounts = steps.reduce((acc, step) => {
+     if (step.type) {
+       acc[step.type] = (acc[step.type] || 0) + 1;
+     }
+     return acc;
+   }, {});
+   const groupedSteps = steps.reduce((acc, step) => {
+     if (!step.type || typeCounts[step.type] === 1) {
+       // No type, or only one step of this type: treat as its own group
+       acc[`__single__${step.id}`] = [step];
+     } else {
+       if (!acc[step.type]) acc[step.type] = [];
+       acc[step.type].push(step);
+     }
+     return acc;
+   }, {});
 
     console.log("🧩 Grouped Steps:", groupedSteps);
 
