@@ -342,3 +342,17 @@ export async function deleteOrderNote(noteId) {
     throw error;
   }
 }
+// Generic update for order details
+export async function updateOrderDetails(orderId, updates) {
+  const { data, error } = await supabase
+    .from("orders")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", orderId)
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+  return data;
+}
