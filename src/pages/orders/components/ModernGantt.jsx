@@ -23,6 +23,7 @@ export default function ModernGantt({ steps, onRefresh }) {
 
     const toIST = (date) => {
       if (!(date instanceof Date)) date = new Date(date);
+      console.log("Converting to IST:", date);
       const utc = date.getTime() + date.getTimezoneOffset() * 60000;
       return new Date(utc + 19800000); // offset for IST
     };

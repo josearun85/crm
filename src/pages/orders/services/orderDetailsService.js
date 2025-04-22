@@ -196,8 +196,8 @@ export async function insertDefaultOrderSteps(orderId) {
 
   const stepsWithOrderId = defaultSteps.map(step => {
     const start = new Date(currentDate);
-    const end = new Date(currentDate); //change this to plus one day
-    end.setDate(end.getDate() + step.duration); // Add duration to start date
+    const end = new Date(currentDate.getDate() + step.duration); //change this to plus one day
+    currentDate = new Date(currentDate.getDate() + step.duration); //change this to plus one day
     const stepEntry = {
       ...step,
       order_id: orderId,
