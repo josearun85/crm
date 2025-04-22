@@ -66,6 +66,28 @@ steps.forEach((step) => {
   });
 });
 
+// Recompute start and end dates based on duration and previous task's end date
+for (let i = 0; i < allTasks.length; i++) {
+  const task = allTasks[i];
+  if (!(task.start instanceof Date) || isNaN(task.start)) {
+    if (i === 0) {
+      task.start = new Date();
+    } else {
+      task.start = new Date(allTasks[i - 1].end);
+    }
+  }
+  if (!(task.duration && !isNaN(task.duration))) {
+    task.duration = 1;
+  }
+  if (!(task.end instanceof Date) || isNaN(task.end)) {
+    task.end = new Date(task.start.getTime() + task.duration * 86400000);
+  }
+  // Ensure end is after start
+  if (task.end <= task.start) {
+    task.end = new Date(task.start.getTime() + task.duration * 86400000);
+  }
+}
+
     const generatedTaskTypes = Object.entries(typeColorMap).map(([key]) => ({
       id: key.toLowerCase(),
       label: key,
@@ -96,11 +118,13 @@ steps.forEach((step) => {
     // Placeholder for future DB update
     try {
       const updates = {
-        start_date: task.start?.toISOString().split("T")[0],
-        end_date: task.end?.toISOString().split("T")[0],
-        duration: task.duration,
-        progress: task.progress,
+        start_date: task.start instanceof Date ? task.start.toISOString().split("T")[0] : null,
+        end_date: task.end instanceof Date ? task.end.toISOString().split("T")[0] : null,
+        duration: Number(task.duration) || 1,
+        progress: Number(task.progress) || 0,
       };
+      console.log("🔄 Updating Task:", updates);
+      console.log("✅ Update sent to backend:", task.id, updates);
       await updateOrderStep(task.id, updates);
     } catch (err) {
       console.error("Failed to update task", err);
