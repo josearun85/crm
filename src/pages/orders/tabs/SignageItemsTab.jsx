@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem } from "../services/orderDetailsService";
+import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem } from "../services/orderDetailsService";
 
 export default function SignageItemsTab({ orderId }) {
   const [items, setItems] = useState([]);
@@ -110,9 +110,15 @@ export default function SignageItemsTab({ orderId }) {
               </button>
               <button
                 className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
-                onClick={() => {
-                  console.log("Create signage item:", newItem);
-                  setShowAddModal(false);
+                onClick={async () => {
+                  try {
+                    const created = await addSignageItem(orderId, newItem);
+                    setItems([...items, created]);
+                    setNewItem({ name: "", description: "", quantity: "", cost: "" });
+                    setShowAddModal(false);
+                  } catch (err) {
+                    console.error("Failed to add signage item", err);
+                  }
                 }}
               >
                 Save
