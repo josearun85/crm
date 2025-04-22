@@ -4,39 +4,40 @@ import { fetchSignageItems, fetchBoqItems } from "../services/orderDetailsServic
 export default function BoqTab({ orderId }) {
   const [materials, setMaterials] = useState([]);
 
-  useEffect(() => {
-    async function loadBoqSummary() {
-      try {
-        // Fetch all signage items (to ensure we have all signage IDs)
-        const items = await fetchSignageItems(orderId);
-        // Fetch all BOQ entries for the order
-        const allBoqs = await fetchBoqItems(orderId);
+useEffect(() => {
+  if (!orderId || isNaN(Number(orderId))) return;
+  async function loadBoqSummary() {
+    try {
+      // Fetch all signage items (to ensure we have all signage IDs)
+      const items = await fetchSignageItems(Number(orderId));
+      // Fetch all BOQ entries for the order
+      const allBoqs = await fetchBoqItems(Number(orderId));
 
-        // Reduce BOQ entries by material
-        const summaryMap = {};
-        for (const boq of allBoqs) {
-          const key = boq.material;
-          if (!summaryMap[key]) {
-            summaryMap[key] = {
-              material: boq.material,
-              quantity: 0,
-              cost_per_unit: boq.cost_per_unit || 0,
-              unit: boq.unit || "",
-            };
-          }
-          summaryMap[key].quantity += Number(boq.quantity || 0);
+      // Reduce BOQ entries by material
+      const summaryMap = {};
+      for (const boq of allBoqs) {
+        const key = boq.material;
+        if (!summaryMap[key]) {
+          summaryMap[key] = {
+            material: boq.material,
+            quantity: 0,
+            cost_per_unit: boq.cost_per_unit || 0,
+            unit: boq.unit || "",
+          };
         }
-        const materialList = Object.values(summaryMap).map(m => ({
-          ...m,
-          total_cost: m.cost_per_unit * m.quantity,
-        }));
-        setMaterials(materialList);
-      } catch (err) {
-        console.error(err);
+        summaryMap[key].quantity += Number(boq.quantity || 0);
       }
+      const materialList = Object.values(summaryMap).map(m => ({
+        ...m,
+        total_cost: m.cost_per_unit * m.quantity,
+      }));
+      setMaterials(materialList);
+    } catch (err) {
+      console.error(err);
     }
-    loadBoqSummary();
-  }, [orderId]);
+  }
+  loadBoqSummary();
+}, [orderId]);
 
   const totalBoqCost = materials.reduce((sum, m) => sum + m.total_cost, 0);
 

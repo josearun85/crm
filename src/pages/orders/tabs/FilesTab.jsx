@@ -9,12 +9,13 @@ export default function FilesTab({ orderId }) {
   const [files, setFiles] = useState([]);
 
   useEffect(() => {
+    if (!orderId || isNaN(Number(orderId))) return;
     refreshFiles();
   }, [orderId]);
 
   const refreshFiles = async () => {
     try {
-      const list = await fetchOrderFiles(orderId);
+      const list = await fetchOrderFiles(Number(orderId));
       setFiles(list);
     } catch (err) {
       console.error("Failed to fetch files", err);
@@ -29,7 +30,7 @@ export default function FilesTab({ orderId }) {
       if (!file) return;
 
       try {
-        await uploadOrderFile(orderId, { name: file.name, url: URL.createObjectURL(file) });
+        await uploadOrderFile(Number(orderId), { name: file.name, url: URL.createObjectURL(file) });
         refreshFiles();
       } catch (err) {
         console.error("Upload failed", err);
@@ -40,7 +41,7 @@ export default function FilesTab({ orderId }) {
 
   const handleDelete = async (fileName) => {
     try {
-      await deleteOrderFile(orderId, fileName);
+      await deleteOrderFile(Number(orderId), fileName);
       refreshFiles();
     } catch (err) {
       console.error("Delete failed", err);
