@@ -9,6 +9,7 @@ export default function ModernGantt({ steps, onRefresh }) {
   const [links, setLinks] = useState([]);
   const [selectedStep, setSelectedStep] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [taskTypes, setTaskTypes] = useState([]);
 
   useEffect(() => {
     console.log("📦 Raw Steps:", steps);
@@ -33,10 +34,11 @@ export default function ModernGantt({ steps, onRefresh }) {
       Installation: "#9c27b0",
     };
 
-    const taskTypes = Object.entries(typeColorMap).map(([key, color]) => ({
+    const generatedTaskTypes = Object.entries(typeColorMap).map(([key]) => ({
       id: key.toLowerCase(),
       label: key,
     }));
+    setTaskTypes(generatedTaskTypes);
 
     const allTasks = [];
     let taskIdCounter = 1000;
