@@ -25,7 +25,6 @@ export default function ModernGantt({ steps, onRefresh }) {
       Procurement: "#2196f3",
       Fabrication: "#ff9800",
       Installation: "#9c27b0",
-      Uncategorized: "#9e9e9e",
     };
 
     const summaryTasks = [];
@@ -33,13 +32,16 @@ export default function ModernGantt({ steps, onRefresh }) {
     let taskIdCounter = 1000;
 
     const groupedSteps = steps.reduce((acc, step) => {
-      const type = step.type || "Uncategorized";
+      const type = step.type || null;
+      if (!type) return acc;
       if (!acc[type]) acc[type] = [];
       acc[type].push(step);
       return acc;
     }, {});
 
     Object.entries(groupedSteps).forEach(([type, stepsOfType]) => {
+      if (!type) return;
+
       let summaryId = null;
 
       if (stepsOfType.length > 1) {
@@ -68,7 +70,7 @@ export default function ModernGantt({ steps, onRefresh }) {
 
         childTasks.push({
           id: step.id || taskIdCounter++,
-          text: step.description || type || `Step ${index + 1}`,
+          text: step.description || `Step ${index + 1}`,
           start,
           end,
           duration: step.duration || 1,
