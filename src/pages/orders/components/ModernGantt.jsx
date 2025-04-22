@@ -1,6 +1,6 @@
 import { Gantt, Willow } from "wx-react-gantt";
 import "wx-react-gantt/dist/gantt.css";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { fetchOrderSteps, updateOrderStep, addOrderStep } from "../services/orderDetailsService";
 import StepModal from "./StepModal";
 
@@ -11,6 +11,7 @@ export default function ModernGantt({ steps, onRefresh }) {
   const [showModal, setShowModal] = useState(false);
   const [taskTypes, setTaskTypes] = useState([]);
   const [isReady, setIsReady] = useState(false);
+  const apiRef = useRef(null);
 
   useEffect(() => {
     setIsReady(false);
@@ -112,6 +113,24 @@ for (let i = 0; i < allTasks.length; i++) {
     setTasks(allTasks);
     setLinks(deps);
     setIsReady(true);
+
+    if (apiRef.current) {
+      apiRef.current.on("update-task", async (ev) => {
+        console.log("📝 Gantt Task Updated (event)", ev);
+        const updates = {
+          start_date: ev.start instanceof Date ? ev.start.toISOString().split("T")[0] : null,
+          end_date: ev.end instanceof Date ? ev.end.toISOString().split("T")[0] : null,
+          duration: Number(ev.duration) || 1,
+          progress: Number(ev.progress) || 0,
+        };
+        try {
+          await updateOrderStep(ev.id, updates);
+          console.log("✅ Update sent to backend:", ev.id, updates);
+        } catch (err) {
+          console.error("❌ Failed to update task", err);
+        }
+      });
+    }
   }, [steps]);
 
   const onTaskChange = async (task) => {
@@ -201,6 +220,7 @@ for (let i = 0; i < allTasks.length; i++) {
       ) : (
         <Willow>
           <Gantt
+            ref={apiRef}
             tasks={tasks}
             links={links}
             scales={scales}
