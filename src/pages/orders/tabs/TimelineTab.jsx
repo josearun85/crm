@@ -3,7 +3,7 @@ import ModernGantt from "../components/ModernGantt";
 import { fetchOrderSteps, insertDefaultOrderSteps } from "../services/orderDetailsService";
 
 export default function TimelineTab({ orderId }) {
-  const [steps, setSteps] = useState([]);
+  const [rawSteps, setRawSteps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -16,7 +16,7 @@ export default function TimelineTab({ orderId }) {
           await insertDefaultOrderSteps(orderId);
           data = await fetchOrderSteps(orderId); // re-fetch after insert
         }
-        setSteps(data);
+        setRawSteps(data);
       } catch (err) {
         console.error(err);
         setError(err.message || "Failed to load order steps.");
@@ -27,6 +27,14 @@ export default function TimelineTab({ orderId }) {
 
     loadSteps();
   }, [orderId]);
+
+  const steps = rawSteps.map(step => ({
+    id: step.id.toString(),
+    name: step.description || step.type || "Untitled",
+    start: new Date(step.start_date),
+    end: new Date(step.end_date),
+    progress: 0,
+  }));
 
   return (
     <div className="mt-4">
