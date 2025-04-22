@@ -50,15 +50,16 @@ export default function ModernGantt({ steps, onRefresh }) {
     });
 
     Object.entries(groupedTypes).forEach(([type, stepsOfType]) => {
+      if (!type) return;
       const stepColor = typeColorMap[type] || "#607d8b";
       const isGrouped = stepsOfType.length > 1;
       let parentId = null;
 
       if (isGrouped) {
         parentId = `summary-${type}`;
-        const summaryStart = Math.min(...stepsOfType.map(s => new Date(s.start_date).getTime()));
-        const summaryEnd = Math.max(...stepsOfType.map(s => new Date(s.end_date).getTime()));
-
+        const summaryStart = Math.min(...stepsOfType.map(s => new Date(s.start_date || "").getTime()));
+        const summaryEnd = Math.max(...stepsOfType.map(s => new Date(s.end_date || "").getTime()));
+        if (isNaN(summaryStart) || isNaN(summaryEnd)) return;
         allTasks.push({
           id: parentId,
           text: type,
@@ -66,21 +67,24 @@ export default function ModernGantt({ steps, onRefresh }) {
           end: new Date(summaryEnd),
           duration: (summaryEnd - summaryStart) / 86400000,
           progress: 0,
-          type: "summary",
+          type: type,
           open: true,
           color: stepColor,
         });
       }
 
       stepsOfType.forEach((step, i) => {
+        const validStart = new Date(step.start_date);
+        const validEnd = new Date(step.end_date);
+        if (isNaN(validStart) || isNaN(validEnd)) return;
         allTasks.push({
           id: step.id || taskIdCounter++,
-          text: step.description || `Step ${i + 1}`,
-          start: new Date(step.start_date),
-          end: new Date(step.end_date),
+          text: step.description,
+          start: validStart,
+          end: validEnd,
           duration: step.duration || 1,
           progress: step.progress || 0,
-          type: "task",
+          type: step.type,
           parent: isGrouped ? parentId : null,
           color: stepColor,
         });
