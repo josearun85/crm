@@ -74,20 +74,35 @@ export default function ModernGantt({ steps, onRefresh }) {
       }
 
       stepsOfType.forEach((step, i) => {
+        console.log("Step:", step);
         const validStart = new Date(step.start_date);
         const validEnd = new Date(step.end_date);
-        if (isNaN(validStart) || isNaN(validEnd)) return;
-        allTasks.push({
-          id: step.id || taskIdCounter++,
-          text: step.description,
-          start: validStart,
-          end: validEnd,
-          duration: step.duration || 1,
-          progress: step.progress || 0,
-          type: step.type,
-          parent: isGrouped ? parentId : null,
-          color: stepColor,
-        });
+        // if (isNaN(validStart) || isNaN(validEnd)) return;
+        if(isGrouped){
+          allTasks.push({
+            id: step.id || taskIdCounter++,
+            text: step.description,
+            start: validStart,
+            end: validEnd,
+            duration: step.duration || 1,
+            progress: step.progress || 0,
+            type: step.type,
+            parent:  parentId,
+            color: stepColor,
+          });
+        }else{
+          allTasks.push({
+            id: step.id || taskIdCounter++,
+            text: step.description,
+            start: validStart,
+            end: validEnd,
+            duration: step.duration || 1,
+            progress: step.progress || 0,
+            type: step.type,
+            color: stepColor,
+          });
+        }
+       
       });
     });
 
@@ -186,9 +201,6 @@ export default function ModernGantt({ steps, onRefresh }) {
     }
   };
 
-  // Logging tasks and links every render before sending to <Gantt />
-  console.log("🚀 Gantt Tasks:", tasks);
-  console.log("🔗 Gantt Links:", links);
   return (
     <>
       <Willow>
