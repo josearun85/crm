@@ -43,8 +43,9 @@ export default function ModernGantt({ steps, onRefresh }) {
       if (!type) return;
 
       let summaryId = null;
+      const showAsGroup = stepsOfType.length > 1;
 
-      if (stepsOfType.length > 1) {
+      if (showAsGroup) {
         summaryId = `summary-${type}`;
         summaryTasks.push({
           id: summaryId,
@@ -76,7 +77,7 @@ export default function ModernGantt({ steps, onRefresh }) {
           duration: step.duration || 1,
           progress: step.progress || 0,
           type: "task",
-          parent: summaryId,
+          parent: showAsGroup ? summaryId : null,
           lazy: false,
           color: typeColorMap[type] || "#607d8b",
         });
@@ -162,7 +163,7 @@ export default function ModernGantt({ steps, onRefresh }) {
     try {
       // Try to infer group type from parent summary (e.g., find summary task by id)
       const summary = tasks.find(t => t.id === newTask.parent && t.type === "summary");
-      const groupType = summary?.text || "Uncategorized";
+      const groupType = summary?.text || null;
 
       const today = new Date();
       const end = new Date(today.getTime() + 2 * 86400000); // default 2-day task
