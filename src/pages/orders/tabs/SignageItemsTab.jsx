@@ -112,8 +112,12 @@ export default function SignageItemsTab({ orderId }) {
                 className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
                 onClick={async () => {
                   try {
-                    console.log("Saving signage item for order:", orderId);
-                    const created = await addSignageItem(Number(orderId), {
+                    const finalOrderId = Number(orderId);
+                    console.log("Saving signage item for order:", finalOrderId);
+                    if (!finalOrderId || isNaN(finalOrderId)) {
+                      throw new Error("Invalid order ID");
+                    }
+                    const created = await addSignageItem(finalOrderId, {
                       ...newItem,
                       quantity: Number(newItem.quantity),
                       cost: Number(newItem.cost),
@@ -123,10 +127,11 @@ export default function SignageItemsTab({ orderId }) {
                     setShowAddModal(false);
                   } catch (err) {
                     console.error("Failed to add signage item", err);
+                    alert(`Error: ${err.message}`);
                   }
                 }}
               >
-                Save
+                Saver
               </button>
             </div>
           </div>
