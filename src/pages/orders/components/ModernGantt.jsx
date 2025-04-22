@@ -10,8 +10,10 @@ export default function ModernGantt({ steps, onRefresh }) {
   const [selectedStep, setSelectedStep] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [taskTypes, setTaskTypes] = useState([]);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    setIsReady(false);
     console.log("📦 Raw Steps:", steps);
 
     if (!steps || steps.length === 0) {
@@ -87,6 +89,7 @@ steps.forEach((step) => {
     console.log("🔗 Final Gantt Links:", deps);
     setTasks(allTasks);
     setLinks(deps);
+    setIsReady(true);
   }, [steps]);
 
   const onTaskChange = async (task) => {
@@ -169,25 +172,29 @@ steps.forEach((step) => {
 
   return (
     <>
-      <Willow>
-        <Gantt
-          tasks={tasks}
-          links={links}
-          scales={scales}
-          onTaskChange={onTaskChange}
-          onLinkCreate={onLinkCreate}
-          onTaskClick={handleTaskClick}
-          onTaskAdd={onTaskAdd}
-          taskTypes={taskTypes}
-        />
-      </Willow>
+      {!isReady ? (
+        <p className="text-sm text-gray-400">Preparing tasks...</p>
+      ) : (
+        <Willow>
+          <Gantt
+            tasks={tasks}
+            links={links}
+            scales={scales}
+            onTaskChange={onTaskChange}
+            onLinkCreate={onLinkCreate}
+            onTaskClick={handleTaskClick}
+            onTaskAdd={onTaskAdd}
+            taskTypes={taskTypes}
+          />
+        </Willow>
+      )}
       {showModal && selectedStep && (
         <StepModal
           step={selectedStep}
           onClose={() => setShowModal(false)}
           onSave={() => {
             setShowModal(false);
-            onRefresh?.();  // if passed, triggers parent refresh
+            onRefresh?.();
           }}
         />
       )}
