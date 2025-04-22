@@ -241,10 +241,39 @@ export default function SignageItemsTab({ orderId }) {
                               const updatedBoqs = boqs.map(b => b.id === boq.id ? { ...b, [field]: e.target.value } : b);
                               setBoqs(updatedBoqs);
                             }}
-                            onBlur={async (e) => {
-                              const updated = await updateBoqItem(boq.id, { ...boq, [field]: e.target.value });
-                              setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
-                            }}
+                            onBlur={
+                              field === "cost_per_unit"
+                                ? async (e) => {
+                                    const newCost = e.target.value;
+                                    const updated = await updateBoqItem(boq.id, { ...boq, cost_per_unit: newCost });
+                                    const updatedBoqs = boqs.map(b => b.id === boq.id ? updated : b);
+                                    setBoqs(updatedBoqs);
+
+                                    // propagate the cost change to other matching materials in the same order
+                                    const othersWithSameMaterial = allBoqs.filter(
+                                      b => b.material === boq.material && b.id !== boq.id && b.cost_per_unit !== newCost
+                                    );
+
+                                    if (othersWithSameMaterial.length > 0) {
+                                      alert(`Updating ${othersWithSameMaterial.length} other entries with new cost/unit`);
+                                      for (const other of othersWithSameMaterial) {
+                                        await updateBoqItem(other.id, { ...other, cost_per_unit: newCost });
+                                      }
+
+                                      const refreshedAllBoqs = allBoqs.map(b =>
+                                        b.material === boq.material ? { ...b, cost_per_unit: newCost } : b
+                                      );
+                                      setAllBoqs(refreshedAllBoqs);
+
+                                      const filtered = refreshedAllBoqs.filter(b => b.signage_item_id === selectedItemId);
+                                      setBoqs(filtered);
+                                    }
+                                  }
+                                : async (e) => {
+                                    const updated = await updateBoqItem(boq.id, { ...boq, [field]: e.target.value });
+                                    setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
+                                  }
+                            }
                           />
                         </td>
                       ))}
