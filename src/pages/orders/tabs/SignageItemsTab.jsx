@@ -11,6 +11,7 @@ export default function SignageItemsTab({ orderId }) {
   const [newBoq, setNewBoq] = useState({ material: "", quantity: "", unit: "", cost_per_unit: "" });
   const [editingBoqId, setEditingBoqId] = useState(null);
   const [editedBoq, setEditedBoq] = useState({});
+  const [showBoqForItemId, setShowBoqForItemId] = useState(null);
 
   useEffect(() => {
     fetchSignageItems(orderId).then(setItems).catch(console.error);
@@ -57,7 +58,7 @@ export default function SignageItemsTab({ orderId }) {
               onClick={() =>
                 setSelectedItemId(selectedItemId === item.id ? null : item.id)
               }
-              className={`cursor-pointer ${selectedItemId === item.id ? "bg-yellow-50" : ""}`}
+              className={`cursor-pointer ${showBoqForItemId === item.id ? "bg-yellow-50" : ""}`}
             >
               {/* Name */}
               <td className="p-2 border">
@@ -127,6 +128,16 @@ export default function SignageItemsTab({ orderId }) {
                 >
                   🗑
                 </span>
+                <span
+                  className="ml-2 text-blue-600 underline cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowBoqForItemId(showBoqForItemId === item.id ? null : item.id);
+                    setSelectedItemId(showBoqForItemId === item.id ? null : item.id);
+                  }}
+                >
+                  View BOQ
+                </span>
               </td>
             </tr>
           ))}
@@ -188,7 +199,7 @@ export default function SignageItemsTab({ orderId }) {
         </div>
       )}
 
-      {selectedItemId && (
+      {showBoqForItemId && (
         <div className="mt-6 border rounded p-4 bg-gray-50">
           <h3 className="font-medium mb-2">BOQ for selected item</h3>
           {boqs.length === 0 ? (
@@ -270,6 +281,14 @@ export default function SignageItemsTab({ orderId }) {
                   </tr>
                 ))}
               </tbody>
+              <tfoot className="bg-gray-100 font-semibold">
+                <tr>
+                  <td className="p-2 border text-right" colSpan={3}>Total Cost</td>
+                  <td className="p-2 border">
+                    {boqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0)}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           )}
           <div className="mt-4 space-y-2">
