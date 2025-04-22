@@ -11,6 +11,8 @@ export default function ModernGantt({ steps, onRefresh }) {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
+    console.log("📦 Raw Steps:", steps);
+
     if (!steps || steps.length === 0) {
       console.warn("No steps found for Gantt rendering.");
       setTasks([]);
@@ -38,6 +40,8 @@ export default function ModernGantt({ steps, onRefresh }) {
       acc[type].push(step);
       return acc;
     }, {});
+
+    console.log("🧩 Grouped Steps:", groupedSteps);
 
     Object.entries(groupedSteps).forEach(([type, stepsOfType]) => {
       if (!type) return;
@@ -104,8 +108,8 @@ export default function ModernGantt({ steps, onRefresh }) {
         }))
       );
 
-    console.log("Final Gantt Tasks:", [...summaryTasks, ...childTasks]);
-    console.log("Final Gantt Links:", deps);
+    console.log("📊 Final Gantt Tasks:", [...summaryTasks, ...childTasks]);
+    console.log("🔗 Final Gantt Links:", deps);
     setTasks([...summaryTasks, ...childTasks]);
     setLinks(deps);
   }, [steps]);
