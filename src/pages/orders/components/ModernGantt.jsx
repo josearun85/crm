@@ -22,7 +22,10 @@ export default function ModernGantt({ steps, onRefresh }) {
     }
 
     const toIST = (date) => {
-      if (!(date instanceof Date)) date = new Date(date);
+      if (!date) return null;
+      const parsedDate = new Date(date);
+      if (isNaN(parsedDate)) return null;
+      date = parsedDate;
       console.log("Converting to IST:", date);
       const utc = date.getTime() + date.getTimezoneOffset() * 60000;
       return new Date(utc + 19800000); // offset for IST
@@ -43,15 +46,18 @@ export default function ModernGantt({ steps, onRefresh }) {
   });
 steps.forEach((step) => {
   console.log(step);
+  const start = toIST(step.start_date);
+  const end = toIST(step.end_date);
+  if (!start || !end) return;
+
   allTasks.push({
-    id: step.id ,
+    id: step.id,
     text: step.description,
-    start: toIST(step.start_date),
-    end: toIST(step.end_date),
+    start,
+    end,
     duration: step.duration || 1,
     progress: step.progress || 0,
     type: step.type,
-    // parent:  parentId,
     color: typeColorMap[step.type],
   });
 });
