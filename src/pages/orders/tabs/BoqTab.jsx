@@ -83,7 +83,7 @@ useEffect(() => {
         Total BOQ Cost: ₹{totalBoqCost.toFixed(2)}
       </div>
       <p className="text-sm text-gray-500 mt-2">
-        Click on a material above to view which signage items use it — (feature coming soon).
+        Click on a material above to view which signage items use it.
       </p>
 
       {selectedMaterial && breakdown.length > 0 && (
