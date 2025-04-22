@@ -22,6 +22,8 @@ export default function ModernGantt({ steps, onRefresh }) {
     }
 
     const toIST = (date) => {
+      console.log("Converting to IST:", date);
+
       if (!date) return null;
       const parsedDate = new Date(date);
       if (isNaN(parsedDate)) return null;
@@ -48,7 +50,7 @@ steps.forEach((step) => {
   console.log(step);
   const start = toIST(step.start_date);
   const end = toIST(step.end_date);
-  if (!start || !end) return;
+  // if (!start || !end) return;
 
   allTasks.push({
     id: step.id,
