@@ -221,72 +221,36 @@ export default function SignageItemsTab({ orderId }) {
               <tbody>
                 {boqs.map(boq => (
                   <tr key={boq.id}>
-                    {editingBoqId === boq.id ? (
-                      <>
-                        {["material", "quantity", "unit", "cost_per_unit"].map((field) => (
-                          <td key={field} className="p-2 border">
-                            <input
-                              className="w-full border px-1 py-0.5 text-sm"
-                              value={editedBoq[field]}
-                              type={field === "quantity" || field === "cost_per_unit" ? "number" : "text"}
-                              onChange={(e) =>
-                                setEditedBoq({ ...editedBoq, [field]: e.target.value })
-                              }
-                            />
-                          </td>
-                        ))}
-                        <td className="p-2 border text-right space-x-2">
-                          <button
-                            className="text-green-600 text-sm"
-                            onClick={async () => {
-                              const updated = await updateBoqItem(boq.id, editedBoq);
+                    <>
+                      {["material", "quantity", "unit", "cost_per_unit"].map((field) => (
+                        <td key={field} className="p-2 border">
+                          <input
+                            className="w-full border px-1 py-0.5 text-sm"
+                            value={boq[field]}
+                            type={field === "quantity" || field === "cost_per_unit" ? "number" : "text"}
+                            onChange={(e) => {
+                              const updatedBoqs = boqs.map(b => b.id === boq.id ? { ...b, [field]: e.target.value } : b);
+                              setBoqs(updatedBoqs);
+                            }}
+                            onBlur={async (e) => {
+                              const updated = await updateBoqItem(boq.id, { ...boq, [field]: e.target.value });
                               setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
-                              setEditingBoqId(null);
                             }}
-                          >
-                            💾
-                          </button>
-                          <button
-                            className="text-gray-600 text-sm"
-                            onClick={() => setEditingBoqId(null)}
-                          >
-                            ✖
-                          </button>
+                          />
                         </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="p-2 border">{boq.material}</td>
-                        <td className="p-2 border">{boq.quantity}</td>
-                        <td className="p-2 border">{boq.unit}</td>
-                        <td className="p-2 border flex justify-between items-center">
-                          {boq.cost_per_unit}
-                          <span
-                            onClick={() => {
-                              setEditingBoqId(boq.id);
-                              setEditedBoq({
-                                material: boq.material,
-                                quantity: boq.quantity,
-                                unit: boq.unit,
-                                cost_per_unit: boq.cost_per_unit,
-                              });
-                            }}
-                            className="ml-2 text-blue-500 cursor-pointer"
-                          >
-                            ✎
-                          </span>
-                          <span
-                            onClick={async () => {
-                              await deleteBoqItem(boq.id);
-                              setBoqs(boqs.filter(b => b.id !== boq.id));
-                            }}
-                            className="ml-2 text-red-500 cursor-pointer"
-                          >
-                            🗑
-                          </span>
-                        </td>
-                      </>
-                    )}
+                      ))}
+                      <td className="p-2 border text-right">
+                        <span
+                          onClick={async () => {
+                            await deleteBoqItem(boq.id);
+                            setBoqs(boqs.filter(b => b.id !== boq.id));
+                          }}
+                          className="ml-2 text-red-500 cursor-pointer"
+                        >
+                          🗑
+                        </span>
+                      </td>
+                    </>
                   </tr>
                 ))}
               </tbody>
