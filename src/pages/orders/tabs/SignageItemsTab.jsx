@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem } from "../services/orderDetailsService";
+import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem } from "../services/orderDetailsService";
 
 export default function SignageItemsTab({ orderId }) {
   const [items, setItems] = useState([]);
@@ -10,6 +10,8 @@ export default function SignageItemsTab({ orderId }) {
   const [newBoq, setNewBoq] = useState({ material: "", quantity: "", unit: "", cost_per_unit: "" });
   const [editingBoqId, setEditingBoqId] = useState(null);
   const [editedBoq, setEditedBoq] = useState({});
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [editedItem, setEditedItem] = useState({});
 
   useEffect(() => {
     fetchSignageItems(orderId).then(setItems).catch(console.error);
@@ -54,20 +56,83 @@ export default function SignageItemsTab({ orderId }) {
               }
               className={`cursor-pointer ${selectedItemId === item.id ? "bg-yellow-50" : ""}`}
             >
-              <td className="p-2 border">{item.name}</td>
-              <td className="p-2 border">{item.description}</td>
-              <td className="p-2 border">{item.quantity}</td>
+              <td className="p-2 border">
+                {editingItemId === item.id ? (
+                  <input
+                    className="w-full border px-1 py-0.5 text-sm"
+                    value={editedItem.name}
+                    onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
+                    onBlur={async () => {
+                      const updated = await updateSignageItem(item.id, editedItem);
+                      setItems(items.map(it => it.id === item.id ? updated : it));
+                      setEditingItemId(null);
+                    }}
+                  />
+                ) : (
+                  <span onClick={() => {
+                    setEditingItemId(item.id);
+                    setEditedItem({ name: item.name, description: item.description, quantity: item.quantity, cost: item.cost });
+                  }}>{item.name}</span>
+                )}
+              </td>
+              <td className="p-2 border">
+                {editingItemId === item.id ? (
+                  <input
+                    className="w-full border px-1 py-0.5 text-sm"
+                    value={editedItem.description}
+                    onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
+                    onBlur={async () => {
+                      const updated = await updateSignageItem(item.id, editedItem);
+                      setItems(items.map(it => it.id === item.id ? updated : it));
+                      setEditingItemId(null);
+                    }}
+                  />
+                ) : (
+                  <span onClick={() => {
+                    setEditingItemId(item.id);
+                    setEditedItem({ name: item.name, description: item.description, quantity: item.quantity, cost: item.cost });
+                  }}>{item.description}</span>
+                )}
+              </td>
+              <td className="p-2 border">
+                {editingItemId === item.id ? (
+                  <input
+                    className="w-full border px-1 py-0.5 text-sm"
+                    type="number"
+                    value={editedItem.quantity}
+                    onChange={(e) => setEditedItem({ ...editedItem, quantity: e.target.value })}
+                    onBlur={async () => {
+                      const updated = await updateSignageItem(item.id, editedItem);
+                      setItems(items.map(it => it.id === item.id ? updated : it));
+                      setEditingItemId(null);
+                    }}
+                  />
+                ) : (
+                  <span onClick={() => {
+                    setEditingItemId(item.id);
+                    setEditedItem({ name: item.name, description: item.description, quantity: item.quantity, cost: item.cost });
+                  }}>{item.quantity}</span>
+                )}
+              </td>
               <td className="p-2 border flex justify-between items-center">
-                {item.cost}
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    alert("TODO: Open edit modal");
-                  }}
-                  className="ml-2 text-blue-500 cursor-pointer"
-                >
-                  ✎
-                </span>
+                {editingItemId === item.id ? (
+                  <input
+                    className="w-full border px-1 py-0.5 text-sm"
+                    type="number"
+                    value={editedItem.cost}
+                    onChange={(e) => setEditedItem({ ...editedItem, cost: e.target.value })}
+                    onBlur={async () => {
+                      const updated = await updateSignageItem(item.id, editedItem);
+                      setItems(items.map(it => it.id === item.id ? updated : it));
+                      setEditingItemId(null);
+                    }}
+                  />
+                ) : (
+                  <span onClick={() => {
+                    setEditingItemId(item.id);
+                    setEditedItem({ name: item.name, description: item.description, quantity: item.quantity, cost: item.cost });
+                  }}>{item.cost}</span>
+                )}
                 <span
                   onClick={(e) => {
                     e.stopPropagation();
