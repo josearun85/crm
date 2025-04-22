@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ModernGantt from "../components/ModernGantt";
-import { fetchOrderSteps } from "../services/orderDetailsService";
+import { fetchOrderSteps, insertDefaultOrderSteps } from "../services/orderDetailsService";
 
 export default function TimelineTab({ orderId }) {
   const [steps, setSteps] = useState([]);
@@ -11,7 +11,11 @@ export default function TimelineTab({ orderId }) {
     async function loadSteps() {
       try {
         setLoading(true);
-        const data = await fetchOrderSteps(orderId);
+        let data = await fetchOrderSteps(orderId);
+        if (data.length === 0) {
+          await insertDefaultOrderSteps(orderId);
+          data = await fetchOrderSteps(orderId); // re-fetch after insert
+        }
         setSteps(data);
       } catch (err) {
         console.error(err);

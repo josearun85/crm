@@ -183,6 +183,51 @@ export async function deleteOrderStep(stepId) {
   }
 }
 
+export async function insertDefaultOrderSteps(orderId) {
+  const defaultSteps = [
+    { type: "design", description: "Design", duration: 3 },
+    { type: "procurement", description: "Procurement", duration: 2 },
+    { type: "fabrication", description: "Fabrication", duration: 4 },
+    { type: "installation", description: "Installation", duration: 2 }
+  ];
+
+  const now = new Date();
+  let currentDate = new Date(now);
+
+  const stepsWithOrderId = defaultSteps.map(step => {
+    const start = new Date(currentDate);
+    const end = new Date(currentDate); // End is the same day as start
+    const stepEntry = {
+      ...step,
+      order_id: orderId,
+      start_date: start.toISOString(),
+      end_date: end.toISOString(),
+      created_at: now.toISOString(),
+      updated_at: now.toISOString(),
+      status: "not started",
+      delayed: false,
+      files: [],
+      comments: [],
+      dependency_id: null
+    };
+    // Move to next day for the next step
+    currentDate.setDate(currentDate.getDate() + 1);
+    return stepEntry;
+  });
+
+  const { data, error } = await supabase
+    .from("order_steps")
+    .insert(stepsWithOrderId)
+    .select();
+
+  if (error) {
+    console.error("Error inserting default order steps:", error);
+    throw error;
+  }
+
+  return data;
+}
+
 // Procurement tab
 export async function fetchProcurementTasks(orderId) {
   const { data: items, error: itemError } = await supabase
