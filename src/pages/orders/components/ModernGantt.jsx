@@ -1,8 +1,10 @@
 import { Gantt, Willow } from "wx-react-gantt";
 import "wx-react-gantt/dist/gantt.css";
 import React, { useEffect, useState, useRef } from "react";
-import { fetchOrderSteps, updateOrderStep, addOrderStep } from "../services/orderDetailsService";
+import {updateOrderStep, addOrderStep } from "../services/orderDetailsService";
 import StepModal from "./StepModal";
+
+
 
 export default function ModernGantt({ steps, onRefresh }) {
   const [tasks, setTasks] = useState([]);
@@ -114,7 +116,15 @@ for (let i = 0; i < allTasks.length; i++) {
     setLinks(deps);
     setIsReady(true);
 
+  
+  }, [steps]);
+
+  useEffect(() => {
     if (apiRef.current) {
+      apiRef.current.on("add-link", (data) => {
+        setLink(data.link);
+      });
+
       apiRef.current.on("update-task", async (ev) => {
         console.log("📝 Gantt Task Updated (event)", ev);
         const updates = {
@@ -131,8 +141,20 @@ for (let i = 0; i < allTasks.length; i++) {
         }
       });
 
-      apiRef.current.on("drag-task", (ev) => {
+      apiRef.current.on("drag-task", async (ev) => {
         console.log("📦 Dragged task:", ev);
+        const updates = {
+          start_date: ev.start instanceof Date ? ev.start.toISOString().split("T")[0] : null,
+          end_date: ev.end instanceof Date ? ev.end.toISOString().split("T")[0] : null,
+          duration: Number(ev.duration) || 1,
+          progress: Number(ev.progress) || 0,
+        };
+        try {
+          await updateOrderStep(ev.id, updates);
+          console.log("✅ Update sent to backend:", ev.id, updates);
+        } catch (err) {
+          console.error("❌ Failed to update task", err);
+        }
       });
 
       apiRef.current.on("delete-task", async (ev) => {
@@ -145,7 +167,8 @@ for (let i = 0; i < allTasks.length; i++) {
         }
       });
     }
-  }, [steps]);
+
+  }, [apiRef.current]);
 
   const onTaskChange = async (task) => {
     // Placeholder for future DB update
