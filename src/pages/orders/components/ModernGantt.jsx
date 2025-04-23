@@ -120,35 +120,35 @@ for (let i = 0; i < allTasks.length; i++) {
   }, [steps]);
 
   useEffect(() => {
-    if (apiRef.current) {
-      apiRef.current.on("add-link", (data) => {
-        setLink(data.link);
-      });
+    if (!isReady) return; // Wait until tasks and links are ready
 
-      apiRef.current.on("update-task", async (ev) => {
-        console.log("📝 Gantt Task Updated (event)", ev);
-        onTaskChange(ev);
-      });
+    const timer = setTimeout(() => {
+      if (apiRef.current) {
+        apiRef.current.on("add-link", (data) => {
+          onLinkCreate(data.link);
+        });
 
-      apiRef.current.on("drag-task", async (ev) => {
-        console.log("📦 Dragged task:", ev);
-        onTaskChange(ev);
-      });
+        apiRef.current.on("update-task", onTaskChange);
+        apiRef.current.on("drag-task", onTaskChange);
 
-      apiRef.current.on("delete-task", async (ev) => {
-        console.log("🗑️ Deleted task:", ev);
-        try {
-          await updateOrderStep(ev.id, { deleted: true }); // Optional flag if soft-delete is needed
-          onRefresh?.(); // Refresh view
-        } catch (err) {
-          console.error("❌ Failed to delete task", err);
-        }
-      });
-    }else{
-      console.warn("Gantt API not ready");
-    }
+        apiRef.current.on("delete-task", async (ev) => {
+          console.log("🗑️ Deleted task:", ev);
+          try {
+            await updateOrderStep(ev.id, { deleted: true });
+            onRefresh?.();
+          } catch (err) {
+            console.error("❌ Failed to delete task", err);
+          }
+        });
 
-  }, [apiRef.current]);
+        console.log("✅ Gantt API successfully bound");
+      } else {
+        console.warn("❌ Gantt API still not ready");
+      }
+    }, 100); // Delay to ensure ref is set
+
+    return () => clearTimeout(timer);
+  }, [isReady]);
 
   const onTaskChange = async (task) => {
     // Placeholder for future DB update
