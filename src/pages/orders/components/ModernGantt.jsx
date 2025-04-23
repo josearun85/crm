@@ -18,11 +18,7 @@ export default function ModernGantt({ steps, onRefresh }) {
 
 
 useEffect(() => {
-  if (!isReady) return;
 
-  let tries = 0;
-  const maxTries = 20;
-  const interval = setInterval(() => {
     if (apiRef.current) {
       apiRef.current.on("add-link", (data) => {
         onLinkCreate(data.link);
@@ -42,15 +38,10 @@ useEffect(() => {
       });
 
       console.log("✅ Gantt API successfully bound");
-      clearInterval(interval);
-    } else if (++tries > maxTries) {
+    } else  {
       console.warn("❌ Gantt API still not ready after multiple attempts", apiRef);
-      clearInterval(interval);
     }
-  }, 100);
-
-  return () => clearInterval(interval);
-}, [isReady]);
+}, [apiRef]);
 
   useEffect(() => {
     setIsReady(false);
