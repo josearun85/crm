@@ -53,6 +53,44 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, [isReady]);
 
+// Fallback DOM-based Gantt task click detection
+useEffect(() => {
+  if (!isReady) return;
+
+  const container = document.querySelector(".wx-gantt-container");
+  if (!container) return;
+
+  const clickHandler = (e) => {
+    console.log("🖱️ Click detected on Gantt container", e.target);
+
+    const taskEl = e.target.closest("[data-task-id]");
+    if (!taskEl) {
+      console.warn("❌ No matching task element found");
+      return;
+    }
+
+    const taskId = taskEl.getAttribute("data-task-id");
+    if (!taskId) {
+      console.warn("❌ Task element found but missing data-task-id");
+      return;
+    }
+
+    console.log("🔍 Task element selected:", taskEl);
+    console.log("🆔 Task ID found:", taskId);
+
+    const api = apiRef.current;
+    if (api && typeof api.getTask === "function") {
+      const task = api.getTask(taskId);
+      console.log("🟢 Task clicked:", task);
+    } else {
+      console.warn("⚠️ Gantt API unavailable for task click");
+    }
+  };
+
+  container.addEventListener("click", clickHandler);
+  return () => container.removeEventListener("click", clickHandler);
+}, [isReady]);
+
   useEffect(() => {
     setIsReady(false);
     console.log("📦 Raw Steps:", steps);
