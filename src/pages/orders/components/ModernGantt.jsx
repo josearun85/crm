@@ -144,6 +144,8 @@ for (let i = 0; i < allTasks.length; i++) {
           console.error("❌ Failed to delete task", err);
         }
       });
+    }else{
+      console.warn("Gantt API not ready");
     }
 
   }, [apiRef.current]);
