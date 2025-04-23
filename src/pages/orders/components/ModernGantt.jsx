@@ -17,36 +17,40 @@ export default function ModernGantt({ steps, onRefresh }) {
 
 
 
-  useEffect(() => {
-    if (!isReady) return; // Wait until tasks and links are ready
+useEffect(() => {
+  if (!isReady) return;
 
-    const timer = setTimeout(() => {
-      if (apiRef.current) {
-        apiRef.current.on("add-link", (data) => {
-          onLinkCreate(data.link);
-        });
+  let tries = 0;
+  const maxTries = 20;
+  const interval = setInterval(() => {
+    if (apiRef.current) {
+      apiRef.current.on("add-link", (data) => {
+        onLinkCreate(data.link);
+      });
 
-        apiRef.current.on("update-task", onTaskChange);
-        apiRef.current.on("drag-task", onTaskChange);
+      apiRef.current.on("update-task", onTaskChange);
+      apiRef.current.on("drag-task", onTaskChange);
 
-        apiRef.current.on("delete-task", async (ev) => {
-          console.log("🗑️ Deleted task:", ev);
-          try {
-            await updateOrderStep(ev.id, { deleted: true });
-            onRefresh?.();
-          } catch (err) {
-            console.error("❌ Failed to delete task", err);
-          }
-        });
+      apiRef.current.on("delete-task", async (ev) => {
+        console.log("🗑️ Deleted task:", ev);
+        try {
+          await updateOrderStep(ev.id, { deleted: true });
+          onRefresh?.();
+        } catch (err) {
+          console.error("❌ Failed to delete task", err);
+        }
+      });
 
-        console.log("✅ Gantt API successfully bound");
-      } else {
-        console.warn("❌ Gantt API still not ready",apiRef);
-      }
-    }, 100); // Delay to ensure ref is set
+      console.log("✅ Gantt API successfully bound");
+      clearInterval(interval);
+    } else if (++tries > maxTries) {
+      console.warn("❌ Gantt API still not ready after multiple attempts", apiRef);
+      clearInterval(interval);
+    }
+  }, 100);
 
-    return () => clearTimeout(timer);
-  }, [isReady]);
+  return () => clearInterval(interval);
+}, [isReady]);
 
   useEffect(() => {
     setIsReady(false);
