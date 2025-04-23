@@ -57,8 +57,19 @@ useEffect(() => {
 useEffect(() => {
   if (!isReady) return;
 
-  const container = document.querySelector(".wx-gantt-container");
-  if (!container) return;
+  let container = document.querySelector(".wx-gantt-container");
+  console.log("🔎 Gantt container:", container);
+
+  if (!container) {
+    console.warn("❌ .wx-gantt-container not found, falling back to .wx-task");
+    container = document.querySelector(".wx-task");
+    console.log("🔎 Fallback Gantt container:", container);
+  }
+
+  if (!container) {
+    console.error("❌ No Gantt container element found for click listener");
+    return;
+  }
 
   const clickHandler = (e) => {
     console.log("🖱️ Click detected on Gantt container", e.target);
