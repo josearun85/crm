@@ -82,6 +82,7 @@ useEffect(() => {
     if (api && typeof api.getTask === "function") {
       const task = api.getTask(taskId);
       console.log("🟢 Task clicked:", task);
+      handleTaskClick(task);
     } else {
       console.warn("⚠️ Gantt API unavailable for task click");
     }
