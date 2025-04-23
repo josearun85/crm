@@ -127,34 +127,12 @@ for (let i = 0; i < allTasks.length; i++) {
 
       apiRef.current.on("update-task", async (ev) => {
         console.log("📝 Gantt Task Updated (event)", ev);
-        const updates = {
-          start_date: ev.start instanceof Date ? ev.start.toISOString().split("T")[0] : null,
-          end_date: ev.end instanceof Date ? ev.end.toISOString().split("T")[0] : null,
-          duration: Number(ev.duration) || 1,
-          progress: Number(ev.progress) || 0,
-        };
-        try {
-          await updateOrderStep(ev.id, updates);
-          console.log("✅ Update sent to backend:", ev.id, updates);
-        } catch (err) {
-          console.error("❌ Failed to update task", err);
-        }
+        onTaskChange(ev);
       });
 
       apiRef.current.on("drag-task", async (ev) => {
         console.log("📦 Dragged task:", ev);
-        const updates = {
-          start_date: ev.start instanceof Date ? ev.start.toISOString().split("T")[0] : null,
-          end_date: ev.end instanceof Date ? ev.end.toISOString().split("T")[0] : null,
-          duration: Number(ev.duration) || 1,
-          progress: Number(ev.progress) || 0,
-        };
-        try {
-          await updateOrderStep(ev.id, updates);
-          console.log("✅ Update sent to backend:", ev.id, updates);
-        } catch (err) {
-          console.error("❌ Failed to update task", err);
-        }
+        onTaskChange(ev);
       });
 
       apiRef.current.on("delete-task", async (ev) => {
@@ -261,11 +239,6 @@ for (let i = 0; i < allTasks.length; i++) {
             tasks={tasks}
             links={links}
             scales={scales}
-            onTaskChange={onTaskChange}
-            onTaskDragEnd={onTaskChange}
-            onLinkCreate={onLinkCreate}
-            onTaskClick={handleTaskClick}
-            onTaskAdd={onTaskAdd}
             taskTypes={taskTypes}
           />
         </Willow>
