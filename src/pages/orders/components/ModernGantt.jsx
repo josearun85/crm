@@ -63,15 +63,15 @@ useEffect(() => {
   const clickHandler = (e) => {
     console.log("🖱️ Click detected on Gantt container", e.target);
 
-    const taskEl = e.target.closest("[data-task-id]");
+    const taskEl = e.target.closest("[data-id]");
     if (!taskEl) {
-      console.warn("❌ No matching task element found");
+      console.warn("❌ No matching task element found using [data-id]");
       return;
     }
 
-    const taskId = taskEl.getAttribute("data-task-id");
+    const taskId = taskEl.getAttribute("data-id");
     if (!taskId) {
-      console.warn("❌ Task element found but missing data-task-id");
+      console.warn("❌ Task element found but missing data-id");
       return;
     }
 
