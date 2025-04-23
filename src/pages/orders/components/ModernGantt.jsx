@@ -18,16 +18,21 @@ export default function ModernGantt({ steps, onRefresh }) {
 
 
 useEffect(() => {
+  if (!isReady) return;
 
-    if (apiRef.current) {
-      apiRef.current.on("add-link", (data) => {
+  let tries = 0;
+  const maxTries = 20;
+  const interval = setInterval(() => {
+    const api = apiRef.current;
+    if (api) {
+      api.on("add-link", (data) => {
         onLinkCreate(data.link);
       });
 
-      apiRef.current.on("update-task", onTaskChange);
-      apiRef.current.on("drag-task", onTaskChange);
+      api.on("update-task", onTaskChange);
+      api.on("drag-task", onTaskChange);
 
-      apiRef.current.on("delete-task", async (ev) => {
+      api.on("delete-task", async (ev) => {
         console.log("🗑️ Deleted task:", ev);
         try {
           await updateOrderStep(ev.id, { deleted: true });
@@ -38,10 +43,15 @@ useEffect(() => {
       });
 
       console.log("✅ Gantt API successfully bound");
-    } else  {
+      clearInterval(interval);
+    } else if (++tries > maxTries) {
       console.warn("❌ Gantt API still not ready after multiple attempts", apiRef);
+      clearInterval(interval);
     }
-}, [apiRef]);
+  }, 100);
+
+  return () => clearInterval(interval);
+}, [isReady]);
 
   useEffect(() => {
     setIsReady(false);
