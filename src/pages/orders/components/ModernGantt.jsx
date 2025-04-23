@@ -53,54 +53,46 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, [isReady]);
 
-// Fallback DOM-based Gantt task click detection
+// Retry-loop DOM-based Gantt task click detection
 useEffect(() => {
   if (!isReady) return;
 
-  let container = document.querySelector(".wx-gantt-container");
-  console.log("🔎 Gantt container:", container);
+  let tries = 0;
+  const maxTries = 20;
 
-  if (!container) {
-    console.warn("❌ .wx-gantt-container not found, falling back to .wx-task");
-    container = document.querySelector(".wx-task");
-    console.log("🔎 Fallback Gantt container:", container);
-  }
+  const interval = setInterval(() => {
+    const taskEl = document.querySelector(".wx-bar");
+    console.log(`🧪 Gantt DOM check [${tries}]:`, taskEl);
 
-  if (!container) {
-    console.error("❌ No Gantt container element found for click listener");
-    return;
-  }
+    if (taskEl) {
+      document.addEventListener("click", clickHandler);
+      console.log("✅ Gantt click listener bound");
+      clearInterval(interval);
+    }
+
+    if (++tries > maxTries) {
+      console.warn("❌ Could not find Gantt task element to bind click handler");
+      clearInterval(interval);
+    }
+  }, 200);
 
   const clickHandler = (e) => {
-    console.log("🖱️ Click detected on Gantt container", e.target);
+    const el = e.target.closest("[data-id]");
+    if (!el) return;
 
-    const taskEl = e.target.closest("[data-id]");
-    if (!taskEl) {
-      console.warn("❌ No matching task element found using [data-id]");
-      return;
-    }
-
-    const taskId = taskEl.getAttribute("data-id");
-    if (!taskId) {
-      console.warn("❌ Task element found but missing data-id");
-      return;
-    }
-
-    console.log("🔍 Task element selected:", taskEl);
-    console.log("🆔 Task ID found:", taskId);
-
+    const id = el.getAttribute("data-id");
     const api = apiRef.current;
-    if (api && typeof api.getTask === "function") {
-      const task = api.getTask(taskId);
-      console.log("🟢 Task clicked:", task);
+    if (id && api?.getTask) {
+      const task = api.getTask(id);
+      console.log("🟢 Fallback click task:", task);
       handleTaskClick(task);
-    } else {
-      console.warn("⚠️ Gantt API unavailable for task click");
     }
   };
 
-  container.addEventListener("click", clickHandler);
-  return () => container.removeEventListener("click", clickHandler);
+  return () => {
+    clearInterval(interval);
+    document.removeEventListener("click", clickHandler);
+  };
 }, [isReady]);
 
   useEffect(() => {
