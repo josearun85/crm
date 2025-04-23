@@ -238,18 +238,17 @@ for (let i = 0; i < allTasks.length; i++) {
 
   return (
     <>
-      {!isReady ? (
+      <Willow style={{ visibility: isReady ? "visible" : "hidden", minHeight: "200px" }}>
+        <Gantt
+          apiRef={apiRef}
+          tasks={tasks}
+          links={links}
+          scales={scales}
+          taskTypes={taskTypes}
+        />
+      </Willow>
+      {!isReady && (
         <p className="text-sm text-gray-400">Preparing tasks...</p>
-      ) : (
-        <Willow>
-          <Gantt
-            apiRef={apiRef}
-            tasks={tasks}
-            links={links}
-            scales={scales}
-            taskTypes={taskTypes}
-          />
-        </Willow>
       )}
       {showModal && selectedStep && (
         <StepModal
