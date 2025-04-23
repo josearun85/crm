@@ -41,7 +41,7 @@ export default function ModernGantt({ steps, onRefresh }) {
 
         console.log("✅ Gantt API successfully bound");
       } else {
-        console.warn("❌ Gantt API still not ready");
+        console.warn("❌ Gantt API still not ready",apiRef);
       }
     }, 100); // Delay to ensure ref is set
 
