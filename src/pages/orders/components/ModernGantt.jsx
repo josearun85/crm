@@ -15,6 +15,39 @@ export default function ModernGantt({ steps, onRefresh }) {
   const [isReady, setIsReady] = useState(false);
   const apiRef = useRef(null);
 
+
+
+  useEffect(() => {
+    if (!isReady) return; // Wait until tasks and links are ready
+
+    const timer = setTimeout(() => {
+      if (apiRef.current) {
+        apiRef.current.on("add-link", (data) => {
+          onLinkCreate(data.link);
+        });
+
+        apiRef.current.on("update-task", onTaskChange);
+        apiRef.current.on("drag-task", onTaskChange);
+
+        apiRef.current.on("delete-task", async (ev) => {
+          console.log("🗑️ Deleted task:", ev);
+          try {
+            await updateOrderStep(ev.id, { deleted: true });
+            onRefresh?.();
+          } catch (err) {
+            console.error("❌ Failed to delete task", err);
+          }
+        });
+
+        console.log("✅ Gantt API successfully bound");
+      } else {
+        console.warn("❌ Gantt API still not ready");
+      }
+    }, 100); // Delay to ensure ref is set
+
+    return () => clearTimeout(timer);
+  }, [isReady]);
+
   useEffect(() => {
     setIsReady(false);
     console.log("📦 Raw Steps:", steps);
@@ -118,38 +151,6 @@ for (let i = 0; i < allTasks.length; i++) {
 
   
   }, [steps]);
-
-  useEffect(() => {
-    if (!isReady) return; // Wait until tasks and links are ready
-
-    const timer = setTimeout(() => {
-      if (apiRef.current) {
-        apiRef.current.on("add-link", (data) => {
-          onLinkCreate(data.link);
-        });
-
-        apiRef.current.on("update-task", onTaskChange);
-        apiRef.current.on("drag-task", onTaskChange);
-
-        apiRef.current.on("delete-task", async (ev) => {
-          console.log("🗑️ Deleted task:", ev);
-          try {
-            await updateOrderStep(ev.id, { deleted: true });
-            onRefresh?.();
-          } catch (err) {
-            console.error("❌ Failed to delete task", err);
-          }
-        });
-
-        console.log("✅ Gantt API successfully bound");
-      } else {
-        console.warn("❌ Gantt API still not ready");
-      }
-    }, 100); // Delay to ensure ref is set
-
-    return () => clearTimeout(timer);
-  }, [isReady]);
-
   const onTaskChange = async (task) => {
     // Placeholder for future DB update
     try {
