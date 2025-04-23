@@ -242,7 +242,7 @@ for (let i = 0; i < allTasks.length; i++) {
       ) : (
         <Willow>
           <Gantt
-            ref={apiRef}
+            apiRef={apiRef}
             tasks={tasks}
             links={links}
             scales={scales}
