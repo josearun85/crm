@@ -235,22 +235,17 @@ export default function EnquiriesPage() {
 
                           orderId = orderData.id;
                           
-                          // Insert default order steps
-                          const defaultSteps = [
-                            { type: 'site_visit', step_name: 'Site Visit' },
-                            { type: 'design', step_name: 'Design approval' },
-                            { type: 'procurement', step_name: 'Cost estimate' },
-                            { type: 'production', step_name: 'Template specification' },
-                            { type: 'installation', step_name: 'Letter installation' },
-                            { type: 'feedback', step_name: 'Final feedback' }
-                          ];
-                          
-                          await supabase.from('order_steps').insert(
-                            defaultSteps.map(s => ({
-                              order_id: orderId,
-                              ...s
-                            }))
-                          );
+                          // Insert only the design step
+                          const designStep = {
+                            order_id: orderId,
+                            type: 'design',
+                            step_name: 'Design',
+                            description: 'Design',
+                            status: 'pending',
+                            start_date: new Date().toISOString().slice(0, 10),
+                            end_date: new Date().toISOString().slice(0, 10)
+                          };
+                          await supabase.from('order_steps').insert([designStep]);
 
                           await supabase.from('enquiries').update({
                             status: newStatus,

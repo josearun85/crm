@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem } from "../services/orderDetailsService";
+import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem, fetchProcurementTasks, ensureFabricationStepsForSignageItems } from "../services/orderDetailsService";
 
 export default function SignageItemsTab({ orderId }) {
   const [items, setItems] = useState([]);
@@ -12,24 +12,44 @@ export default function SignageItemsTab({ orderId }) {
   const [editingBoqId, setEditingBoqId] = useState(null);
   const [editedBoq, setEditedBoq] = useState({});
   const [showBoqForItemId, setShowBoqForItemId] = useState(null);
+  const [procuredBoqIds, setProcuredBoqIds] = useState(new Set());
+  const [procurementTasksByBoqId, setProcurementTasksByBoqId] = useState({});
+  const [selectedProcurement, setSelectedProcurement] = useState(null);
 
   useEffect(() => {
+    ensureFabricationStepsForSignageItems(orderId).catch(console.error);
     fetchSignageItems(orderId).then(setItems).catch(console.error);
   }, [orderId]);
 
   useEffect(() => {
     fetchBoqItems(orderId).then(setAllBoqs).catch(console.error);
+    // Fetch procurement tasks and build a set of procured BOQ ids
+    fetchProcurementTasks(orderId).then(tasks => {
+      setProcuredBoqIds(new Set(tasks.map(t => t.boq_item_id)));
+    }).catch(console.error);
   }, [orderId]);
 
   useEffect(() => {
     if (selectedItemId) {
-      fetchBoqItems(orderId).then(all =>
+      fetchBoqItems(orderId).then(all => 
         setBoqs(all.filter(b => b.signage_item_id === selectedItemId))
       );
     } else {
       setBoqs([]);
     }
   }, [selectedItemId, orderId]);
+
+  useEffect(() => {
+    if (!selectedItemId) return;
+    fetchProcurementTasks(orderId).then(tasks => {
+      const map = {};
+      for (const t of tasks) {
+        if (!map[t.boq_item_id]) map[t.boq_item_id] = [];
+        map[t.boq_item_id].push(t);
+      }
+      setProcurementTasksByBoqId(map);
+    });
+  }, [orderId, selectedItemId]);
 
   return (
     <div className="space-y-4">
@@ -212,81 +232,109 @@ export default function SignageItemsTab({ orderId }) {
                   <th className="p-2 border">Quantity</th>
                   <th className="p-2 border">Unit</th>
                   <th className="p-2 border">Cost/Unit</th>
+                  <th className="p-2 border">Total</th>
+                  <th className="p-2 border">Procurement</th>
+                  <th className="p-2 border"></th>
                 </tr>
               </thead>
               <tbody>
-                {boqs.map(boq => (
+                {boqs.map((boq) => (
                   <tr key={boq.id}>
-                    <>
-                      {["material", "quantity", "unit", "cost_per_unit"].map((field) => (
-                        <td key={field} className="p-2 border">
-                          <input
-                            className="w-full border px-1 py-0.5 text-sm"
-                            value={boq[field]}
-                            type={field === "quantity" || field === "cost_per_unit" ? "number" : "text"}
-                            onChange={(e) => {
-                              const updatedBoqs = boqs.map(b => b.id === boq.id ? { ...b, [field]: e.target.value } : b);
-                              setBoqs(updatedBoqs);
-                            }}
-                            onBlur={
-                              field === "cost_per_unit" || field === "unit"
-                                ? async (e) => {
-                                    const newValue = e.target.value;
-                                    const updated = await updateBoqItem(boq.id, { ...boq, [field]: newValue });
-                                    const updatedBoqs = boqs.map(b => b.id === boq.id ? updated : b);
-                                    setBoqs(updatedBoqs);
-
-                                    const othersWithSameMaterial = allBoqs.filter(
-                                      b => b.material === boq.material && b.id !== boq.id && b[field] !== newValue
-                                    );
-
-                                    if (othersWithSameMaterial.length > 0) {
-                                      alert(`Updating ${othersWithSameMaterial.length} other entries with new ${field}`);
-                                      for (const other of othersWithSameMaterial) {
-                                        await updateBoqItem(other.id, { ...other, [field]: newValue });
-                                      }
-
-                                      const refreshedAllBoqs = allBoqs.map(b =>
-                                        b.material === boq.material ? { ...b, [field]: newValue } : b
-                                      );
-                                      setAllBoqs(refreshedAllBoqs);
-
-                                      const filtered = refreshedAllBoqs.filter(b => b.signage_item_id === selectedItemId);
-                                      setBoqs(filtered);
-                                    }
-                                  }
-                                : async (e) => {
-                                    const updated = await updateBoqItem(boq.id, { ...boq, [field]: e.target.value });
-                                    setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
-                                  }
+                    <td className="p-2 border">
+                      <input
+                        className="w-full border px-1 py-0.5 text-sm"
+                        value={boq.material}
+                        onChange={e => {
+                          const updated = { ...boq, material: e.target.value };
+                          setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
+                        }}
+                        onBlur={() => {
+                          const match = allBoqs.find(b => b.material === boq.material && b.id !== boq.id);
+                          if (match) {
+                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: match.unit, cost_per_unit: match.cost_per_unit } : b));
+                          }
+                          updateBoqItem(boq.id, boq);
+                        }}
+                      />
+                    </td>
+                    <td className="p-2 border">
+                      <input
+                        className="w-full border px-1 py-0.5 text-sm"
+                        type="number"
+                        value={boq.quantity}
+                        onChange={e => {
+                          const updated = { ...boq, quantity: e.target.value };
+                          setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
+                        }}
+                        onBlur={() => updateBoqItem(boq.id, boq)}
+                      />
+                    </td>
+                    <td className="p-2 border">
+                      <input
+                        className="w-full border px-1 py-0.5 text-sm"
+                        value={boq.unit}
+                        onChange={e => {
+                          const updated = { ...boq, unit: e.target.value };
+                          setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
+                        }}
+                        onBlur={() => updateBoqItem(boq.id, boq)}
+                      />
+                    </td>
+                    <td className="p-2 border">
+                      <input
+                        className="w-full border px-1 py-0.5 text-sm"
+                        type="number"
+                        value={boq.cost_per_unit}
+                        onChange={e => {
+                          const updated = { ...boq, cost_per_unit: e.target.value };
+                          setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
+                        }}
+                        onBlur={() => updateBoqItem(boq.id, boq)}
+                      />
+                    </td>
+                    <td className="p-2 border">{(boq.quantity * boq.cost_per_unit).toFixed(2)}</td>
+                    <td className="p-2 border text-center">
+                      {procurementTasksByBoqId[boq.id]?.length > 0 ? (
+                        <>
+                          <span
+                            title={
+                              procurementTasksByBoqId[boq.id][0].status === 'received'
+                                ? 'Procurement received, material available'
+                                : 'Procurement created'
                             }
-                          />
-                        </td>
-                      ))}
-                      <td className="p-2 border text-right">
-                        <span
-                          onClick={async () => {
-                            const confirmed = confirm("Delete this BOQ entry?");
-                            if (confirmed) {
-                              await deleteBoqItem(boq.id);
-                              setBoqs(boqs.filter(b => b.id !== boq.id));
-                            }
-                          }}
-                          className="ml-2 text-red-500 cursor-pointer"
-                        >
-                          🗑
-                        </span>
-                      </td>
-                    </>
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setSelectedProcurement(procurementTasksByBoqId[boq.id][0])}
+                          >
+                            {procurementTasksByBoqId[boq.id][0].status === 'received' ? '✅' : '🛒'}
+                          </span>
+                          <span className="ml-1 text-xs text-gray-500">({procurementTasksByBoqId[boq.id].length})</span>
+                        </>
+                      ) : (
+                        <span title="No procurement">—</span>
+                      )}
+                    </td>
+                    <td className="p-2 border text-right">
+                      <span
+                        onClick={async () => {
+                          const confirmed = confirm("Delete this BOQ entry?");
+                          if (confirmed) {
+                            await deleteBoqItem(boq.id);
+                            setBoqs(boqs.filter(b => b.id !== boq.id));
+                          }
+                        }}
+                        className="ml-2 text-red-500 cursor-pointer"
+                      >
+                        🗑
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot className="bg-gray-100 font-semibold">
                 <tr>
-                  <td className="p-2 border text-right" colSpan={3}>Total Cost</td>
-                  <td className="p-2 border">
-                    {boqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0)}
-                  </td>
+                  <td className="p-2 border text-right" colSpan={4}>Total Cost</td>
+                  <td className="p-2 border">{boqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0)}</td>
+                  <td colSpan={2}></td>
                 </tr>
               </tfoot>
             </table>
@@ -371,6 +419,49 @@ export default function SignageItemsTab({ orderId }) {
             >
               Add BOQ
             </button>
+          </div>
+        </div>
+      )}
+
+      {selectedProcurement && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-md w-full max-w-lg space-y-4">
+            <h3 className="text-lg font-semibold mb-2">Procurement Task Details</h3>
+            <div className="mb-2">
+              <strong>Status:</strong> {selectedProcurement.status || '-'}<br />
+              <strong>Vendor:</strong> {selectedProcurement.vendor_id || '-'}<br />
+              <strong>Expected Date:</strong> {selectedProcurement.expected_date || '-'}<br />
+              <strong>Received Date:</strong> {selectedProcurement.actual_date || '-'}
+            </div>
+            <div>
+              <h4 className="font-medium mb-1">BOQ Item</h4>
+              <table className="min-w-full border text-sm mb-2">
+                <thead className="bg-gray-100 text-left">
+                  <tr>
+                    <th className="p-2 border">Material</th>
+                    <th className="p-2 border">Quantity</th>
+                    <th className="p-2 border">Unit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {boqs.filter(b => b.id === selectedProcurement.boq_item_id).map(b => (
+                    <tr key={b.id}>
+                      <td className="p-2 border">{b.material}</td>
+                      <td className="p-2 border">{b.quantity}</td>
+                      <td className="p-2 border">{b.unit}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-end">
+              <button
+                className="px-3 py-1 text-sm bg-gray-200 rounded"
+                onClick={() => setSelectedProcurement(null)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
