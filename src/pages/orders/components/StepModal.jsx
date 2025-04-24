@@ -137,6 +137,27 @@ export default function StepModal({ step, onClose, onSave }) {
           <option value="closed">Closed</option>
         </select>
       </div>
+      <div className="mb-4 flex gap-2">
+        <div className="flex-1">
+          <label className="block text-sm font-semibold mb-1">Start Date</label>
+          <input
+            type="date"
+            className="w-full border rounded px-3 py-2 text-sm"
+            value={step.start_date ? step.start_date.slice(0, 10) : ""}
+            onChange={(e) => setComment(e.target.value)}
+          />
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm font-semibold mb-1">Duration (days)</label>
+          <input
+            type="number"
+            min={1}
+            className="w-full border rounded px-3 py-2 text-sm"
+            value={step.duration || 1}
+            onChange={(e) => setComment(e.target.value)}
+          />
+        </div>
+      </div>
       <div className="mb-4">
         <label className="block text-sm font-semibold mb-1">Comment</label>
         <textarea

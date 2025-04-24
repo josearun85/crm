@@ -259,7 +259,7 @@ export default function EnquiriesPage() {
                           }).eq('id', e.id);
 
                           fetchEnquiries();
-                          navigate(`/orders/${orderId}`);
+                          navigate(`/orders-v2/${orderId}`);
                         } else {
                           await supabase.from('enquiries').update({ status: newStatus }).eq('id', e.id);
                           fetchEnquiries();
