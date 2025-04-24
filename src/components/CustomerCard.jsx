@@ -13,7 +13,7 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const goToGantt = (orderId) => {
-    navigate(`/orders/${orderId}`);
+    navigate(`/orders-v2/${orderId}`);
   };
 
   return (
