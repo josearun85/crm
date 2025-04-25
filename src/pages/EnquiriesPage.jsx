@@ -2,11 +2,12 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import supabase from '../supabaseClient';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import CreateEnquiryModal from '../components/Enquiries/CreateEnquiryModal';
 import { ChatBubbleLeftEllipsisIcon, PlusCircleIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 import { uploadEnquiryFile, createFileNote, deleteEnquiryFile } from '../services/enquiriesService';
+import { addFeedNote } from "./orders/services/orderDetailsService";
 
 const statusColors = {
   new: 'bg-blue-200',
@@ -18,6 +19,7 @@ const statusColors = {
 
 export default function EnquiriesPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -25,6 +27,10 @@ export default function EnquiriesPage() {
   const [expandedNotes, setExpandedNotes] = useState({});
   const [notesByEnquiry, setNotesByEnquiry] = useState({});
   const [editingNotes, setEditingNotes] = useState({});
+
+  // Get highlight param from URL
+  const params = new URLSearchParams(location.search);
+  const highlightId = params.get('highlight');
 
   const fetchNoteCounts = async () => {
     const { data, error } = await supabase
@@ -120,6 +126,14 @@ export default function EnquiriesPage() {
           user?.data?.user?.email || null,
           fileUrl
         );
+        await addFeedNote({
+          type: 'feed',
+          content: `File uploaded by ${user?.data?.user?.email || 'Unknown'}: ${file.name}`,
+          enquiry_id: enquiryId,
+          created_by: user?.data?.user?.id,
+          created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+          created_by_email: user?.data?.user?.email || ''
+        });
         toast.success("File uploaded");
         refreshNotes(enquiryId);
         fetchNoteCounts();
@@ -159,7 +173,14 @@ export default function EnquiriesPage() {
           <tbody>
             {enquiries.map((e) => (
               <React.Fragment key={e.id}>
-                <tr className="border-b hover:bg-gray-50">
+                <tr
+                  className={`border-b hover:bg-gray-50 ${highlightId == e.id ? 'bg-yellow-100 border-l-8 border-yellow-400 shadow-2xl' : ''}`}
+                  ref={el => {
+                    if (highlightId == e.id && el) {
+                      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+                    }
+                  }}
+                >
                   <td className="p-2">{format(new Date(e.date), 'dd-MMM-yyyy')}</td>
                   <td className="p-2 text-blue-600 hover:underline cursor-pointer">
                     {e.customers?.name || '—'}
@@ -172,6 +193,15 @@ export default function EnquiriesPage() {
                         const value = ev.target.value;
                         if (value !== e.description) {
                           await supabase.from('enquiries').update({ description: value }).eq('id', e.id);
+                          const user = await supabase.auth.getUser();
+                          await addFeedNote({
+                            type: 'feed',
+                            content: `Description updated by ${user?.data?.user?.email || 'Unknown'}`,
+                            enquiry_id: e.id,
+                            created_by: user?.data?.user?.id,
+                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                            created_by_email: user?.data?.user?.email || ''
+                          });
                           fetchEnquiries();
                         }
                       }}
@@ -202,6 +232,7 @@ export default function EnquiriesPage() {
                       onChange={async (ev) => {
                         const newStatus = ev.target.value;
                         let orderId = e.order_id;
+                        const user = await supabase.auth.getUser();
                         if (newStatus === 'converted' && !e.converted_at) {
                           // Fetch customer_id for this enquiry
                           const { data: enquiryDetail, error: enquiryError } = await supabase
@@ -239,7 +270,6 @@ export default function EnquiriesPage() {
                           const designStep = {
                             order_id: orderId,
                             type: 'design',
-                            step_name: 'Design',
                             description: 'Design',
                             status: 'pending',
                             start_date: new Date().toISOString().slice(0, 10),
@@ -253,10 +283,29 @@ export default function EnquiriesPage() {
                             order_id: orderId
                           }).eq('id', e.id);
 
+                          await addFeedNote({
+                            type: 'feed',
+                            content: `Enquiry converted to order by ${user?.data?.user?.email || 'Unknown'}`,
+                            enquiry_id: e.id,
+                            order_id: orderId,
+                            created_by: user?.data?.user?.id,
+                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                            created_by_email: user?.data?.user?.email || ''
+                          });
+
                           fetchEnquiries();
                           navigate(`/orders-v2/${orderId}`);
                         } else {
                           await supabase.from('enquiries').update({ status: newStatus }).eq('id', e.id);
+                          await addFeedNote({
+                            type: 'feed',
+                            content: `Status changed to ${newStatus} by ${user?.data?.user?.email || 'Unknown'}`,
+                            enquiry_id: e.id,
+                            order_id: e.order_id || null,
+                            created_by: user?.data?.user?.id,
+                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                            created_by_email: user?.data?.user?.email || ''
+                          });
                           fetchEnquiries();
                         }
                       }}
@@ -287,6 +336,15 @@ export default function EnquiriesPage() {
                       onChange={async (ev) => {
                         const value = ev.target.value;
                         await supabase.from('enquiries').update({ follow_up_on: value }).eq('id', e.id);
+                        const user = await supabase.auth.getUser();
+                        await addFeedNote({
+                          type: 'feed',
+                          content: `Follow-up date updated by ${user?.data?.user?.email || 'Unknown'}`,
+                          enquiry_id: e.id,
+                          created_by: user?.data?.user?.id,
+                          created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                          created_by_email: user?.data?.user?.email || ''
+                        });
                         fetchEnquiries();
                       }}
                     />

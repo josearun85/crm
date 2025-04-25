@@ -10,6 +10,7 @@ import ResetPassword from './pages/ResetPassword.jsx';
 import Navbar from './components/Navbar.jsx'
 import InventoryPage from "./pages/InventoryPage";
 import VendorsPage from "./pages/VendorsPage";
+import FeedPage from './pages/FeedPage.jsx';
 import supabase from './supabaseClient'
 import './App.css'
 import './pages/CustomersPage.css' // Ensure to import the CSS file for styling
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="/orders-v2/:orderId" element={<OrderDetailPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/vendors" element={<VendorsPage />} />
+            <Route path="/feeds" element={<FeedPage />} />
           </>
         )}
       </Routes>

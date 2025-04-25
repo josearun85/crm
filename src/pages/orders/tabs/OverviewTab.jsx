@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { fetchOrderOverview, updateOrderDetails } from "../services/orderDetailsService";
+import { fetchOrderOverview, updateOrderDetails, addFeedNote } from "../services/orderDetailsService";
 
 export default function OverviewTab({ orderId }) {
   const [order, setOrder] = useState(null);
   const [error, setError] = useState(null);
+  const [editBuffer, setEditBuffer] = useState({});
 
   useEffect(() => {
     if (!orderId || isNaN(Number(orderId))) return;
@@ -14,12 +15,28 @@ export default function OverviewTab({ orderId }) {
       );
   }, [orderId]);
 
-  const handleChange = (field, value) => {
-    const updated = { ...order, [field]: value };
-    setOrder(updated);
-    updateOrderDetails(orderId, { [field]: value })
-      .then(() => console.log(`${field} updated`))
-      .catch((err) => console.error("Update failed", err));
+  // Helper to update local buffer on change
+  const handleFieldChange = (field, value) => {
+    setEditBuffer((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Helper to save on blur if changed
+  const handleFieldBlur = async (field, label) => {
+    if (!order) return;
+    const newValue = editBuffer[field];
+    if (newValue !== undefined && newValue !== order[field]) {
+      try {
+        await updateOrderDetails(orderId, { [field]: newValue });
+        setOrder((prev) => ({ ...prev, [field]: newValue }));
+        await addFeedNote({
+          type: "feed",
+          content: `${label} updated`,
+          order_id: orderId,
+        });
+      } catch (err) {
+        setError(`Failed to update ${label.toLowerCase()}`);
+      }
+    }
   };
 
   const statusColor = {
@@ -47,8 +64,9 @@ export default function OverviewTab({ orderId }) {
               <td className="p-2 border">
                 <input
                   className="w-full border rounded p-1"
-                  value={order.name || ""}
-                  onChange={(e) => handleChange("name", e.target.value)}
+                  value={editBuffer.name !== undefined ? editBuffer.name : order.name || ""}
+                  onChange={(e) => handleFieldChange("name", e.target.value)}
+                  onBlur={() => handleFieldBlur("name", "Name")}
                 />
               </td>
             </tr>
@@ -57,8 +75,9 @@ export default function OverviewTab({ orderId }) {
               <td className="p-2 border">
                 <select
                   className={`w-full p-1 rounded border ${statusColor[order.status] || ""}`}
-                  value={order.status || "pending"}
-                  onChange={(e) => handleChange("status", e.target.value)}
+                  value={editBuffer.status !== undefined ? editBuffer.status : order.status || "pending"}
+                  onChange={(e) => handleFieldChange("status", e.target.value)}
+                  onBlur={() => handleFieldBlur("status", "Status")}
                 >
                   <option value="pending">Pending</option>
                   <option value="approved">Approved</option>
@@ -72,8 +91,9 @@ export default function OverviewTab({ orderId }) {
                 <input
                   type="date"
                   className="w-full border rounded p-1"
-                  value={order.due_date?.split("T")[0] || ""}
-                  onChange={(e) => handleChange("due_date", e.target.value)}
+                  value={editBuffer.due_date !== undefined ? editBuffer.due_date : order.due_date?.split("T")[0] || ""}
+                  onChange={(e) => handleFieldChange("due_date", e.target.value)}
+                  onBlur={() => handleFieldBlur("due_date", "Due Date")}
                 />
               </td>
             </tr>
@@ -82,8 +102,9 @@ export default function OverviewTab({ orderId }) {
               <td className="p-2 border">
                 <input
                   className="w-full border rounded p-1"
-                  value={order.fab_type || ""}
-                  onChange={(e) => handleChange("fab_type", e.target.value)}
+                  value={editBuffer.fab_type !== undefined ? editBuffer.fab_type : order.fab_type || ""}
+                  onChange={(e) => handleFieldChange("fab_type", e.target.value)}
+                  onBlur={() => handleFieldBlur("fab_type", "Fab Type")}
                 />
               </td>
             </tr>
@@ -94,8 +115,9 @@ export default function OverviewTab({ orderId }) {
                   type="number"
                   step="0.01"
                   className="w-full border rounded p-1"
-                  value={order.cost_estimate || ""}
-                  onChange={(e) => handleChange("cost_estimate", parseFloat(e.target.value))}
+                  value={editBuffer.cost_estimate !== undefined ? editBuffer.cost_estimate : order.cost_estimate || ""}
+                  onChange={(e) => handleFieldChange("cost_estimate", e.target.value)}
+                  onBlur={() => handleFieldBlur("cost_estimate", "Cost Estimate")}
                 />
               </td>
             </tr>
@@ -104,8 +126,9 @@ export default function OverviewTab({ orderId }) {
               <td className="p-2 border">
                 <textarea
                   className="w-full border rounded p-1"
-                  value={order.description || ""}
-                  onChange={(e) => handleChange("description", e.target.value)}
+                  value={editBuffer.description !== undefined ? editBuffer.description : order.description || ""}
+                  onChange={(e) => handleFieldChange("description", e.target.value)}
+                  onBlur={() => handleFieldBlur("description", "Description")}
                 />
               </td>
             </tr>

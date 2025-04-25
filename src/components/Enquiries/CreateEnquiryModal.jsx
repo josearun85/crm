@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import supabase from '../../supabaseClient';
 import CustomerQuickForm from './CustomerQuickForm';
+import { addFeedNote } from "../../pages/orders/services/orderDetailsService";
 
 export default function CreateEnquiryModal({ show, onClose, onCreated }) {
   const [customers, setCustomers] = useState([]);
@@ -48,18 +49,39 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
       setCustomers(prev => [...prev, { id: newData.id, name: newData.name }]);
     }
 
-    const { error } = await supabase.from('enquiries').insert({
+    const { data: enquiryData, error } = await supabase.from('enquiries').insert({
       customer_id: finalCustomerId,
       date: new Date().toISOString().split('T')[0],
       channel,
       description,
       follow_up_on: followUpOn || null,
-    });
+    }).select().single();
 
     setLoading(false);
     if (error) {
       setErrorMsg(error.message);
     } else {
+      // Add feed note for enquiry creation
+      const user = await supabase.auth.getUser();
+      try {
+        const feedRes = await addFeedNote({
+          type: 'feed',
+          content: 'Enquiry created',
+          enquiry_id: enquiryData.id,
+          created_by: user?.data?.user?.id,
+          created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+          created_by_email: user?.data?.user?.email || ''
+        });
+        if (feedRes.error) {
+          setErrorMsg('Feed note creation failed: ' + feedRes.error.message);
+          console.error('Feed note creation failed:', feedRes.error);
+          return;
+        }
+      } catch (err) {
+        setErrorMsg('Feed note creation threw an error: ' + err.message);
+        console.error('Feed note creation threw an error:', err);
+        return;
+      }
       setErrorMsg('');
       onClose();
       onCreated();

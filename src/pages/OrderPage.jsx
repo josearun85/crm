@@ -7,6 +7,7 @@ import moment from "moment";
 import GanttChart from "../components/GanttChart";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { addFeedNote } from "./orders/services/orderDetailsService";
 
 export default function OrderPage() {
   
@@ -78,12 +79,30 @@ const id = parseInt(rawId, 10);
  
   // console.log('43');
 
-  const handleDueDateChange = (date) => {
+  const handleDueDateChange = async (date) => {
     setOrder(prev => ({ ...prev, due_date: date }));
+    const user = await import('../supabaseClient').then(m => m.default.auth.getUser());
+    await addFeedNote({
+      type: 'feed',
+      content: `Order due date changed to ${date.toLocaleDateString()} by ${user?.data?.user?.email || 'Unknown'}`,
+      order_id: order.id,
+      created_by: user?.data?.user?.id,
+      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+      created_by_email: user?.data?.user?.email || ''
+    });
   };
 
-  const handleStatusChange = (e) => {
+  const handleStatusChange = async (e) => {
     setOrder(prev => ({ ...prev, status: e.target.value }));
+    const user = await import('../supabaseClient').then(m => m.default.auth.getUser());
+    await addFeedNote({
+      type: 'feed',
+      content: `Order status changed to ${e.target.value} by ${user?.data?.user?.email || 'Unknown'}`,
+      order_id: order.id,
+      created_by: user?.data?.user?.id,
+      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+      created_by_email: user?.data?.user?.email || ''
+    });
   };
 
   const handleDateChange = async (task) => {
@@ -216,8 +235,17 @@ const id = parseInt(rawId, 10);
                     disabled={typedId !== String(order.id)}
                     onClick={async () => {
                       try {
+                        const user = await import('../supabaseClient').then(m => m.default.auth.getUser());
                         await deleteOrderFiles(order.id);
                         await deleteOrder(order.id);
+                        await addFeedNote({
+                          type: 'feed',
+                          content: `Order deleted by ${user?.data?.user?.email || 'Unknown'}`,
+                          order_id: order.id,
+                          created_by: user?.data?.user?.id,
+                          created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                          created_by_email: user?.data?.user?.email || ''
+                        });
                         navigate('/');
                       } catch (err) {
                         alert('Failed to delete order: ' + err.message);

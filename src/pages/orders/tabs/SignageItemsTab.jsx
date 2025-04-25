@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem, fetchProcurementTasks, ensureFabricationStepsForSignageItems } from "../services/orderDetailsService";
+import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem, fetchProcurementTasks, ensureFabricationStepsForSignageItems, fetchInventory, addFeedNote } from "../services/orderDetailsService";
 
 export default function SignageItemsTab({ orderId }) {
   const [items, setItems] = useState([]);
@@ -15,6 +15,7 @@ export default function SignageItemsTab({ orderId }) {
   const [procuredBoqIds, setProcuredBoqIds] = useState(new Set());
   const [procurementTasksByBoqId, setProcurementTasksByBoqId] = useState({});
   const [selectedProcurement, setSelectedProcurement] = useState(null);
+  const [inventory, setInventory] = useState([]);
 
   useEffect(() => {
     ensureFabricationStepsForSignageItems(orderId).catch(console.error);
@@ -50,6 +51,10 @@ export default function SignageItemsTab({ orderId }) {
       setProcurementTasksByBoqId(map);
     });
   }, [orderId, selectedItemId]);
+
+  useEffect(() => {
+    fetchInventory().then(setInventory).catch(console.error);
+  }, [orderId]);
 
   return (
     <div className="space-y-4">
@@ -91,6 +96,16 @@ export default function SignageItemsTab({ orderId }) {
                   }
                   onBlur={async () => {
                     await updateSignageItem(item.id, item);
+                    const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                    await addFeedNote({
+                      type: 'feed',
+                      content: `Signage item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                      signage_item_id: item.id,
+                      order_id: orderId,
+                      created_by: user?.data?.user?.id,
+                      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                      created_by_email: user?.data?.user?.email || ''
+                    });
                   }}
                 />
               </td>
@@ -105,6 +120,16 @@ export default function SignageItemsTab({ orderId }) {
                   }
                   onBlur={async () => {
                     await updateSignageItem(item.id, item);
+                    const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                    await addFeedNote({
+                      type: 'feed',
+                      content: `Signage item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                      signage_item_id: item.id,
+                      order_id: orderId,
+                      created_by: user?.data?.user?.id,
+                      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                      created_by_email: user?.data?.user?.email || ''
+                    });
                   }}
                 />
               </td>
@@ -119,6 +144,16 @@ export default function SignageItemsTab({ orderId }) {
                   }
                   onBlur={async () => {
                     await updateSignageItem(item.id, item);
+                    const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                    await addFeedNote({
+                      type: 'feed',
+                      content: `Signage item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                      signage_item_id: item.id,
+                      order_id: orderId,
+                      created_by: user?.data?.user?.id,
+                      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                      created_by_email: user?.data?.user?.email || ''
+                    });
                   }}
                 />
               </td>
@@ -133,6 +168,16 @@ export default function SignageItemsTab({ orderId }) {
                   }
                   onBlur={async () => {
                     await updateSignageItem(item.id, item);
+                    const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                    await addFeedNote({
+                      type: 'feed',
+                      content: `Signage item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                      signage_item_id: item.id,
+                      order_id: orderId,
+                      created_by: user?.data?.user?.id,
+                      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                      created_by_email: user?.data?.user?.email || ''
+                    });
                   }}
                 />
                 <span
@@ -142,6 +187,16 @@ export default function SignageItemsTab({ orderId }) {
                     if (confirmed) {
                       await deleteSignageItem(item.id);
                       setItems(items.filter(it => it.id !== item.id));
+                      const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                      await addFeedNote({
+                        type: 'feed',
+                        content: `Signage item deleted by ${user?.data?.user?.email || 'Unknown'}`,
+                        signage_item_id: item.id,
+                        order_id: orderId,
+                        created_by: user?.data?.user?.id,
+                        created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                        created_by_email: user?.data?.user?.email || ''
+                      });
                     }
                   }}
                   className="ml-2 text-red-500 cursor-pointer"
@@ -198,11 +253,25 @@ export default function SignageItemsTab({ orderId }) {
                     if (!finalOrderId || isNaN(finalOrderId)) {
                       throw new Error("Invalid order ID");
                     }
+                    const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                    console.log('Creating signage item', newItem, 'user:', user);
                     const created = await addSignageItem(finalOrderId, {
                       ...newItem,
                       quantity: Number(newItem.quantity),
                       cost: Number(newItem.cost),
                     });
+                    console.log('Signage item created:', created);
+                    const feedRes = await addFeedNote({
+                      type: 'feed',
+                      content: `Signage item added by ${user?.data?.user?.email || 'Unknown'}`,
+                      signage_item_id: created.id,
+                      order_id: finalOrderId,
+                      created_by: user?.data?.user?.id,
+                      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                      created_by_email: user?.data?.user?.email || ''
+                    });
+                    console.log('Feed note insert result:', feedRes);
+                    if (feedRes.error) console.error('Feed note insert error:', feedRes.error);
                     setItems([...items, created]);
                     setNewItem({ name: "", description: "", quantity: "", cost: "" });
                     setShowAddModal(false);
@@ -248,12 +317,23 @@ export default function SignageItemsTab({ orderId }) {
                           const updated = { ...boq, material: e.target.value };
                           setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
                         }}
-                        onBlur={() => {
+                        onBlur={async () => {
                           const match = allBoqs.find(b => b.material === boq.material && b.id !== boq.id);
                           if (match) {
                             setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: match.unit, cost_per_unit: match.cost_per_unit } : b));
                           }
-                          updateBoqItem(boq.id, boq);
+                          await updateBoqItem(boq.id, boq);
+                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                          await addFeedNote({
+                            type: 'feed',
+                            content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                            boq_item_id: boq.id,
+                            signage_item_id: boq.signage_item_id,
+                            order_id,
+                            created_by: user?.data?.user?.id,
+                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                            created_by_email: user?.data?.user?.email || ''
+                          });
                         }}
                       />
                     </td>
@@ -266,7 +346,20 @@ export default function SignageItemsTab({ orderId }) {
                           const updated = { ...boq, quantity: e.target.value };
                           setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
                         }}
-                        onBlur={() => updateBoqItem(boq.id, boq)}
+                        onBlur={async () => {
+                          await updateBoqItem(boq.id, boq);
+                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                          await addFeedNote({
+                            type: 'feed',
+                            content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                            boq_item_id: boq.id,
+                            signage_item_id: boq.signage_item_id,
+                            order_id,
+                            created_by: user?.data?.user?.id,
+                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                            created_by_email: user?.data?.user?.email || ''
+                          });
+                        }}
                       />
                     </td>
                     <td className="p-2 border">
@@ -277,7 +370,20 @@ export default function SignageItemsTab({ orderId }) {
                           const updated = { ...boq, unit: e.target.value };
                           setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
                         }}
-                        onBlur={() => updateBoqItem(boq.id, boq)}
+                        onBlur={async () => {
+                          await updateBoqItem(boq.id, boq);
+                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                          await addFeedNote({
+                            type: 'feed',
+                            content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                            boq_item_id: boq.id,
+                            signage_item_id: boq.signage_item_id,
+                            order_id,
+                            created_by: user?.data?.user?.id,
+                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                            created_by_email: user?.data?.user?.email || ''
+                          });
+                        }}
                       />
                     </td>
                     <td className="p-2 border">
@@ -289,7 +395,20 @@ export default function SignageItemsTab({ orderId }) {
                           const updated = { ...boq, cost_per_unit: e.target.value };
                           setBoqs(boqs.map(b => b.id === boq.id ? updated : b));
                         }}
-                        onBlur={() => updateBoqItem(boq.id, boq)}
+                        onBlur={async () => {
+                          await updateBoqItem(boq.id, boq);
+                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                          await addFeedNote({
+                            type: 'feed',
+                            content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                            boq_item_id: boq.id,
+                            signage_item_id: boq.signage_item_id,
+                            order_id,
+                            created_by: user?.data?.user?.id,
+                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                            created_by_email: user?.data?.user?.email || ''
+                          });
+                        }}
                       />
                     </td>
                     <td className="p-2 border">{(boq.quantity * boq.cost_per_unit).toFixed(2)}</td>
@@ -320,6 +439,17 @@ export default function SignageItemsTab({ orderId }) {
                           if (confirmed) {
                             await deleteBoqItem(boq.id);
                             setBoqs(boqs.filter(b => b.id !== boq.id));
+                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                            await addFeedNote({
+                              type: 'feed',
+                              content: `BOQ item deleted by ${user?.data?.user?.email || 'Unknown'}`,
+                              boq_item_id: boq.id,
+                              signage_item_id: boq.signage_item_id,
+                              order_id,
+                              created_by: user?.data?.user?.id,
+                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                              created_by_email: user?.data?.user?.email || ''
+                            });
                           }
                         }}
                         className="ml-2 text-red-500 cursor-pointer"
@@ -342,35 +472,68 @@ export default function SignageItemsTab({ orderId }) {
           <div className="mt-4 space-y-2">
             <h4 className="text-sm font-medium">Add BOQ Entry</h4>
             <div className="grid grid-cols-4 gap-2">
-              {["material", "quantity", "unit", "cost_per_unit"].map((field) => (
-                <input
-                  key={field}
-                  className="border p-1 rounded text-sm"
-                  placeholder={field.replace("_", " ")}
-                  type={field === "quantity" || field === "cost_per_unit" ? "number" : "text"}
-                  value={newBoq[field]}
-                  onChange={(e) => setNewBoq({ ...newBoq, [field]: e.target.value })}
-                  onBlur={
-                    field === "material"
-                      ? () => {
-                          const match = allBoqs.find(b => b.material === newBoq.material);
-                          if (match) {
-                            setNewBoq(prev => ({
-                              ...prev,
-                              unit: match.unit,
-                              cost_per_unit: match.cost_per_unit,
-                            }));
-                          }
-                        }
-                      : undefined
+              <input
+                list="material-list"
+                className="border p-1 rounded text-sm"
+                placeholder="material"
+                value={newBoq.material}
+                onChange={e => {
+                  const val = e.target.value;
+                  setNewBoq(prev => ({ ...prev, material: val }));
+                  const match = inventory.find(i => i.material === val);
+                  if (match) {
+                    setNewBoq(prev => ({
+                      ...prev,
+                      unit: match.unit || "",
+                      cost_per_unit: match.cost_per_unit || ""
+                    }));
                   }
-                />
-              ))}
+                }}
+              />
+              <datalist id="material-list">
+                {inventory.map(i => (
+                  <option key={i.id} value={i.material} />
+                ))}
+              </datalist>
+              <input
+                className="border p-1 rounded text-sm"
+                placeholder="quantity"
+                type="number"
+                value={newBoq.quantity}
+                onChange={e => setNewBoq({ ...newBoq, quantity: e.target.value })}
+              />
+              <input
+                className="border p-1 rounded text-sm"
+                placeholder="unit"
+                value={newBoq.unit}
+                onChange={e => setNewBoq({ ...newBoq, unit: e.target.value })}
+              />
+              <input
+                className="border p-1 rounded text-sm"
+                placeholder="cost per unit"
+                type="number"
+                value={newBoq.cost_per_unit}
+                onChange={e => setNewBoq({ ...newBoq, cost_per_unit: e.target.value })}
+              />
             </div>
             <button
               className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm"
               onClick={async () => {
+                const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
                 const boq = await addBoqItem(selectedItemId, newBoq);
+                console.log('BOQ item created:', boq);
+                const feedRes = await addFeedNote({
+                  type: 'feed',
+                  content: `BOQ item added by ${user?.data?.user?.email || 'Unknown'}`,
+                  boq_item_id: boq.id,
+                  signage_item_id: selectedItemId,
+                  order_id,
+                  created_by: user?.data?.user?.id,
+                  created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                  created_by_email: user?.data?.user?.email || ''
+                });
+                console.log('Feed note insert result:', feedRes);
+                if (feedRes.error) console.error('Feed note insert error:', feedRes.error);
                 setBoqs([...boqs, boq]);
                 setNewBoq({ material: "", quantity: "", unit: "", cost_per_unit: "" });
 

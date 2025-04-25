@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@babel/code-frame": "^7.26.2",
     "@heroicons/react": "^2.1.1",
     "@supabase/supabase-js": "^2.39.5",
     "dhtmlx-gantt": "^9.0.10",

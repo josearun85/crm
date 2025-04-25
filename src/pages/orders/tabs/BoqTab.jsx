@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchSignageItems, fetchBoqItems, updateBoqItem, fetchVendors, addVendor, fetchInventory, addInventoryEntry, ensureProcurementStepsForOrder, fetchProcurementTasks, createProcurementTaskAndLinkBoq } from "../services/orderDetailsService";
+import { fetchSignageItems, fetchBoqItems, updateBoqItem, fetchVendors, addVendor, fetchInventory, addInventoryEntry, ensureProcurementStepsForOrder, fetchProcurementTasks, createProcurementTaskAndLinkBoq, addFeedNote } from "../services/orderDetailsService";
 import supabase from "../../../supabaseClient";
 
 export default function BoqTab({ orderId }) {
@@ -241,7 +241,25 @@ export default function BoqTab({ orderId }) {
 
       <button
         className="mt-2 px-4 py-2 bg-blue-600 text-white rounded"
-        onClick={() => setShowProcModal(true)}
+        onClick={async () => {
+          const user = await supabase.auth.getUser();
+          console.log('Adding BOQ', newBoq, 'user:', user);
+          const boq = await addBoqItem(selectedItemId, newBoq);
+          console.log('BOQ item created:', boq);
+          const feedRes = await addFeedNote({
+            type: 'feed',
+            content: `BOQ item added by ${user?.data?.user?.email || 'Unknown'}`,
+            boq_item_id: boq.id,
+            signage_item_id: selectedItemId,
+            order_id: orderId,
+            created_by: user?.data?.user?.id,
+            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+            created_by_email: user?.data?.user?.email || ''
+          });
+          console.log('Feed note insert result:', feedRes);
+          if (feedRes.error) console.error('Feed note insert error:', feedRes.error);
+          setShowProcModal(true);
+        }}
       >
         Create Procurement Plan
       </button>

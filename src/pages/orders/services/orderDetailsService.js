@@ -694,3 +694,55 @@ export async function linkFabricationToProcurementForBoq(boqId, procurementStepI
     await supabase.from("order_steps").update({ dependency_ids: deps }).eq("id", step.id);
   }
 }
+
+// FEED NOTE UTILITY
+/**
+ * Insert a feed note for any entity action.
+ * @param {Object} params - All possible keys for notes table.
+ * @param {string} params.type - Should be 'feed'.
+ * @param {string} params.content - Human readable description.
+ * @param {string} params.created_by - User UUID.
+ * @param {string} [params.created_by_name] - User name.
+ * @param {string} [params.created_by_email] - User email.
+ * @param {string} [params.enquiry_id]
+ * @param {string} [params.order_id]
+ * @param {string} [params.signage_item_id]
+ * @param {string} [params.boq_item_id]
+ * @param {string} [params.procurement_task_id]
+ * @param {string} [params.inventory_id]
+ * @param {string} [params.vendor_id]
+ * @param {string} [params.invoice_id]
+ * @returns {Promise}
+ */
+export async function addFeedNote({
+  type = 'feed',
+  content,
+  created_by,
+  created_by_name,
+  created_by_email,
+  enquiry_id,
+  order_id,
+  signage_item_id,
+  boq_item_id,
+  procurement_task_id,
+  inventory_id,
+  vendor_id,
+  invoice_id
+}) {
+  return supabase.from('notes').insert([{
+    type,
+    content,
+    created_by,
+    created_by_name,
+    created_by_email,
+    enquiry_id,
+    order_id,
+    signage_item_id,
+    boq_item_id,
+    procurement_task_id,
+    inventory_id,
+    vendor_id,
+    invoice_id,
+    created_at: new Date().toISOString()
+  }]);
+}
