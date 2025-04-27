@@ -527,7 +527,7 @@ export default function SignageItemsTab({ orderId }) {
                   content: `BOQ item added by ${user?.data?.user?.email || 'Unknown'}`,
                   boq_item_id: boq.id,
                   signage_item_id: selectedItemId,
-                  order_id,
+                  order_id: orderId, // FIX: use orderId prop
                   created_by: user?.data?.user?.id,
                   created_by_name: user?.data?.user?.user_metadata?.full_name || '',
                   created_by_email: user?.data?.user?.email || ''
