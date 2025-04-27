@@ -1,8 +1,4 @@
-
-
-
 const tabs = [
-  { key: "overview", label: "Overview" },
   { key: "items", label: "Signage Items" },
   { key: "boq", label: "BOQ" },
   { key: "timeline", label: "Timeline" },
@@ -13,20 +9,26 @@ const tabs = [
 
 export default function TabNav({ currentTab, onTabChange }) {
   return (
-    <div className="flex gap-4 border-b pb-2 text-sm font-medium">
-      {tabs.map(({ key, label }) => (
-        <button
-          key={key}
-          onClick={() => onTabChange(key)}
-          className={`px-3 py-2 border-b-2 ${
-            key === currentTab
-              ? "border-yellow-500 text-yellow-600"
-              : "border-transparent text-gray-500 hover:text-black"
-          }`}
-        >
-          {label}
-        </button>
-      ))}
+    <div className="flex flex-col bg-white no-print">
+      <div className="flex gap-2 pb-2 text-sm font-medium bg-white">
+        {tabs.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => onTabChange(key)}
+            className={`px-[10px] py-[6px] rounded-[4px] font-medium transition-colors
+              ${key === currentTab
+                ? 'bg-[#f6d251] text-black font-semibold z-10'
+                : 'bg-white text-black hover:bg-[#f6d251]'}
+            `}
+            style={{ border: 'none', outline: 'none' }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="relative h-[4px] w-full mt-[-8px]">
+        <div className="absolute left-0 right-0 h-[4px] bg-[#f6d251] w-full rounded-b" style={{ zIndex: 0 }} />
+      </div>
     </div>
   );
 }

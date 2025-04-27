@@ -8,7 +8,6 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [channel, setChannel] = useState('');
   const [description, setDescription] = useState('');
-  const [followUpOn, setFollowUpOn] = useState('');
   const [useNewCustomer, setUseNewCustomer] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -25,17 +24,22 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!description || (useNewCustomer && (!newCustomer.name || !newCustomer.phone))) {
-      setErrorMsg('All required fields must be filled.');
+    // Only require customer name if adding new customer
+    if (useNewCustomer && !newCustomer.name) {
+      setErrorMsg('Customer name is required.');
       return;
     }
     setLoading(true);
     let finalCustomerId = selectedCustomer;
 
     if (useNewCustomer) {
+      // Only include phone if not blank
+      const customerData = newCustomer.phone && newCustomer.phone.trim() !== ''
+        ? { name: newCustomer.name, phone: newCustomer.phone }
+        : { name: newCustomer.name };
       const { data: newData, error: insertError } = await supabase
         .from('customers')
-        .insert({ name: newCustomer.name, phone: newCustomer.phone })
+        .insert(customerData)
         .select()
         .single();
 
@@ -51,10 +55,10 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
 
     const { data: enquiryData, error } = await supabase.from('enquiries').insert({
       customer_id: finalCustomerId,
-      date: new Date().toISOString().split('T')[0],
-      channel,
-      description,
-      follow_up_on: followUpOn || null,
+      date: new Date().toISOString().split('T')[0], // Default to today
+      channel: channel || null,
+      description: description || null,
+      follow_up_on: null, // Remove follow up date
     }).select().single();
 
     setLoading(false);
@@ -120,12 +124,6 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
           )}
 
           <input
-            type="date"
-            value={followUpOn}
-            onChange={(e) => setFollowUpOn(e.target.value)}
-            className="w-full border p-2 rounded"
-          />
-          <input
             type="text"
             placeholder="Channel (e.g. phone, whatsapp)"
             value={channel}
@@ -136,7 +134,6 @@ export default function CreateEnquiryModal({ show, onClose, onCreated }) {
             placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            required
             className="w-full border p-2 rounded"
           />
           <div className="flex justify-between">

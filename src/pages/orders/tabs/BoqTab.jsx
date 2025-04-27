@@ -78,23 +78,32 @@ export default function BoqTab({ orderId }) {
   useEffect(() => {
     if (!materials.length) return;
     setProcPlan(
-      materials.map(m => {
-        const inv = inventory[m.material];
-        const available = inv ? Number(inv.available_qty) : 0;
-        const shortfall = Math.max(0, m.quantity - available);
-        return {
-          material: m.material,
-          unit: m.unit,
-          required: m.quantity,
-          available,
-          shortfall,
-          vendor: "",
-          vendor_id: null,
-          procure_qty: shortfall,
-        };
-      })
+      materials
+        .filter(m => m.material && m.material.trim() !== "") // filter out empty material rows
+        .map(m => {
+          const inv = inventory[m.material];
+          const available = inv ? Number(inv.available_qty) : 0;
+          const shortfall = Math.max(0, m.quantity - available);
+          // If already procured, default procure_qty to 0, else to shortfall
+          const alreadyProcured = Array.from(procuredBoqIds).some(
+            boqId => {
+              // Find all rawBoqs for this material
+              return rawBoqs.find(b => b.id === boqId && b.material === m.material);
+            }
+          );
+          return {
+            material: m.material,
+            unit: m.unit,
+            required: m.quantity,
+            available,
+            shortfall,
+            vendor: "",
+            vendor_id: null,
+            procure_qty: alreadyProcured ? 0 : shortfall,
+          };
+        })
     );
-  }, [materials, inventory]);
+  }, [materials, inventory, procuredBoqIds, rawBoqs]);
 
   useEffect(() => {
     // Fetch procurement tasks and build a set of procured BOQ ids
@@ -136,7 +145,8 @@ export default function BoqTab({ orderId }) {
     setLoadingProc(true);
     let hadError = false;
     for (const row of procPlan) {
-      if (row.shortfall <= 0 || !row.procure_qty) continue;
+      // Allow procurement for any row with a positive procure_qty
+      if (!row.procure_qty || row.procure_qty <= 0) continue;
       try {
         await ensureInventory(row.material, row.unit);
       } catch (err) {
@@ -168,7 +178,6 @@ export default function BoqTab({ orderId }) {
       alert(`Error syncing procurement steps for Gantt: ${err.message}`);
       hadError = true;
     }
-    // --- FIX: Refresh procurement tasks so status updates instantly ---
     fetchProcurementTasks(orderId).then(tasks => {
       setProcuredBoqIds(new Set(tasks.map(t => t.boq_item_id)));
       const map = {};
@@ -195,6 +204,7 @@ export default function BoqTab({ orderId }) {
       <table className="min-w-full text-sm border">
         <thead className="bg-gray-100 text-left">
           <tr>
+            <th className="p-2 border">S. No.</th>
             <th className="p-2 border">Material</th>
             <th className="p-2 border">Unit</th>
             <th className="p-2 border">Total Quantity</th>
@@ -204,8 +214,9 @@ export default function BoqTab({ orderId }) {
           </tr>
         </thead>
         <tbody>
-          {rawBoqs.map((boq) => (
+          {rawBoqs.filter(boq => boq.material && boq.material.trim() !== "").map((boq, idx) => (
             <tr key={boq.id} className="hover:bg-yellow-50">
+              <td className="p-2 border">{idx + 1}</td>
               <td className="p-2 border font-medium">{boq.material}</td>
               <td className="p-2 border">{boq.unit}</td>
               <td className="p-2 border">{boq.quantity}</td>
@@ -241,25 +252,7 @@ export default function BoqTab({ orderId }) {
 
       <button
         className="mt-2 px-4 py-2 bg-blue-600 text-white rounded"
-        onClick={async () => {
-          const user = await supabase.auth.getUser();
-          console.log('Adding BOQ', newBoq, 'user:', user);
-          const boq = await addBoqItem(selectedItemId, newBoq);
-          console.log('BOQ item created:', boq);
-          const feedRes = await addFeedNote({
-            type: 'feed',
-            content: `BOQ item added by ${user?.data?.user?.email || 'Unknown'}`,
-            boq_item_id: boq.id,
-            signage_item_id: selectedItemId,
-            order_id: orderId,
-            created_by: user?.data?.user?.id,
-            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-            created_by_email: user?.data?.user?.email || ''
-          });
-          console.log('Feed note insert result:', feedRes);
-          if (feedRes.error) console.error('Feed note insert error:', feedRes.error);
-          setShowProcModal(true);
-        }}
+        onClick={() => setShowProcModal(true)}
       >
         Create Procurement Plan
       </button>

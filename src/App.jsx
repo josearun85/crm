@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom'
 import CustomersPage from './pages/CustomersPage.jsx'
 import OrderPage from './pages/OrderPage.jsx'
 import EnquiriesPage from './pages/EnquiriesPage.jsx'
@@ -43,26 +43,30 @@ export default function App() {
   if (loading) return null
 
   return (
-    <>
+    <div className="min-h-screen bg-[#fffbe6] flex flex-col">
       {showNavbar && <Navbar session={session} />}
-      <Routes key={session ? 'auth' : 'guest'}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        {!session ? (
-          <Route path="*" element={<Navigate to="/login" />} />
-        ) : (
-          <>
-            <Route path="/" element={<Navigate to="/customers" />} />
-            <Route path="/enquiries" element={<EnquiriesPage />} />
-            <Route path="/customers" element={<CustomersPage />} />
-            <Route path="/orders/:id" element={<OrderPage />} />
-            <Route path="/orders-v2/:orderId" element={<OrderDetailPage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/vendors" element={<VendorsPage />} />
-            <Route path="/feeds" element={<FeedPage />} />
-          </>
-        )}
-      </Routes>
-    </>
+      <div className="flex-1 flex flex-col items-center justify-start">
+        <div className="w-full max-w-[1000px] mx-auto px-4 py-6">
+          <Routes key={session ? 'auth' : 'guest'}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            {!session ? (
+              <Route path="*" element={<Navigate to="/login" />} />
+            ) : (
+              <>
+                <Route path="/" element={<Navigate to="/customers" />} />
+                <Route path="/enquiries" element={<EnquiriesPage />} />
+                <Route path="/customers" element={<CustomersPage />} />
+                <Route path="/orders/:id" element={<OrderPage />} />
+                <Route path="/orders-v2/:orderId" element={<OrderDetailPage />} />
+                <Route path="/inventory" element={<InventoryPage />} />
+                <Route path="/vendors" element={<VendorsPage />} />
+                <Route path="/feeds" element={<FeedPage />} />
+              </>
+            )}
+          </Routes>
+        </div>
+      </div>
+    </div>
   )
 }

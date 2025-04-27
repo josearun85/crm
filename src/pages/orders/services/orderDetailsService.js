@@ -4,14 +4,15 @@ import supabase from "../../../supabaseClient";
 export async function fetchOrderOverview(orderId) {
   const { data, error } = await supabase
     .from("orders")
-    .select("*")
+    .select("*, customer:customer_id(name)")
     .eq("id", orderId)
     .single();
   if (error) {
     console.error(error);
     throw error;
   }
-  return data;
+  // Attach customer_name for convenience
+  return { ...data, customer_name: data.customer?.name || "" };
 }
 
 export async function updateOrderStatus(orderId, newStatus) {

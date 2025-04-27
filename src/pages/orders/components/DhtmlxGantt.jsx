@@ -39,7 +39,8 @@ export default function DhtmlxGantt({ tasks, onDataUpdate, typeColorMap = {}, or
         comments: [],
         dependency_ids: []
       });
-      // Optionally, trigger a refresh of tasks/steps here
+      // Refresh steps after adding
+      if (typeof onReload === 'function') onReload();
     } catch (err) {
       console.error("Failed to add step:", err);
     }

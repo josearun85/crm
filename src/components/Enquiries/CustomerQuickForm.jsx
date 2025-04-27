@@ -4,18 +4,19 @@ import supabase from '../../supabaseClient';
 export default function CustomerQuickForm({ onCreated, onInputChange }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [followUpOn, setFollowUpOn] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!name || !phone) {
-      setError('Name and phone are required.');
+    if (!name) {
+      setError('Name is required.');
       return;
     }
     setSaving(true);
-    const { data, error: insertError } = await supabase.from('customers').insert({ name, phone, follow_up_on: followUpOn || null }).select().single();
+    // Only include phone if not blank
+    const customerData = phone && phone.trim() !== '' ? { name, phone } : { name };
+    const { data, error: insertError } = await supabase.from('customers').insert(customerData).select().single();
     setSaving(false);
     if (insertError) {
       setError(insertError.message);
@@ -32,7 +33,7 @@ export default function CustomerQuickForm({ onCreated, onInputChange }) {
         value={name}
         onChange={(e) => {
           setName(e.target.value);
-          onInputChange('name', e.target.value);
+          onInputChange && onInputChange('name', e.target.value);
         }}
         required
         className="w-full border p-2 rounded"
@@ -43,15 +44,8 @@ export default function CustomerQuickForm({ onCreated, onInputChange }) {
         value={phone}
         onChange={(e) => {
           setPhone(e.target.value);
-          onInputChange('phone', e.target.value);
+          onInputChange && onInputChange('phone', e.target.value);
         }}
-        required
-        className="w-full border p-2 rounded"
-      />
-      <input
-        type="date"
-        value={followUpOn}
-        onChange={(e) => setFollowUpOn(e.target.value)}
         className="w-full border p-2 rounded"
       />
       {error && <p className="text-red-600 text-sm">{error}</p>}
