@@ -4,7 +4,7 @@ import supabase from "../../../supabaseClient";
 export async function fetchOrderOverview(orderId) {
   const { data, error } = await supabase
     .from("orders")
-    .select("*, customer:customer_id(name)")
+    .select("*, customer:customer_id(id, name, gstin, pan)")
     .eq("id", orderId)
     .single();
   if (error) {
@@ -20,6 +20,21 @@ export async function updateOrderStatus(orderId, newStatus) {
     .from("orders")
     .update({ status: newStatus, updated_at: new Date().toISOString() })
     .eq("id", orderId)
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+  return data;
+}
+
+// Update customer details (GSTIN, PAN, etc.)
+export async function updateCustomerDetails(customerId, updates) {
+  const { data, error } = await supabase
+    .from("customers")
+    .update(updates)
+    .eq("id", customerId)
     .select()
     .single();
   if (error) {
@@ -693,6 +708,55 @@ export async function linkFabricationToProcurementForBoq(boqId, procurementStepI
   if (!deps.includes(procurementStepId)) {
     deps.push(procurementStepId);
     await supabase.from("order_steps").update({ dependency_ids: deps }).eq("id", step.id);
+  }
+}
+
+// PAYMENTS SECTION
+export async function fetchPayments(orderId) {
+  const { data, error } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("order_id", orderId)
+    .order("payment_date", { ascending: true });
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+  return data;
+}
+
+export async function addPayment(orderId, paymentData) {
+  const { data, error } = await supabase
+    .from("payments")
+    .insert([{ ...paymentData, order_id: orderId }])
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+  return data;
+}
+
+export async function updatePayment(paymentId, updates) {
+  const { data, error } = await supabase
+    .from("payments")
+    .update(updates)
+    .eq("id", paymentId)
+    .select()
+    .single();
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+  return data;
+}
+
+export async function deletePayment(paymentId) {
+  const { error } = await supabase.from("payments").delete().eq("id", paymentId);
+  if (error) {
+    console.error(error);
+    throw error;
   }
 }
 

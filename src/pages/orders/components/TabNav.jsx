@@ -3,8 +3,10 @@ const tabs = [
   { key: "boq", label: "BOQ" },
   { key: "timeline", label: "Timeline" },
   { key: "procurement", label: "Procurement" },
+  { key: "payments", label: "Payments" },
   { key: "files", label: "Files" },
   { key: "notes", label: "Notes" },
+  { key: "miscellaneous", label: "Miscellaneous" }, // Added Miscellaneous tab
 ];
 
 export default function TabNav({ currentTab, onTabChange }) {

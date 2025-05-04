@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchOrderOverview, updateOrderDetails, addFeedNote, fetchSignageItems, fetchBoqItems } from "../services/orderDetailsService";
 
-export default function OrderHeader({ orderId }) {
+export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, customerPan, setCustomerPan }) {
   const [order, setOrder] = useState(null);
   const [editBuffer, setEditBuffer] = useState({});
   const [error, setError] = useState(null);
@@ -160,8 +160,36 @@ export default function OrderHeader({ orderId }) {
                 placeholder="Fab Type"
               />
             </div>
-            <div className="font-medium">Cost</div>
-            <div className="text-right font-semibold pr-4">₹ {grandTotal.toFixed(2)}</div>
+            <div className="font-medium">GSTIN</div>
+            <div className="pr-4">
+              <input
+                className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
+                value={customerGstin}
+                onChange={e => setCustomerGstin(e.target.value)}
+                onBlur={async (e) => {
+                  const newValue = e.target.value.trim();
+                  if (order?.customer?.id && newValue !== (order?.customer?.gstin || '')) {
+                    await import("../services/orderDetailsService").then(m => m.updateCustomerDetails(order.customer.id, { gstin: newValue }));
+                  }
+                }}
+                placeholder="GSTIN"
+              />
+            </div>
+            <div className="font-medium">PAN</div>
+            <div className="pr-4">
+              <input
+                className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
+                value={customerPan}
+                onChange={e => setCustomerPan(e.target.value)}
+                onBlur={async (e) => {
+                  const newValue = e.target.value.trim();
+                  if (order?.customer?.id && newValue !== (order?.customer?.pan || '')) {
+                    await import("../services/orderDetailsService").then(m => m.updateCustomerDetails(order.customer.id, { pan: newValue }));
+                  }
+                }}
+                placeholder="PAN"
+              />
+            </div>
           </div>
         </div>
       </div>

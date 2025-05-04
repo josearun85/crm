@@ -8,11 +8,13 @@ import GanttChart from "../components/GanttChart";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { addFeedNote } from "./orders/services/orderDetailsService";
+import MiscellaneousTab from "./orders/tabs/MiscellaneousTab";
+import SignageItemsTab from "./orders/tabs/SignageItemsTab";
 
 export default function OrderPage() {
   
   const { id: rawId } = useParams();
-const id = parseInt(rawId, 10);
+  const id = parseInt(rawId, 10);
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [customerName, setCustomerName] = useState('');
@@ -23,8 +25,6 @@ const id = parseInt(rawId, 10);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [typedId, setTypedId] = useState('');
-
- 
 
   const fetchData = async () => {
     setLoading(true);
@@ -51,7 +51,7 @@ const id = parseInt(rawId, 10);
     }
   };
 
-   useEffect(() => {
+  useEffect(() => {
     fetchData();
   }, [id]);
 
@@ -74,10 +74,6 @@ const id = parseInt(rawId, 10);
       console.error('Failed to update order:', err);
     });
   }, [order]);
-
-
- 
-  // console.log('43');
 
   const handleDueDateChange = async (date) => {
     setOrder(prev => ({ ...prev, due_date: date }));
@@ -319,27 +315,9 @@ const id = parseInt(rawId, 10);
       )}
     </div>
     <div className="flex flex-wrap text-sm mt-6 gap-4">
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded bg-[#16a34a] inline-block"></span>
-          <span>Closed</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded bg-[#2563eb] inline-block"></span>
-          <span>In Progress</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded bg-[#f97316] inline-block"></span>
-          <span>On Hold</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded bg-[#dc2626] inline-block"></span>
-          <span>Delayed</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded bg-[#e5e7eb] inline-block border"></span>
-          <span>New</span>
-        </div>
-      </div>
+      <MiscellaneousTab orderId={order.id} />
+      <SignageItemsTab orderId={order.id} />
     </div>
+  </div>
   );
 }

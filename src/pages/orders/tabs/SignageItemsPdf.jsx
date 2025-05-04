@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal }) {
+export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal, customer = {}, jobName = "" }) {
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: 900, margin: '0 auto', color: '#222' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -12,6 +12,13 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
         </div>
         <div style={{ textAlign: 'right', fontSize: 18, fontWeight: 'bold' }}>Invoice #{orderId}</div>
       </div>
+      {/* Customer Info Section */}
+      <div style={{ marginBottom: 16, fontSize: 15 }}>
+        <div><b>CLIENT:</b> {customer.name || '-'}</div>
+        {customer.gstin && <div><b>GSTIN:</b> {customer.gstin}</div>}
+        {customer.pan && <div><b>PAN:</b> {customer.pan}</div>}
+        <div><b>JOB NAME:</b> {jobName || '-'}</div>
+      </div>
       <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Signage Items</h2>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, marginBottom: 24 }}>
         <thead style={{ background: '#f3f3f3' }}>
@@ -21,6 +28,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Description</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Quantity</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Cost</th>
+            <th style={{ border: '1px solid #ccc', padding: 8 }}>HSN Code</th>
           </tr>
         </thead>
         <tbody>
@@ -33,6 +41,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
               <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'right' }}>
                 {allBoqs.filter(b => b.signage_item_id === item.id).reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0).toFixed(2)}
               </td>
+              <td style={{ border: '1px solid #ccc', padding: 8 }}>{item.hsn_code || ''}</td>
             </tr>
           ))}
         </tbody>
