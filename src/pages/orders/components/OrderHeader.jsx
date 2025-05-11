@@ -200,6 +200,17 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 placeholder="PO Number"
               />
             </div>
+            <div className="font-medium">PO Date</div>
+            <div className="pr-4">
+              <input
+                type="date"
+                className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
+                value={editBuffer.po_date !== undefined ? editBuffer.po_date : order?.po_date?.split("T")[0] || ""}
+                onChange={e => handleFieldChange("po_date", e.target.value)}
+                onBlur={() => handleFieldBlur("po_date", "PO Date")}
+                placeholder="PO Date"
+              />
+            </div>
           </div>
         </div>
       </div>

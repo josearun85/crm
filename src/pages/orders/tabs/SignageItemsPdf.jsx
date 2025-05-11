@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal, customer = {}, jobName = "" }) {
+export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal, customer = {}, jobName = "", po_number, po_date }) {
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: 900, margin: '0 auto', color: '#222' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -19,6 +19,13 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
         {customer.pan && <div><b>PAN:</b> {(customer.pan || '').toUpperCase()}</div>}
         <div><b>JOB NAME:</b> {jobName || '-'}</div>
       </div>
+      {/* Show PO Number and PO Date if available */}
+      {orderId && (po_number || po_date) && (
+        <div style={{ marginBottom: 8, fontSize: 15 }}>
+          {po_number && <span><b>PO Number:</b> {po_number}</span>}
+          {po_date && <span style={{ marginLeft: 12 }}><b>PO Date:</b> {new Date(po_date).toLocaleDateString('en-GB')}</span>}
+        </div>
+      )}
       <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Signage Items</h2>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, marginBottom: 24 }}>
         <thead style={{ background: '#f3f3f3' }}>

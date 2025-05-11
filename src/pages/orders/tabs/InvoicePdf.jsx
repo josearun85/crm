@@ -64,6 +64,15 @@ export default function InvoicePdf({ invoice, customer, items }) {
             <span style={{ fontWeight: 'bold' }}>Dated</span>
             <span>{invoice.date}</span>
           </div>
+          {/* Show PO Number and PO Date if available */}
+          {invoice.po_number && (
+            <div style={{ marginTop: 4 }}>
+              <b>PO Number:</b> {invoice.po_number}
+              {invoice.po_date && (
+                <span style={{ marginLeft: 12 }}><b>PO Date:</b> {new Date(invoice.po_date).toLocaleDateString('en-GB')}</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
       {/* Table */}
