@@ -201,7 +201,7 @@ export default function BoqTab({ orderId }) {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">BOQ Summary Across All Signage Items</h2>
-      <table className="min-w-full text-sm border">
+      <table className="min-w-full text-xs border">
         <thead className="bg-gray-100 text-left">
           <tr>
             <th className="p-2 border">S. No.</th>
@@ -250,7 +250,7 @@ export default function BoqTab({ orderId }) {
           ))}
         </tbody>
       </table>
-      <div className="text-right font-semibold mt-2">
+      <div className="text-right font-semibold mt-2 text-base">
         Total BOQ Cost: ₹{totalBoqCost.toFixed(2)}
       </div>
 
