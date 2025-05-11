@@ -122,7 +122,15 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
             <div className="font-medium">EST NO</div>
             <div className="pr-4">{order ? `${order.id}.${new Date(order?.due_date || Date.now()).getFullYear()}` : '-'}</div>
             <div className="font-medium">Date</div>
-            <div className="pr-4">{order?.created_at ? new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>
+            <div className="pr-4">
+              <input
+                type="date"
+                className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right"
+                value={editBuffer.created_at !== undefined ? editBuffer.created_at : (order?.created_at ? order.created_at.split('T')[0] : "")}
+                onChange={e => handleFieldChange("created_at", e.target.value)}
+                onBlur={() => handleFieldBlur("created_at", "Date")}
+              />
+            </div>
             <div className="font-medium">Status</div>
             <div className="pr-4">
               <select
