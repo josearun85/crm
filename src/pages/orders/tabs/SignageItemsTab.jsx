@@ -230,6 +230,8 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
   function renderPdfHtml({ items, allBoqs, discount, orderId, totalCost, netTotal, gst, grandTotal, customerGstin }) {
     const scaling = getGstBillableScaling(items);
     const today = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+    const orderVersion = 1; // Placeholder for version
+    const orderYear = new Date().getFullYear(); // Placeholder for year
     // GST summary calculation by rate
     const gstSummary = {};
     items.forEach(item => {
@@ -290,7 +292,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         <div style='display: flex; justify-content: space-between; margin-bottom: 10px;'>
           <div>
             <div style='font-size: 15px; font-weight: bold; color: #0a3d62;'>ESTIMATE</div>
-            <div style='font-size: 12px;'>Estimate #: <b>${orderId}</b></div>
+            <div style='font-size: 12px;'>Estimate #: <b>${orderId}.${orderVersion || 1}.${orderYear}</b></div>
             <div style='font-size: 12px;'>Date: <b>${today}</b></div>
           </div>
           <div style='text-align: right; font-size: 12px;'>

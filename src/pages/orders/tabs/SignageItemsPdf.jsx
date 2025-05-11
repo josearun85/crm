@@ -11,7 +11,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
           <div style={{ fontSize: 14 }}>M +91 8431505007</div>
         </div>
         <div style={{ textAlign: 'right', fontSize: 18, fontWeight: 'bold' }}>
-          Estimate No: {orderId}.{version || 1}.{new Date().getFullYear()}
+          Estimate No: {orderId}.{version || 1}.{new Date(po_date || Date.now()).getFullYear()}
         </div>
       </div>
       {/* Customer Info Section */}
