@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal, customer = {}, jobName = "", po_number, po_date }) {
+export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal, customer = {}, jobName = "", po_number, po_date, version }) {
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: 900, margin: '0 auto', color: '#222' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -10,7 +10,9 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
           <div style={{ fontSize: 14 }}>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore - 560 075</div>
           <div style={{ fontSize: 14 }}>M +91 8431505007</div>
         </div>
-        <div style={{ textAlign: 'right', fontSize: 18, fontWeight: 'bold' }}>Invoice #{orderId}</div>
+        <div style={{ textAlign: 'right', fontSize: 18, fontWeight: 'bold' }}>
+          Estimate No: {orderId}.{version || 1}.{new Date().getFullYear()}
+        </div>
       </div>
       {/* Customer Info Section */}
       <div style={{ marginBottom: 16, fontSize: 15 }}>

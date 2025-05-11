@@ -119,8 +119,20 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
         {/* Right: Editable fields and meta */}
         <div className="flex flex-col gap-1 min-w-[220px] items-end">
           <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs w-full text-right items-end justify-end">
+            <div className="font-medium">Version</div>
+            <div className="pr-4">
+              <input
+                type="number"
+                min={1}
+                className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right"
+                value={editBuffer.version !== undefined ? editBuffer.version : order?.version || 1}
+                onChange={e => handleFieldChange("version", e.target.value)}
+                onBlur={() => handleFieldBlur("version", "Version")}
+                placeholder="Version"
+              />
+            </div>
             <div className="font-medium">EST NO</div>
-            <div className="pr-4">{order ? `${order.id}.${new Date(order?.due_date || Date.now()).getFullYear()}` : '-'}</div>
+            <div className="pr-4">{order ? `${order.id}.${order.version || 1}.${new Date(order?.due_date || Date.now()).getFullYear()}` : '-'}</div>
             <div className="font-medium">Date</div>
             <div className="pr-4">
               <input

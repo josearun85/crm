@@ -193,6 +193,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     // Prepare invoice object for InvoicePdf
     const invoice = {
       number: order.id,
+      version: order.version || 1,
       date: order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
       place_of_supply: order.place_of_supply || 'Bangalore',
       sgst: (gst / 2).toFixed(2),

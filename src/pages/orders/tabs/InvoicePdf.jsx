@@ -58,7 +58,7 @@ export default function InvoicePdf({ invoice, customer, items }) {
         <div style={{ flex: 1, padding: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontWeight: 'bold' }}>INVOICE No</span>
-            <span>{invoice.number}</span>
+            <span>{invoice.number}.{invoice.version || 1}.{invoice.date ? new Date(invoice.date).getFullYear() : new Date().getFullYear()}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
             <span style={{ fontWeight: 'bold' }}>Dated</span>
