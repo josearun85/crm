@@ -198,29 +198,49 @@ export default function BoqTab({ orderId }) {
 
   const totalBoqCost = materials.reduce((sum, m) => sum + m.total_cost, 0);
 
-  // Group and calculate rowspans for Signage Item and Item
-  const groupedRows = [];
-  const signageMap = {};
-  rawBoqs.filter(boq => boq.material && boq.material.trim() !== "").forEach((boq, idx) => {
-    const signageId = boq.signage_item_id;
-    const item = boq.item || '';
-    if (!signageMap[signageId]) signageMap[signageId] = {};
-    if (!signageMap[signageId][item]) signageMap[signageId][item] = [];
-    signageMap[signageId][item].push({ ...boq, idx });
-  });
-  Object.entries(signageMap).forEach(([signageId, itemsMap]) => {
-    Object.entries(itemsMap).forEach(([item, boqs]) => {
-      boqs.forEach((boq, i) => {
-        groupedRows.push({
-          ...boq,
-          signageRowSpan: i === 0 ? Object.values(itemsMap).reduce((sum, arr) => sum + arr.length, 0) : 0,
-          itemRowSpan: i === 0 ? boqs.length : 0,
-          signageId,
-          item,
-        });
-      });
+  // Sort rawBoqs by signage item name, then by item
+  const signageNameMap = signageItems.reduce((acc, si) => { acc[si.id] = si.name || ''; return acc; }, {});
+  const sortedBoqs = rawBoqs
+    .filter(boq => boq.material && boq.material.trim() !== "")
+    .sort((a, b) => {
+      const signageA = signageNameMap[a.signage_item_id] || '';
+      const signageB = signageNameMap[b.signage_item_id] || '';
+      if (signageA !== signageB) return signageA.localeCompare(signageB);
+      const itemA = (a.item || '').toLowerCase();
+      const itemB = (b.item || '').toLowerCase();
+      return itemA.localeCompare(itemB);
     });
-  });
+
+  // Calculate rowspans for signage and item columns
+  const rowData = [];
+  let prevSignage = null, prevItem = null;
+  let signageStart = 0, itemStart = 0;
+  for (let i = 0; i < sortedBoqs.length; i++) {
+    const boq = sortedBoqs[i];
+    const signage = signageNameMap[boq.signage_item_id] || '';
+    const item = boq.item || '';
+    // If signage changes, finalize previous signage group
+    if (signage !== prevSignage) {
+      if (i > signageStart) rowData[signageStart].signageRowSpan = i - signageStart;
+      signageStart = i;
+      prevSignage = signage;
+      // New signage always means new item group
+      if (i > itemStart) rowData[itemStart].itemRowSpan = i - itemStart;
+      itemStart = i;
+      prevItem = item;
+    } else if (item !== prevItem) {
+      // If item changes within same signage, finalize previous item group
+      if (i > itemStart) rowData[itemStart].itemRowSpan = i - itemStart;
+      itemStart = i;
+      prevItem = item;
+    }
+    rowData.push({ ...boq, signage, item, signageRowSpan: 0, itemRowSpan: 0 });
+  }
+  // Finalize last signage and item group
+  if (rowData.length > 0) {
+    rowData[signageStart].signageRowSpan = rowData.length - signageStart;
+    rowData[itemStart].itemRowSpan = rowData.length - itemStart;
+  }
 
   return (
     <div className="space-y-4">
@@ -240,20 +260,22 @@ export default function BoqTab({ orderId }) {
           </tr>
         </thead>
         <tbody>
-          {groupedRows.map((row, idx) => (
+          {rowData.map((row, idx) => (
             <tr key={row.id} className="hover:bg-yellow-50">
               <td className="p-2 border">{idx + 1}</td>
-              {row.signageRowSpan > 0 && (
-                <td className="p-2 border" rowSpan={row.signageRowSpan} style={{ verticalAlign: 'middle' }}>
-                  {signageItems.find(si => si.id === row.signageId)?.name || ''}
-                </td>
+              {row.signageRowSpan > 0 ? (
+                <td className="p-2 border" rowSpan={row.signageRowSpan} style={{ verticalAlign: 'middle' }}>{row.signage}</td>
+              ) : null}
+              {row.itemRowSpan > 0 ? (
+                <td className="p-2 border" rowSpan={row.itemRowSpan} style={{ verticalAlign: 'middle' }}>{row.item}</td>
+              ) : null}
+              {row.signageRowSpan === 0 && row.itemRowSpan === 0 && (
+                <>
+                  {/* Render empty cells to keep alignment */}
+                  <td className="p-2 border" style={{ display: 'none' }}></td>
+                  <td className="p-2 border" style={{ display: 'none' }}></td>
+                </>
               )}
-              {row.itemRowSpan > 0 && (
-                <td className="p-2 border" rowSpan={row.itemRowSpan} style={{ verticalAlign: 'middle' }}>
-                  {row.item}
-                </td>
-              )}
-              {row.itemRowSpan === 0 && row.signageRowSpan === 0 && null}
               <td className="p-2 border font-medium">{row.material}</td>
               <td className="p-2 border">{row.unit}</td>
               <td className="p-2 border">{row.quantity}</td>
