@@ -147,12 +147,17 @@ export default function InvoicePdf({ invoice, customer, items }) {
         </div>
         <div style={{ flex: 2, borderLeft: '1px solid #222', paddingLeft: 8 }}>
           <div><b>BANK DETAILS</b></div>
-          <div>Sign Company</div>
-          <div>A/C No: 59986534909</div>
-          <div>IFSC: IDFB0080184</div>
-          <div>Bank name: IDFC FIRST</div>
-          <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
-          <div>UPI ID: signcompany@idfcbank</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <div>Sign Company</div>
+              <div>A/C No: 59986534909</div>
+              <div>IFSC: IDFB0080184</div>
+              <div>Bank name: IDFC FIRST</div>
+              <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
+              <div>UPI ID: signcompany@idfcbank</div>
+            </div>
+            <img src="/qr.png" alt="UPI QR" style={{ height: 80, width: 80, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }} />
+          </div>
         </div>
         <div style={{ flex: 1, textAlign: 'center', borderLeft: '1px solid #222', paddingLeft: 8 }}>
           <div style={{ fontWeight: 'bold', marginTop: 32 }}>For SIGN COMPANY</div>

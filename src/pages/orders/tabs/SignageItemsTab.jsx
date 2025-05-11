@@ -202,6 +202,8 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
       taxable_value: netTotal.toFixed(2),
       grand_total: grandTotal.toFixed(2),
       amount_in_words: amountInWords,
+      po_number: order.po_number || '',
+      po_date: order.po_date || '',
     };
 
     const container = document.createElement("div");
