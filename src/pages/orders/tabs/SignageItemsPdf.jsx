@@ -99,13 +99,18 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
         </ul>
       </div>
       <div style={{ marginBottom: 16 }}>
-        <div>Company name: Sign Company</div>
-        <div>Account number: 59986534909</div>
-        <div>IFSC: IDFB0080184</div>
-        <div>SWIFT code: IDFBINBBMUM</div>
-        <div>Bank name: IDFC FIRST</div>
-        <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
-        <div>UPI ID: signcompany@idfcbank</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <div>Company name: Sign Company</div>
+            <div>Account number: 59986534909</div>
+            <div>IFSC: IDFB0080184</div>
+            <div>SWIFT code: IDFBINBBMUM</div>
+            <div>Bank name: IDFC FIRST</div>
+            <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
+            <div>UPI ID: signcompany@idfcbank</div>
+          </div>
+          <img src="/qr.png" alt="UPI QR" style={{ height: 80, width: 80, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }} />
+        </div>
       </div>
       <div style={{ marginBottom: 16 }}>
         <div>GSTN: {("29BPYPK6641B2Z6").toUpperCase()}</div>
