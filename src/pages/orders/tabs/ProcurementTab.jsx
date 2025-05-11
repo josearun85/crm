@@ -159,8 +159,47 @@ export default function ProcurementTab({ orderId }) {
                 </div>
                 <div><strong>Inventory:</strong> {inv.available_qty || 0}</div>
                 <div>
-                  <strong>Expected Date:</strong> {task.expected_date || "-"}<br />
-                  <strong>Received Date:</strong> {task.actual_date || "-"}
+                  <strong>Expected Date:</strong> {editingTaskId === task.id ? (
+                    <input
+                      type="date"
+                      value={task.expected_date ? task.expected_date.slice(0, 10) : ''}
+                      onChange={async (e) => {
+                        const newDate = e.target.value;
+                        await updateBoqItem(boq.id, { expected_date: newDate });
+                        setTasks(tasks => tasks.map(t => t.id === task.id ? { ...t, expected_date: newDate } : t));
+                      }}
+                      className="border px-1 py-0.5 text-sm w-36"
+                    />
+                  ) : (
+                    <span
+                      className="cursor-pointer underline text-blue-600"
+                      title="Click to edit"
+                      onClick={() => setEditingTaskId(task.id)}
+                    >
+                      {task.expected_date || "-"}
+                    </span>
+                  )}
+                  <br />
+                  <strong>Received Date:</strong> {editingTaskId === task.id ? (
+                    <input
+                      type="date"
+                      value={task.actual_date ? task.actual_date.slice(0, 10) : ''}
+                      onChange={async (e) => {
+                        const newDate = e.target.value;
+                        await updateBoqItem(boq.id, { actual_date: newDate });
+                        setTasks(tasks => tasks.map(t => t.id === task.id ? { ...t, actual_date: newDate } : t));
+                      }}
+                      className="border px-1 py-0.5 text-sm w-36"
+                    />
+                  ) : (
+                    <span
+                      className="cursor-pointer underline text-blue-600"
+                      title="Click to edit"
+                      onClick={() => setEditingTaskId(task.id)}
+                    >
+                      {task.actual_date || "-"}
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2 pt-1">
                   {task.status !== "ordered" && task.status !== "received" && (

@@ -757,16 +757,16 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                         const boqsWithBlank = [...boqs];
                         return (
                           <>
-                            <table className="min-w-full text-sm border mb-2">
+                            <table className="min-w-full text-sm border mb-2" style={{ minWidth: 900 }}>
                               <thead className="bg-gray-100 text-left">
                                 <tr>
                                   <th className="p-2 border w-8 text-center">S. No.</th>
-                                  <th className="p-2 border w-32">Item</th>
-                                  <th className="p-2 border">Material</th>
-                                  <th className="p-2 border w-16 text-center">Unit</th>
-                                  <th className="p-2 border w-16 text-center">Quantity</th>
-                                  <th className="p-2 border w-20 text-center">Cost/Unit</th>
-                                  <th className="p-2 border w-20 text-center">Total</th>
+                                  <th className="p-2 border w-48">Item</th>
+                                  <th className="p-2 border w-48">Material</th>
+                                  <th className="p-2 border w-20 text-center">Unit</th>
+                                  <th className="p-2 border w-20 text-center">Quantity</th>
+                                  <th className="p-2 border w-28 text-center">Cost/Unit</th>
+                                  <th className="p-2 border w-28 text-center">Total</th>
                                   <th className="p-2 border"></th>
                                 </tr>
                               </thead>
