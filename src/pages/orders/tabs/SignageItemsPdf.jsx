@@ -15,7 +15,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
             Estimate No: {orderId}.{version || 1}.{new Date(po_date || Date.now()).getFullYear()}
           </div>
           <div style={{ marginTop: 16, fontSize: 14, fontWeight: 'normal', textAlign: 'left', border: '1px solid #eee', borderRadius: 6, padding: 8, background: '#fafafa' }}>
-            <div style={{ fontWeight: 'bold', textDecoration: 'underline', marginBottom: 2 }}>Bill To</div>
+            <div style={{ fontWeight: 'bold', textDecoration: 'underline', marginBottom: 2 }}>Client</div>
             <div>{customer?.name || '-'}</div>
             <div>{customer?.address || '-'}</div>
             <div>{customer?.gstin ? `GSTIN: ${customer.gstin.toUpperCase()}` : '-'}</div>
