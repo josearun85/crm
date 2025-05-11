@@ -164,11 +164,11 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
             <div className="pr-4">
               <input
                 className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
-                value={customerGstin}
-                onChange={e => setCustomerGstin(e.target.value)}
+                value={customerGstin.toUpperCase()}
+                onChange={e => setCustomerGstin(e.target.value.toUpperCase())}
                 onBlur={async (e) => {
-                  const newValue = e.target.value.trim();
-                  if (order?.customer?.id && newValue !== (order?.customer?.gstin || '')) {
+                  const newValue = e.target.value.trim().toUpperCase();
+                  if (order?.customer?.id && newValue !== (order?.customer?.gstin || '').toUpperCase()) {
                     await import("../services/orderDetailsService").then(m => m.updateCustomerDetails(order.customer.id, { gstin: newValue }));
                   }
                 }}
@@ -179,11 +179,11 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
             <div className="pr-4">
               <input
                 className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
-                value={customerPan}
-                onChange={e => setCustomerPan(e.target.value)}
+                value={customerPan.toUpperCase()}
+                onChange={e => setCustomerPan(e.target.value.toUpperCase())}
                 onBlur={async (e) => {
-                  const newValue = e.target.value.trim();
-                  if (order?.customer?.id && newValue !== (order?.customer?.pan || '')) {
+                  const newValue = e.target.value.trim().toUpperCase();
+                  if (order?.customer?.id && newValue !== (order?.customer?.pan || '').toUpperCase()) {
                     await import("../services/orderDetailsService").then(m => m.updateCustomerDetails(order.customer.id, { pan: newValue }));
                   }
                 }}
