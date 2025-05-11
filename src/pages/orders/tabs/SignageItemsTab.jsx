@@ -567,13 +567,6 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         <div ref={pdfRef} className="text-xs">
           <div className="flex justify-between items-center">
             <h2 className="text-sm font-semibold">Signage Items</h2>
-            <button
-              className="mb-2 px-3 py-1 bg-yellow-400 text-black rounded hover:bg-yellow-500"
-              onClick={handleAddBlankItem}
-              type="button"
-            >
-              + Add Item
-            </button>
           </div>
           <table className="min-w-full border text-xs">
             <thead className="bg-gray-100 text-left">
@@ -763,185 +756,192 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                       {(() => {
                         const boqsWithBlank = [...boqs];
                         return (
-                          <table className="min-w-full text-sm border mb-2">
-                            <thead className="bg-gray-100 text-left">
-                              <tr>
-                                <th className="p-2 border w-8 text-center">S. No.</th>
-                                <th className="p-2 border">Material</th>
-                                <th className="p-2 border w-16 text-center">Unit</th>
-                                <th className="p-2 border w-16 text-center">Quantity</th>
-                                <th className="p-2 border w-20 text-center">Cost/Unit</th>
-                                <th className="p-2 border w-20 text-center">Total</th>
-                                <th className="p-2 border"></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {boqsWithBlank.map((boq, bidx) => (
-                                <tr key={boq.id}>
-                                  <td className="p-2 border w-8 text-center">{bidx + 1}</td>
-                                  <td className="p-2 border">
-                                    <input
-                                      className="w-full border px-1 py-0.5 text-xs"
-                                      value={boq.material}
-                                      onChange={e => {
-                                        const value = e.target.value;
-                                        if (boq.id) {
-                                          setBoqs(boqs.map(b => b.id === boq.id ? { ...b, material: value } : b));
-                                        }
-                                      }}
-                                      onBlur={async (e) => {
-                                        const value = e.target.value.trim();
-                                        if (boq.id) {
-                                          await updateBoqItem(boq.id, boq);
-                                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                          await addFeedNote({
-                                            type: 'feed',
-                                            content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                            boq_item_id: boq.id,
-                                            signage_item_id: boq.signage_item_id,
-                                            orderId,
-                                            created_by: user?.data?.user?.id,
-                                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                            created_by_email: user?.data?.user?.email || ''
-                                          });
-                                        }
-                                      }}
-                                    />
-                                  </td>
-                                  <td className="p-2 border w-16 text-center">
-                                    <input
-                                      className="w-full border px-1 py-0.5 text-xs text-center"
-                                      value={boq.unit}
-                                      onChange={e => {
-                                        const value = e.target.value;
-                                        if (boq.id) {
-                                          setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
-                                        }
-                                      }}
-                                      onBlur={async () => {
-                                        if (boq.id) {
-                                          await updateBoqItem(boq.id, boq);
-                                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                          await addFeedNote({
-                                            type: 'feed',
-                                            content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                            boq_item_id: boq.id,
-                                            signage_item_id: boq.signage_item_id,
-                                            orderId,
-                                            created_by: user?.data?.user?.id,
-                                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                            created_by_email: user?.data?.user?.email || ''
-                                          });
-                                        }
-                                      }}
-                                    />
-                                  </td>
-                                  <td className="p-2 border w-16 text-center">
-                                    <input
-                                      className="w-full border px-1 py-0.5 text-xs text-right"
-                                      type="number"
-                                      value={boq.quantity}
-                                      onChange={e => {
-                                        const value = e.target.value;
-                                        if (boq.id) {
-                                          setBoqs(boqs.map(b => b.id === boq.id ? { ...b, quantity: value } : b));
-                                        }
-                                      }}
-                                      onBlur={async () => {
-                                        if (boq.id) {
-                                          await updateBoqItem(boq.id, boq);
-                                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                          await addFeedNote({
-                                            type: 'feed',
-                                            content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                            boq_item_id: boq.id,
-                                            signage_item_id: boq.signage_item_id,
-                                            orderId,
-                                            created_by: user?.data?.user?.id,
-                                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                            created_by_email: user?.data?.user?.email || ''
-                                          });
-                                        }
-                                      }}
-                                    />
-                                  </td>
-                                  <td className="p-2 border w-20 text-center">
-                                    <input
-                                      className="w-full border px-1 py-0.5 text-xs text-right"
-                                      type="number"
-                                      value={boq.cost_per_unit}
-                                      onChange={e => {
-                                        const value = e.target.value;
-                                        if (boq.id) {
-                                          setBoqs(boqs.map(b => b.id === boq.id ? { ...b, cost_per_unit: value } : b));
-                                        }
-                                      }}
-                                      onBlur={async () => {
-                                        if (boq.id) {
-                                          await updateBoqItem(boq.id, boq);
-                                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                          await addFeedNote({
-                                            type: 'feed',
-                                            content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                            boq_item_id: boq.id,
-                                            signage_item_id: boq.signage_item_id,
-                                            orderId,
-                                            created_by: user?.data?.user?.id,
-                                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                            created_by_email: user?.data?.user?.email || ''
-                                          });
-                                        }
-                                      }}
-                                    />
-                                  </td>
-                                  <td className="p-2 border w-20 text-center">
-                                    <input
-                                      className="w-full border px-1 py-0.5 text-xs text-right"
-                                      type="number"
-                                      value={Number(boq.quantity) * Number(boq.cost_per_unit) || 0}
-                                      readOnly
-                                    />
-                                  </td>
-                                  <td className="p-2 border text-right">
-                                    {boq.id && (
-                                      <span
-                                        onClick={async () => {
-                                          const confirmed = confirm("Delete this BOQ entry?");
-                                          if (confirmed) {
-                                            await deleteBoqItem(boq.id);
-                                            setBoqs(boqs.filter(b => b.id !== boq.id));
+                          <>
+                            <table className="min-w-full text-sm border mb-2">
+                              <thead className="bg-gray-100 text-left">
+                                <tr>
+                                  <th className="p-2 border w-8 text-center">S. No.</th>
+                                  <th className="p-2 border">Material</th>
+                                  <th className="p-2 border w-16 text-center">Unit</th>
+                                  <th className="p-2 border w-16 text-center">Quantity</th>
+                                  <th className="p-2 border w-20 text-center">Cost/Unit</th>
+                                  <th className="p-2 border w-20 text-center">Total</th>
+                                  <th className="p-2 border"></th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {boqsWithBlank.map((boq, bidx) => (
+                                  <tr key={boq.id}>
+                                    <td className="p-2 border w-8 text-center">{bidx + 1}</td>
+                                    <td className="p-2 border">
+                                      <input
+                                        className="w-full border px-1 py-0.5 text-xs"
+                                        value={boq.material}
+                                        onChange={e => {
+                                          const value = e.target.value;
+                                          if (boq.id) {
+                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, material: value } : b));
                                           }
                                         }}
-                                        className="ml-2 text-red-500 cursor-pointer"
-                                      >
-                                        🗑
-                                      </span>
-                                    )}
-                                    {boq.id && procurementTasksByBoqId[boq.id]?.length > 0 && (
-                                      <span
-                                        title={
-                                          procurementTasksByBoqId[boq.id][0].status === 'received'
-                                            ? 'Procurement received, material available'
-                                            : 'Procurement created'
-                                        }
-                                        style={{ cursor: 'pointer', marginLeft: 8 }}
-                                        onClick={() => setSelectedProcurement(procurementTasksByBoqId[boq.id][0])}
-                                      >
-                                        {procurementTasksByBoqId[boq.id][0].status === 'received' ? '✅' : '🛒'}
-                                      </span>
-                                    )}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                            <tfoot className="bg-gray-100 font-semibold">
-                              <tr>
-                                <td className="p-2 border text-right" colSpan={5}>Total Cost</td>
-                                <td className="p-2 border">{boqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0)}</td>
-                                <td></td>
-                              </tr>
-                            </tfoot>
-                          </table>
+                                        onBlur={async (e) => {
+                                          const value = e.target.value.trim();
+                                          if (boq.id) {
+                                            await updateBoqItem(boq.id, boq);
+                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                            await addFeedNote({
+                                              type: 'feed',
+                                              content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                              boq_item_id: boq.id,
+                                              signage_item_id: boq.signage_item_id,
+                                              orderId,
+                                              created_by: user?.data?.user?.id,
+                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                              created_by_email: user?.data?.user?.email || ''
+                                            });
+                                          }
+                                        }}
+                                      />
+                                    </td>
+                                    <td className="p-2 border w-16 text-center">
+                                      <input
+                                        className="w-full border px-1 py-0.5 text-xs text-center"
+                                        value={boq.unit}
+                                        onChange={e => {
+                                          const value = e.target.value;
+                                          if (boq.id) {
+                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
+                                          }
+                                        }}
+                                        onBlur={async () => {
+                                          if (boq.id) {
+                                            await updateBoqItem(boq.id, boq);
+                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                            await addFeedNote({
+                                              type: 'feed',
+                                              content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                              boq_item_id: boq.id,
+                                              signage_item_id: boq.signage_item_id,
+                                              orderId,
+                                              created_by: user?.data?.user?.id,
+                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                              created_by_email: user?.data?.user?.email || ''
+                                            });
+                                          }
+                                        }}
+                                      />
+                                    </td>
+                                    <td className="p-2 border w-16 text-center">
+                                      <input
+                                        className="w-full border px-1 py-0.5 text-xs text-right"
+                                        type="number"
+                                        value={boq.quantity}
+                                        onChange={e => {
+                                          const value = e.target.value;
+                                          if (boq.id) {
+                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, quantity: value } : b));
+                                          }
+                                        }}
+                                        onBlur={async () => {
+                                          if (boq.id) {
+                                            await updateBoqItem(boq.id, boq);
+                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                            await addFeedNote({
+                                              type: 'feed',
+                                              content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                              boq_item_id: boq.id,
+                                              signage_item_id: boq.signage_item_id,
+                                              orderId,
+                                              created_by: user?.data?.user?.id,
+                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                              created_by_email: user?.data?.user?.email || ''
+                                            });
+                                          }
+                                        }}
+                                      />
+                                    </td>
+                                    <td className="p-2 border w-20 text-center">
+                                      <input
+                                        className="w-full border px-1 py-0.5 text-xs text-right"
+                                        type="number"
+                                        value={boq.cost_per_unit}
+                                        onChange={e => {
+                                          const value = e.target.value;
+                                          if (boq.id) {
+                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, cost_per_unit: value } : b));
+                                          }
+                                        }}
+                                        onBlur={async () => {
+                                          if (boq.id) {
+                                            await updateBoqItem(boq.id, boq);
+                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                            await addFeedNote({
+                                              type: 'feed',
+                                              content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                              boq_item_id: boq.id,
+                                              signage_item_id: boq.signage_item_id,
+                                              orderId,
+                                              created_by: user?.data?.user?.id,
+                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                              created_by_email: user?.data?.user?.email || ''
+                                            });
+                                          }
+                                        }}
+                                      />
+                                    </td>
+                                    <td className="p-2 border w-20 text-center">
+                                      <input
+                                        className="w-full border px-1 py-0.5 text-xs text-right"
+                                        type="number"
+                                        value={Number(boq.quantity) * Number(boq.cost_per_unit) || 0}
+                                        readOnly
+                                      />
+                                    </td>
+                                    <td className="p-2 border text-right">
+                                      {boq.id && (
+                                        <span
+                                          onClick={async () => {
+                                            const confirmed = confirm("Delete this BOQ entry?");
+                                            if (confirmed) {
+                                              await deleteBoqItem(boq.id);
+                                              setBoqs(boqs.filter(b => b.id !== boq.id));
+                                            }
+                                          }}
+                                          className="ml-2 text-red-500 cursor-pointer"
+                                        >
+                                          🗑
+                                        </span>
+                                      )}
+                                      {boq.id && procurementTasksByBoqId[boq.id]?.length > 0 && (
+                                        <span
+                                          title={
+                                            procurementTasksByBoqId[boq.id][0].status === 'received'
+                                              ? 'Procurement received, material available'
+                                              : 'Procurement created'
+                                          }
+                                          style={{ cursor: 'pointer', marginLeft: 8 }}
+                                          onClick={() => setSelectedProcurement(procurementTasksByBoqId[boq.id][0])}
+                                        >
+                                          {procurementTasksByBoqId[boq.id][0].status === 'received' ? '✅' : '🛒'}
+                                        </span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            <button
+                              className="mt-2 px-3 py-1 bg-yellow-400 text-black rounded hover:bg-yellow-500 self-start"
+                              onClick={async () => {
+                                if (selectedItemId) {
+                                  const newBoq = await addBoqItem(selectedItemId, { material: '', quantity: 1, unit: '', cost_per_unit: 0 });
+                                  setBoqs([...boqs, newBoq]);
+                                }
+                              }}
+                              type="button"
+                            >
+                              + Add BOQ
+                            </button>
+                          </>
                         );
                       })()}
                     </td>
@@ -950,6 +950,13 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
               ])}
             </tbody>
           </table>
+          <button
+            className="mt-4 px-3 py-1 bg-yellow-400 text-black rounded hover:bg-yellow-500 self-start"
+            onClick={handleAddBlankItem}
+            type="button"
+          >
+            + Add Item
+          </button>
           <div className="mt-8 border-t pt-4">
             <div className="flex justify-end">
               <table className="text-sm font-semibold">
