@@ -758,7 +758,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                   </tr>,
                   showBoqForItemId === item.id && item.id ? (
                     <tr key={item.id + '-boq-details'}>
-                      <td colSpan={7} className="bg-yellow-100 p-4 border-t-2 border-yellow-300">
+                      <td colSpan={12} className="bg-yellow-100 p-4 border-t-2 border-yellow-300">
                         <h3 className="font-medium mb-2">BOQ for selected item</h3>
                         {(() => {
                           const boqsWithBlank = [...boqs];
