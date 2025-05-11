@@ -198,6 +198,30 @@ export default function BoqTab({ orderId }) {
 
   const totalBoqCost = materials.reduce((sum, m) => sum + m.total_cost, 0);
 
+  // Group and calculate rowspans for Signage Item and Item
+  const groupedRows = [];
+  const signageMap = {};
+  rawBoqs.filter(boq => boq.material && boq.material.trim() !== "").forEach((boq, idx) => {
+    const signageId = boq.signage_item_id;
+    const item = boq.item || '';
+    if (!signageMap[signageId]) signageMap[signageId] = {};
+    if (!signageMap[signageId][item]) signageMap[signageId][item] = [];
+    signageMap[signageId][item].push({ ...boq, idx });
+  });
+  Object.entries(signageMap).forEach(([signageId, itemsMap]) => {
+    Object.entries(itemsMap).forEach(([item, boqs]) => {
+      boqs.forEach((boq, i) => {
+        groupedRows.push({
+          ...boq,
+          signageRowSpan: i === 0 ? Object.values(itemsMap).reduce((sum, arr) => sum + arr.length, 0) : 0,
+          itemRowSpan: i === 0 ? boqs.length : 0,
+          signageId,
+          item,
+        });
+      });
+    });
+  });
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">BOQ Summary Across All Signage Items</h2>
@@ -216,31 +240,40 @@ export default function BoqTab({ orderId }) {
           </tr>
         </thead>
         <tbody>
-          {rawBoqs.filter(boq => boq.material && boq.material.trim() !== "").map((boq, idx) => (
-            <tr key={boq.id} className="hover:bg-yellow-50">
+          {groupedRows.map((row, idx) => (
+            <tr key={row.id} className="hover:bg-yellow-50">
               <td className="p-2 border">{idx + 1}</td>
-              <td className="p-2 border">{signageItems.find(si => si.id === boq.signage_item_id)?.name || ''}</td>
-              <td className="p-2 border">{boq.item || ''}</td>
-              <td className="p-2 border font-medium">{boq.material}</td>
-              <td className="p-2 border">{boq.unit}</td>
-              <td className="p-2 border">{boq.quantity}</td>
-              <td className="p-2 border">{boq.cost_per_unit}</td>
-              <td className="p-2 border">{(boq.quantity * boq.cost_per_unit).toFixed(2)}</td>
+              {row.signageRowSpan > 0 && (
+                <td className="p-2 border" rowSpan={row.signageRowSpan} style={{ verticalAlign: 'middle' }}>
+                  {signageItems.find(si => si.id === row.signageId)?.name || ''}
+                </td>
+              )}
+              {row.itemRowSpan > 0 && (
+                <td className="p-2 border" rowSpan={row.itemRowSpan} style={{ verticalAlign: 'middle' }}>
+                  {row.item}
+                </td>
+              )}
+              {row.itemRowSpan === 0 && row.signageRowSpan === 0 && null}
+              <td className="p-2 border font-medium">{row.material}</td>
+              <td className="p-2 border">{row.unit}</td>
+              <td className="p-2 border">{row.quantity}</td>
+              <td className="p-2 border">{row.cost_per_unit}</td>
+              <td className="p-2 border">{(row.quantity * row.cost_per_unit).toFixed(2)}</td>
               <td className="p-2 border text-center">
-                {procurementTasksByBoqId[boq.id]?.length > 0 ? (
+                {procurementTasksByBoqId[row.id]?.length > 0 ? (
                   <>
                     <span
                       title={
-                        procurementTasksByBoqId[boq.id][0].status === 'received'
+                        procurementTasksByBoqId[row.id][0].status === 'received'
                           ? 'Procurement received, material available'
                           : 'Procurement created'
                       }
                       style={{ cursor: 'pointer' }}
-                      onClick={() => setSelectedProcurement(procurementTasksByBoqId[boq.id][0])}
+                      onClick={() => setSelectedProcurement(procurementTasksByBoqId[row.id][0])}
                     >
-                      {procurementTasksByBoqId[boq.id][0].status === 'received' ? '✅' : '🛒'}
+                      {procurementTasksByBoqId[row.id][0].status === 'received' ? '✅' : '🛒'}
                     </span>
-                    <span className="ml-1 text-xs text-gray-500">({procurementTasksByBoqId[boq.id].length})</span>
+                    <span className="ml-1 text-xs text-gray-500">({procurementTasksByBoqId[row.id].length})</span>
                   </>
                 ) : (
                   <span title="No procurement">—</span>
