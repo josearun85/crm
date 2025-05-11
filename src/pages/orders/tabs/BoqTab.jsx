@@ -205,12 +205,13 @@ export default function BoqTab({ orderId }) {
         <thead className="bg-gray-100 text-left">
           <tr>
             <th className="p-2 border">S. No.</th>
+            <th className="p-2 border">Signage Item</th>
             <th className="p-2 border">Item</th>
             <th className="p-2 border">Material</th>
             <th className="p-2 border">Unit</th>
-            <th className="p-2 border">Total Quantity</th>
+            <th className="p-2 border">Quantity</th>
             <th className="p-2 border">Cost/Unit</th>
-            <th className="p-2 border">Total Cost</th>
+            <th className="p-2 border">Total</th>
             <th className="p-2 border">Procurement</th>
           </tr>
         </thead>
@@ -218,6 +219,7 @@ export default function BoqTab({ orderId }) {
           {rawBoqs.filter(boq => boq.material && boq.material.trim() !== "").map((boq, idx) => (
             <tr key={boq.id} className="hover:bg-yellow-50">
               <td className="p-2 border">{idx + 1}</td>
+              <td className="p-2 border">{signageItems.find(si => si.id === boq.signage_item_id)?.name || ''}</td>
               <td className="p-2 border">{boq.item || ''}</td>
               <td className="p-2 border font-medium">{boq.material}</td>
               <td className="p-2 border">{boq.unit}</td>

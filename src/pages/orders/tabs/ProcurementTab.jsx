@@ -236,7 +236,7 @@ export default function ProcurementTab({ orderId }) {
         </thead>
         <tbody>
           {tasks.map((row, idx) => (
-            <tr key={row.material + idx}>
+            <tr key={row.id || row.boq_item_id || idx}>
               <td className="border border-gray-300 px-2 py-1">{idx + 1}</td>
               <td className="border border-gray-300 px-2 py-1">{row.item || ''}</td>
               <td className="border border-gray-300 px-2 py-1">{row.material}</td>
