@@ -15,8 +15,8 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
       {/* Customer Info Section */}
       <div style={{ marginBottom: 16, fontSize: 15 }}>
         <div><b>CLIENT:</b> {customer.name || '-'}</div>
-        {customer.gstin && <div><b>GSTIN:</b> {customer.gstin}</div>}
-        {customer.pan && <div><b>PAN:</b> {customer.pan}</div>}
+        {customer.gstin && <div><b>GSTIN:</b> {(customer.gstin || '').toUpperCase()}</div>}
+        {customer.pan && <div><b>PAN:</b> {(customer.pan || '').toUpperCase()}</div>}
         <div><b>JOB NAME:</b> {jobName || '-'}</div>
       </div>
       <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Signage Items</h2>
@@ -99,8 +99,8 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
         <div>UPI ID: signcompany@idfcbank</div>
       </div>
       <div style={{ marginBottom: 16 }}>
-        <div>GSTN: 29BPYPK6641B2Z6</div>
-        <div>PAN: BPYPK6641B</div>
+        <div>GSTN: {("29BPYPK6641B2Z6").toUpperCase()}</div>
+        <div>PAN: {("BPYPK6641B").toUpperCase()}</div>
       </div>
       <div style={{ marginBottom: 16 }}>
         <div>Looking forward to a positive response from your side at the earliest.<br/>Thanking You,</div>

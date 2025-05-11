@@ -331,18 +331,23 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         <div style='display: flex; font-size: 13px; margin-top: 8px;'>
           <div style='flex: 1; padding: 8px;'>
             <div style='max-width: 340px; float: left;'>
-              <div style='margin-bottom: 2px;'>Total</div>
+              <!-- Only show Total and Taxable Value if discount > 0 -->
+              <div style='margin-bottom: 2px;'>
+                ${discount > 0 ? 'Total' : 'Taxable Value'}
+              </div>
               ${discount > 0 ? `<div style='margin-bottom: 2px;'>Less Discount</div>` : ''}
-              <div style='margin-bottom: 2px;'>Taxable Value</div>
-              ${gstRows}
+              ${discount > 0 ? `<div style='margin-bottom: 2px;'>Taxable Value</div>` : ''}
             </div>
             <div style='float: right; text-align: right; font-weight: normal; min-width: 120px;'>
-              <div style='margin-bottom: 2px;'>${pdfTotalCost.toFixed(2)}</div>
+              <div style='margin-bottom: 2px;'>
+                ${discount > 0 ? pdfTotalCost.toFixed(2) : pdfNetTotal.toFixed(2)}
+              </div>
               ${discount > 0 ? `<div style='margin-bottom: 2px;'>${discount.toFixed(2)}</div>` : ''}
-              <div style='margin-bottom: 2px;'>${pdfNetTotal.toFixed(2)}</div>
+              ${discount > 0 ? `<div style='margin-bottom: 2px;'>${pdfNetTotal.toFixed(2)}</div>` : ''}
+              <!-- GST rows only on the right -->
               ${isKarnataka
-                ? Object.entries(gstSummary).map(([rate, amount]) => `<div style='margin-bottom: 2px;'>${rate}% ${(amount/2).toFixed(2)}</div><div style='margin-bottom: 2px;'>${rate}% ${(amount/2).toFixed(2)}</div>`).join('')
-                : Object.entries(gstSummary).map(([rate, amount]) => `<div style='margin-bottom: 2px;'>${rate}% ${amount.toFixed(2)}</div>`).join('')
+                ? Object.entries(gstSummary).map(([rate, amount]) => `<div style='margin-bottom: 2px;'>CGST ₹ ${(amount/2).toFixed(2)} (${(Number(rate)/2).toFixed(1).replace(/\.0$/, '')}%)</div><div style='margin-bottom: 2px;'>SGST ₹ ${(amount/2).toFixed(2)} (${(Number(rate)/2).toFixed(1).replace(/\.0$/, '')}%)</div>`).join('')
+                : Object.entries(gstSummary).map(([rate, amount]) => `<div style='margin-bottom: 2px;'>IGST ₹ ${amount.toFixed(2)} (${rate}%)</div>`).join('')
               }
               <div style='margin-top: 12px; font-weight: bold; font-size: 16px;'>Total<br />${pdfGrandTotal.toFixed(2)}</div>
             </div>
@@ -623,7 +628,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                       <input
                         className="w-full border px-1 py-0.5 text-xs"
                         type="text"
-                        value={item.hsn_code || ''}
+                        value={(item.hsn_code || '').toUpperCase()}
                         onChange={async e => {
                           const value = e.target.value;
                           updateItemField(idx, 'hsn_code', value);
