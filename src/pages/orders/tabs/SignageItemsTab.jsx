@@ -296,7 +296,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
             <div style='font-size: 12px;'>Date: <b>${today}</b></div>
           </div>
           <div style='text-align: right; font-size: 12px;'>
-            <div style='font-weight: bold;'>Bill To:</div>
+            <div style='font-weight: bold;'>Client:</div>
             <div>${customer?.name || '-'}</div>
             <div>${customer?.address || '-'}</div>
             <div>${customer?.gstin ? `GSTIN: ${customer.gstin.toUpperCase()}` : '-'}</div>
@@ -361,7 +361,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         </div>
         <div style='margin-bottom: 16px; font-size: 12px;'>
           <div style='font-weight: bold; text-decoration: underline; color: #0a3d62; margin-bottom: 4px;'>Payment Details</div>
-          <div style='display: flex; align-items: center; gap: 12px;'>
+          <div style='display: flex; align-items: center; gap: 24px;'>
             <div>
               <div>Account Name: <b>Sign Company</b></div>
               <div>Account Number: <b>59986534909</b></div>
@@ -369,7 +369,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
               <div>Bank: <b>IDFC FIRST, JEEVAN BIMA NAGAR BRANCH</b></div>
               <div>UPI ID: <b>signcompany@idfcbank</b></div>
             </div>
-            <img src='/qr.png' alt='UPI QR' style='height: 80px; width: 80px; object-fit: contain; border: 1px solid #ccc; border-radius: 8px; background: #fff;' />
+            <img src='/qr.png' alt='UPI QR' style='height: 150px; width: 150px; object-fit: contain; border: 1px solid #ccc; border-radius: 8px; background: #fff;' />
           </div>
         </div>
         <div style='margin-bottom: 16px; font-size: 12px;'>
