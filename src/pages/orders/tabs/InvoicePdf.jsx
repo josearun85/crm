@@ -46,8 +46,8 @@ export default function InvoicePdf({ invoice, customer, items }) {
       <div style={{ display: 'flex', borderBottom: '1px solid #222', fontSize: 13 }}>
         <div style={{ flex: 2, borderRight: '1px solid #222', padding: 8 }}>
           <div style={{ fontWeight: 'bold' }}>Bill to</div>
-          <div>{customer.name}</div>
-          <div style={{ whiteSpace: 'pre-line' }}>{customer.address}</div>
+          <div>{customer.name || '-'}</div>
+          <div style={{ whiteSpace: 'pre-line' }}>{customer.address || '-'}</div>
           <div><b>GSTIN No:-</b> {(customer.gstin || '').toUpperCase()}</div>
           {customer.pan && <div>PAN: {(customer.pan || '').toUpperCase()}</div>}
         </div>

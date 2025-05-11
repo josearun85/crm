@@ -3,15 +3,23 @@ import React from "react";
 export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal, customer = {}, jobName = "", po_number, po_date, version }) {
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: 900, margin: '0 auto', color: '#222' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <img src="/logo.png" alt="Sign Company Logo" style={{ height: 60, marginBottom: 8 }} />
           <div style={{ fontWeight: 'bold', fontSize: 22 }}>Sign Company</div>
           <div style={{ fontSize: 14 }}>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore - 560 075</div>
           <div style={{ fontSize: 14 }}>M +91 8431505007</div>
         </div>
-        <div style={{ textAlign: 'right', fontSize: 18, fontWeight: 'bold' }}>
-          Estimate No: {orderId}.{version || 1}.{new Date(po_date || Date.now()).getFullYear()}
+        <div style={{ textAlign: 'right', minWidth: 260 }}>
+          <div style={{ fontSize: 18, fontWeight: 'bold' }}>
+            Estimate No: {orderId}.{version || 1}.{new Date(po_date || Date.now()).getFullYear()}
+          </div>
+          <div style={{ marginTop: 16, fontSize: 14, fontWeight: 'normal', textAlign: 'left', border: '1px solid #eee', borderRadius: 6, padding: 8, background: '#fafafa' }}>
+            <div style={{ fontWeight: 'bold', textDecoration: 'underline', marginBottom: 2 }}>Bill To</div>
+            <div>{customer?.name || '-'}</div>
+            <div>{customer?.address || '-'}</div>
+            <div>{customer?.gstin ? `GSTIN: ${customer.gstin.toUpperCase()}` : '-'}</div>
+          </div>
         </div>
       </div>
       {/* Customer Info Section */}
@@ -109,7 +117,9 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
             <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
             <div>UPI ID: signcompany@idfcbank</div>
           </div>
-          <img src="/qr.png" alt="UPI QR" style={{ height: 80, width: 80, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }} />
+          <div style={{ display: 'flex', alignItems: 'center', height: 80 }}>
+            <img src="/qr.png" alt="UPI QR" style={{ height: 80, width: 80, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }} />
+          </div>
         </div>
       </div>
       <div style={{ marginBottom: 16 }}>
