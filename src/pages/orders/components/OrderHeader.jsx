@@ -190,6 +190,16 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 placeholder="PAN"
               />
             </div>
+            <div className="font-medium">PO Number</div>
+            <div className="pr-4">
+              <input
+                className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
+                value={editBuffer.po_number !== undefined ? editBuffer.po_number : order?.po_number || ""}
+                onChange={e => handleFieldChange("po_number", e.target.value)}
+                onBlur={() => handleFieldBlur("po_number", "PO Number")}
+                placeholder="PO Number"
+              />
+            </div>
           </div>
         </div>
       </div>
