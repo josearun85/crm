@@ -32,9 +32,13 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
       {/* Show PO Number and PO Date if available */}
       {orderId && (po_number || po_date) && (
         <div style={{ marginBottom: 8, fontSize: 15 }}>
-          {po_number && <span><b>PO Number:</b> {po_number}</span>}
+          <div>
+          {po_number && <span><b>PO Number:</b> {po_number}</span>}</div>
+          <div>
           {po_date && <span style={{ marginLeft: 12 }}><b>PO Date:</b> {new Date(po_date).toLocaleDateString('en-GB')}</span>}
+          </div>
         </div>
+        
       )}
       <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Signage Items</h2>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, marginBottom: 24 }}>
@@ -117,8 +121,8 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
             <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
             <div>UPI ID: signcompany@idfcbank</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', height: 80 }}>
-            <img src="/qr.png" alt="UPI QR" style={{ height: 80, width: 80, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }} />
+          <div style={{ display: 'flex', alignItems: 'center', height: 120 }}>
+            <img src="/qr.png" alt="UPI QR" style={{ height: 120, width: 120, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }} />
           </div>
         </div>
       </div>

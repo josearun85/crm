@@ -49,7 +49,6 @@ export default function InvoicePdf({ invoice, customer, items }) {
           <div>{customer.name || '-'}</div>
           <div style={{ whiteSpace: 'pre-line' }}>{customer.address || '-'}</div>
           <div><b>GSTIN No:-</b> {(customer.gstin || '').toUpperCase()}</div>
-          {customer.pan && <div>PAN: {(customer.pan || '').toUpperCase()}</div>}
         </div>
         <div style={{ flex: 1, borderRight: '1px solid #222', padding: 8 }}>
           <div style={{ fontWeight: 'bold' }}>Place of Supply</div>
@@ -156,7 +155,7 @@ export default function InvoicePdf({ invoice, customer, items }) {
               <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
               <div>UPI ID: signcompany@idfcbank</div>
             </div>
-            <img src="/qr.png" alt="UPI QR" style={{ height: 80, width: 80, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }} />
+            <img src="/qr.png" alt="UPI QR" style={{ height: 120, width: 120, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }} />
           </div>
         </div>
         <div style={{ flex: 1, textAlign: 'center', borderLeft: '1px solid #222', paddingLeft: 8 }}>
