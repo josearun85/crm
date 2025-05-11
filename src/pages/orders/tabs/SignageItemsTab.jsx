@@ -761,6 +761,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                               <thead className="bg-gray-100 text-left">
                                 <tr>
                                   <th className="p-2 border w-8 text-center">S. No.</th>
+                                  <th className="p-2 border w-32">Item</th>
                                   <th className="p-2 border">Material</th>
                                   <th className="p-2 border w-16 text-center">Unit</th>
                                   <th className="p-2 border w-16 text-center">Quantity</th>
@@ -773,6 +774,35 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                                 {boqsWithBlank.map((boq, bidx) => (
                                   <tr key={boq.id}>
                                     <td className="p-2 border w-8 text-center">{bidx + 1}</td>
+                                    <td className="p-2 border w-32">
+                                      <input
+                                        className="w-full border px-1 py-0.5 text-xs"
+                                        value={boq.item || ''}
+                                        onChange={e => {
+                                          const value = e.target.value;
+                                          if (boq.id) {
+                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, item: value } : b));
+                                          }
+                                        }}
+                                        onBlur={async (e) => {
+                                          const value = e.target.value.trim();
+                                          if (boq.id) {
+                                            await updateBoqItem(boq.id, { ...boq, item: value });
+                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                            await addFeedNote({
+                                              type: 'feed',
+                                              content: `BOQ item field updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                              boq_item_id: boq.id,
+                                              signage_item_id: boq.signage_item_id,
+                                              orderId,
+                                              created_by: user?.data?.user?.id,
+                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                              created_by_email: user?.data?.user?.email || ''
+                                            });
+                                          }
+                                        }}
+                                      />
+                                    </td>
                                     <td className="p-2 border">
                                       <input
                                         className="w-full border px-1 py-0.5 text-xs"
