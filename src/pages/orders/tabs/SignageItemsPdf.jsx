@@ -8,7 +8,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
           <img src="/logo.png" alt="Sign Company Logo" style={{ height: 60, marginBottom: 8 }} />
           <div style={{ fontWeight: 'bold', fontSize: 22 }}>Sign Company</div>
           <div style={{ fontSize: 14 }}>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore - 560 075</div>
-          <div style={{ fontSize: 14 }}>M +91 9986534902</div>
+          <div style={{ fontSize: 14 }}>M +91 8431505007</div>
         </div>
         <div style={{ textAlign: 'right', fontSize: 18, fontWeight: 'bold' }}>Invoice #{orderId}</div>
       </div>

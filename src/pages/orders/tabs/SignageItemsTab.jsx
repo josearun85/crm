@@ -281,7 +281,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
           <div>
             <div style='font-size: 22px; font-weight: bold; color: #0a3d62;'>Sign Company</div>
             <div style='font-size: 12px; color: #555;'>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore - 560 075</div>
-            <div style='font-size: 12px; color: #555;'>M: +91 9986534902 | GSTN: 29BPYPK6641B2Z6 | PAN: BPYPK6641B</div>
+            <div style='font-size: 12px; color: #555;'>M: +91 8431505007 | GSTN: 29BPYPK6641B2Z6 | PAN: BPYPK6641B</div>
           </div>
         </div>
         <div style='display: flex; justify-content: space-between; margin-bottom: 10px;'>
@@ -564,161 +564,75 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
           </div>
         )}
         {/* PDF Export Content Start */}
-        <div ref={pdfRef} className="text-xs">
-          <div className="flex justify-between items-center">
-            <h2 className="text-sm font-semibold">Signage Items</h2>
-          </div>
-          <table className="min-w-full border text-xs">
-            <thead className="bg-gray-100 text-left">
-              <tr>
-                <th className="p-2 border">S. No.</th>
-                <th className="p-2 border w-[220px]">Name</th>
-                <th className="p-2 border w-[340px]">Description</th>
-                <th className="p-2 border">HSN Code</th>
-                <th className="p-2 border w-14">Qty</th>
-                <th className="p-2 border w-20">Rate</th>
-                <th className="p-2 border w-24">Amount</th>
-                <th className="p-2 border w-20">GST (%)</th>
-                <th className="p-2 border w-24">GST Amount</th>
-                <th className="p-2 border w-28">Cost After Tax</th>
-                <th className="p-2 border w-8 text-center no-print">Actions</th>
-                <th className="p-2 border no-print">BOQ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, idx) => [
-                <tr
-                  key={item.id || 'new'}
-                  className={`cursor-pointer ${showBoqForItemId === item.id ? "bg-yellow-50" : ""}`}
-                >
-                  <td className="p-2 border">{idx + 1}</td>
-                  {/* Name */}
-                  <td className="p-2 border">
-                    <input
-                      className="w-full border px-1 py-0.5 text-xs"
-                      type="text"
-                      value={item.name}
-                      onChange={e => updateItemField(idx, 'name', e.target.value)}
-                      onBlur={e => handleItemBlur(idx, 'name', e.target.value.trim())}
-                    />
-                  </td>
-                  {/* Description */}
-                  <td className="p-2 border w-[340px]">
-                    <textarea
-                      ref={el => descriptionRefs.current[item.id || idx] = el}
-                      className="w-full border px-1 py-0.5 text-xs resize-none overflow-hidden"
-                      style={{ minHeight: 32, height: 'auto' }}
-                      value={item.description}
-                      onChange={e => updateItemField(idx, 'description', e.target.value)}
-                      onBlur={e => handleItemBlur(idx, 'description', e.target.value)}
-                      onInput={e => {
-                        e.target.style.height = 'auto';
-                        e.target.style.height = e.target.scrollHeight + 'px';
-                      }}
-                    />
-                  </td>
-                  {/* HSN Code */}
-                  <td className="p-2 border">
-                    <input
-                      className="w-full border px-1 py-0.5 text-xs"
-                      type="text"
-                      value={item.hsn_code || ''}
-                      onChange={async e => {
-                        const value = e.target.value;
-                        updateItemField(idx, 'hsn_code', value);
-                        if (item.id) {
-                          await updateSignageItem(item.id, { ...item, hsn_code: value });
-                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                          await addFeedNote({
-                            type: 'feed',
-                            content: `Signage item HSN updated by ${user?.data?.user?.email || 'Unknown'}`,
-                            signage_item_id: item.id,
-                            orderId,
-                            created_by: user?.data?.user?.id,
-                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                            created_by_email: user?.data?.user?.email || ''
-                          });
-                        }
-                      }}
-                    />
-                  </td>
-                  <td className="p-2 border w-14 text-right">
-                    <input
-                      className="w-full border px-1 py-0.5 text-xs text-right"
-                      type="number"
-                      min={1}
-                      value={item.quantity || 1}
-                      onChange={e => updateItemField(idx, 'quantity', e.target.value)}
-                      onBlur={e => handleItemBlur(idx, 'quantity', e.target.value)}
-                    />
-                  </td>
-                  <td className="p-2 border w-20 text-right">
-                    {item.id
-                      ? getScaledRate(item).toFixed(2)
-                      : ''}
-                  </td>
-                  {/* Amount */}
-                  <td className="p-2 border w-24 text-right">
-                    {item.id
-                      ? (getScaledRate(item) * (Number(item.quantity) || 1)).toFixed(2)
-                      : ''}
-                  </td>
-                  {/* GST Percent */}
-                  <td className="p-2 border w-20">
-                    <input
-                      className="w-full border px-1 py-0.5 text-xs text-right"
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={items[idx]?.gst_percent ?? 18}
-                      onChange={async e => {
-                        const value = Number(e.target.value) || 0;
-                        updateItemField(idx, 'gst_percent', value);
-                        if (item.id) {
-                          await updateSignageItem(item.id, { ...item, gst_percent: value });
-                          const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                          await addFeedNote({
-                            type: 'feed',
-                            content: `Signage item GST updated by ${user?.data?.user?.email || 'Unknown'}`,
-                            signage_item_id: item.id,
-                            orderId,
-                            created_by: user?.data?.user?.id,
-                            created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                            created_by_email: user?.data?.user?.email || ''
-                          });
-                        }
-                      }}
-                    />
-                  </td>
-                  {/* GST Amount */}
-                  <td className="p-2 border w-24 text-right">
-                    {(() => {
-                      const amt = getScaledRate(item) * (Number(item.quantity) || 1);
-                      const gst = Number(item.gst_percent ?? 18);
-                      return (amt * gst / 100).toFixed(2);
-                    })()}
-                  </td>
-                  {/* Cost After Tax */}
-                  <td className="p-2 border w-28 text-right">
-                    {(() => {
-                      const amt = getScaledRate(item) * (Number(item.quantity) || 1);
-                      const gst = Number(item.gst_percent ?? 18);
-                      return (amt + (amt * gst / 100)).toFixed(2);
-                    })()}
-                  </td>
-                  <td className="p-2 border w-8 text-center align-middle no-print">
-                    {item.id && (item.name || item.description || Number(item.quantity) > 1 || Number(item.cost) > 0) && (
-                      <span
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          const confirmed = confirm("Are you sure you want to delete this item?");
-                          if (confirmed) {
-                            await deleteSignageItem(item.id);
-                            setItems(items.filter(it => it.id !== item.id));
+        <div className="overflow-x-auto w-full">
+          <div ref={pdfRef} className="text-xs">
+            <div className="flex justify-between items-center">
+              <h2 className="text-sm font-semibold">Signage Items</h2>
+            </div>
+            <table className="min-w-full border text-xs">
+              <thead className="bg-gray-100 text-left">
+                <tr>
+                  <th className="p-2 border">S. No.</th>
+                  <th className="p-2 border w-[220px]">Name</th>
+                  <th className="p-2 border w-[340px]">Description</th>
+                  <th className="p-2 border">HSN Code</th>
+                  <th className="p-2 border w-14">Qty</th>
+                  <th className="p-2 border w-20">Rate</th>
+                  <th className="p-2 border w-24">Amount</th>
+                  <th className="p-2 border w-20">GST (%)</th>
+                  <th className="p-2 border w-24">GST Amount</th>
+                  <th className="p-2 border w-28">Cost After Tax</th>
+                  <th className="p-2 border w-8 text-center no-print">Actions</th>
+                  <th className="p-2 border no-print">BOQ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, idx) => [
+                  <tr
+                    key={item.id || 'new'}
+                    className={`cursor-pointer ${showBoqForItemId === item.id ? "bg-yellow-50" : ""}`}
+                  >
+                    <td className="p-2 border">{idx + 1}</td>
+                    {/* Name */}
+                    <td className="p-2 border">
+                      <input
+                        className="w-full border px-1 py-0.5 text-xs"
+                        type="text"
+                        value={item.name}
+                        onChange={e => updateItemField(idx, 'name', e.target.value)}
+                        onBlur={e => handleItemBlur(idx, 'name', e.target.value.trim())}
+                      />
+                    </td>
+                    {/* Description */}
+                    <td className="p-2 border w-[340px]">
+                      <textarea
+                        ref={el => descriptionRefs.current[item.id || idx] = el}
+                        className="w-full border px-1 py-0.5 text-xs resize-none overflow-hidden"
+                        style={{ minHeight: 32, height: 'auto' }}
+                        value={item.description}
+                        onChange={e => updateItemField(idx, 'description', e.target.value)}
+                        onBlur={e => handleItemBlur(idx, 'description', e.target.value)}
+                        onInput={e => {
+                          e.target.style.height = 'auto';
+                          e.target.style.height = e.target.scrollHeight + 'px';
+                        }}
+                      />
+                    </td>
+                    {/* HSN Code */}
+                    <td className="p-2 border">
+                      <input
+                        className="w-full border px-1 py-0.5 text-xs"
+                        type="text"
+                        value={item.hsn_code || ''}
+                        onChange={async e => {
+                          const value = e.target.value;
+                          updateItemField(idx, 'hsn_code', value);
+                          if (item.id) {
+                            await updateSignageItem(item.id, { ...item, hsn_code: value });
                             const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
                             await addFeedNote({
                               type: 'feed',
-                              content: `Signage item deleted by ${user?.data?.user?.email || 'Unknown'}`,
+                              content: `Signage item HSN updated by ${user?.data?.user?.email || 'Unknown'}`,
                               signage_item_id: item.id,
                               orderId,
                               created_by: user?.data?.user?.id,
@@ -727,341 +641,430 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                             });
                           }
                         }}
-                        className="text-red-500 cursor-pointer flex items-center justify-center"
-                        title="Delete"
-                      >
-                        🗑
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-2 border w-10 text-center align-middle no-print">
-                    {item.id && (
-                      <span
-                        className="text-blue-600 underline cursor-pointer"
-                        onClick={e => {
-                          e.stopPropagation();
-                          setShowBoqForItemId(showBoqForItemId === item.id ? null : item.id);
-                          setSelectedItemId(showBoqForItemId === item.id ? null : item.id);
-                        }}
-                      >
-                        {allBoqs.filter(b => b.signage_item_id === item.id).length}
-                      </span>
-                    )}
-                  </td>
-                </tr>,
-                showBoqForItemId === item.id && item.id ? (
-                  <tr key={item.id + '-boq-details'}>
-                    <td colSpan={7} className="bg-yellow-100 p-4 border-t-2 border-yellow-300">
-                      <h3 className="font-medium mb-2">BOQ for selected item</h3>
-                      {(() => {
-                        const boqsWithBlank = [...boqs];
-                        return (
-                          <>
-                            <table className="min-w-full text-sm border mb-2" style={{ minWidth: 900 }}>
-                              <thead className="bg-gray-100 text-left">
-                                <tr>
-                                  <th className="p-2 border w-8 text-center">S. No.</th>
-                                  <th className="p-2 border w-48">Item</th>
-                                  <th className="p-2 border w-48">Material</th>
-                                  <th className="p-2 border w-20 text-center">Unit</th>
-                                  <th className="p-2 border w-20 text-center">Quantity</th>
-                                  <th className="p-2 border w-28 text-center">Cost/Unit</th>
-                                  <th className="p-2 border w-28 text-center">Total</th>
-                                  <th className="p-2 border"></th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {boqsWithBlank.map((boq, bidx) => (
-                                  <tr key={boq.id}>
-                                    <td className="p-2 border w-8 text-center">{bidx + 1}</td>
-                                    <td className="p-2 border w-32">
-                                      <input
-                                        className="w-full border px-1 py-0.5 text-xs"
-                                        value={boq.item || ''}
-                                        onChange={e => {
-                                          const value = e.target.value;
-                                          if (boq.id) {
-                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, item: value } : b));
-                                          }
-                                        }}
-                                        onBlur={async (e) => {
-                                          const value = e.target.value.trim();
-                                          if (boq.id) {
-                                            await updateBoqItem(boq.id, { ...boq, item: value });
-                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                            await addFeedNote({
-                                              type: 'feed',
-                                              content: `BOQ item field updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                              boq_item_id: boq.id,
-                                              signage_item_id: boq.signage_item_id,
-                                              orderId,
-                                              created_by: user?.data?.user?.id,
-                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                              created_by_email: user?.data?.user?.email || ''
-                                            });
-                                          }
-                                        }}
-                                      />
-                                    </td>
-                                    <td className="p-2 border">
-                                      <input
-                                        className="w-full border px-1 py-0.5 text-xs"
-                                        value={boq.material}
-                                        onChange={e => {
-                                          const value = e.target.value;
-                                          if (boq.id) {
-                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, material: value } : b));
-                                          }
-                                        }}
-                                        onBlur={async (e) => {
-                                          const value = e.target.value.trim();
-                                          if (boq.id) {
-                                            await updateBoqItem(boq.id, boq);
-                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                            await addFeedNote({
-                                              type: 'feed',
-                                              content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                              boq_item_id: boq.id,
-                                              signage_item_id: boq.signage_item_id,
-                                              orderId,
-                                              created_by: user?.data?.user?.id,
-                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                              created_by_email: user?.data?.user?.email || ''
-                                            });
-                                          }
-                                        }}
-                                      />
-                                    </td>
-                                    <td className="p-2 border w-16 text-center">
-                                      <input
-                                        className="w-full border px-1 py-0.5 text-xs text-center"
-                                        value={boq.unit}
-                                        onChange={e => {
-                                          const value = e.target.value;
-                                          if (boq.id) {
-                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
-                                          }
-                                        }}
-                                        onBlur={async () => {
-                                          if (boq.id) {
-                                            await updateBoqItem(boq.id, boq);
-                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                            await addFeedNote({
-                                              type: 'feed',
-                                              content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                              boq_item_id: boq.id,
-                                              signage_item_id: boq.signage_item_id,
-                                              orderId,
-                                              created_by: user?.data?.user?.id,
-                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                              created_by_email: user?.data?.user?.email || ''
-                                            });
-                                          }
-                                        }}
-                                      />
-                                    </td>
-                                    <td className="p-2 border w-16 text-center">
-                                      <input
-                                        className="w-full border px-1 py-0.5 text-xs text-right"
-                                        type="number"
-                                        value={boq.quantity}
-                                        onChange={e => {
-                                          const value = e.target.value;
-                                          if (boq.id) {
-                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, quantity: value } : b));
-                                          }
-                                        }}
-                                        onBlur={async () => {
-                                          if (boq.id) {
-                                            await updateBoqItem(boq.id, boq);
-                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                            await addFeedNote({
-                                              type: 'feed',
-                                              content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                              boq_item_id: boq.id,
-                                              signage_item_id: boq.signage_item_id,
-                                              orderId,
-                                              created_by: user?.data?.user?.id,
-                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                              created_by_email: user?.data?.user?.email || ''
-                                            });
-                                          }
-                                        }}
-                                      />
-                                    </td>
-                                    <td className="p-2 border w-20 text-center">
-                                      <input
-                                        className="w-full border px-1 py-0.5 text-xs text-right"
-                                        type="number"
-                                        value={boq.cost_per_unit}
-                                        onChange={e => {
-                                          const value = e.target.value;
-                                          if (boq.id) {
-                                            setBoqs(boqs.map(b => b.id === boq.id ? { ...b, cost_per_unit: value } : b));
-                                          }
-                                        }}
-                                        onBlur={async () => {
-                                          if (boq.id) {
-                                            await updateBoqItem(boq.id, boq);
-                                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                            await addFeedNote({
-                                              type: 'feed',
-                                              content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                              boq_item_id: boq.id,
-                                              signage_item_id: boq.signage_item_id,
-                                              orderId,
-                                              created_by: user?.data?.user?.id,
-                                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                              created_by_email: user?.data?.user?.email || ''
-                                            });
-                                          }
-                                        }}
-                                      />
-                                    </td>
-                                    <td className="p-2 border w-20 text-center">
-                                      <input
-                                        className="w-full border px-1 py-0.5 text-xs text-right"
-                                        type="number"
-                                        value={Number(boq.quantity) * Number(boq.cost_per_unit) || 0}
-                                        readOnly
-                                      />
-                                    </td>
-                                    <td className="p-2 border text-right">
-                                      {boq.id && (
-                                        <span
-                                          onClick={async () => {
-                                            const confirmed = confirm("Delete this BOQ entry?");
-                                            if (confirmed) {
-                                              await deleteBoqItem(boq.id);
-                                              setBoqs(boqs.filter(b => b.id !== boq.id));
-                                            }
-                                          }}
-                                          className="ml-2 text-red-500 cursor-pointer"
-                                        >
-                                          🗑
-                                        </span>
-                                      )}
-                                      {boq.id && procurementTasksByBoqId[boq.id]?.length > 0 && (
-                                        <span
-                                          title={
-                                            procurementTasksByBoqId[boq.id][0].status === 'received'
-                                              ? 'Procurement received, material available'
-                                              : 'Procurement created'
-                                          }
-                                          style={{ cursor: 'pointer', marginLeft: 8 }}
-                                          onClick={() => setSelectedProcurement(procurementTasksByBoqId[boq.id][0])}
-                                        >
-                                          {procurementTasksByBoqId[boq.id][0].status === 'received' ? '✅' : '🛒'}
-                                        </span>
-                                      )}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                            <button
-                              className="mt-2 px-3 py-1 bg-yellow-400 text-black rounded hover:bg-yellow-500 self-start"
-                              onClick={async () => {
-                                if (selectedItemId) {
-                                  const newBoq = await addBoqItem(selectedItemId, { material: '', quantity: 1, unit: '', cost_per_unit: 0 });
-                                  setBoqs([...boqs, newBoq]);
-                                }
-                              }}
-                              type="button"
-                            >
-                              + Add BOQ
-                            </button>
-                          </>
-                        );
-                      })()}
-                    </td>
-                  </tr>
-                ) : null
-              ])}
-            </tbody>
-          </table>
-          <button
-            className="mt-4 px-3 py-1 bg-yellow-400 text-black rounded hover:bg-yellow-500 self-start"
-            onClick={handleAddBlankItem}
-            type="button"
-          >
-            + Add Item
-          </button>
-          <div className="mt-8 border-t pt-4">
-            <div className="flex justify-end">
-              <table className="text-sm font-semibold">
-                <tbody>
-                  <tr>
-                    <td className="text-right pr-8 align-middle">TOTAL</td>
-                    <td className="text-right">&#8377; {totalCost.toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td className="text-right pr-8 align-middle">DISCOUNT</td>
-                    <td className="text-right">
-                      <input
-                        type="number"
-                        className="border px-1 py-0.5 text-right w-20 text-xs"
-                        value={discount}
-                        onChange={(e) => setDiscount(Number(e.target.value) || 0)}
-                        onBlur={handleDiscountBlur}
                       />
                     </td>
-                  </tr>
-                  <tr>
-                    <td className="text-right pr-8 align-middle">NET TOTAL</td>
-                    <td className="text-right">&#8377; {netTotal.toFixed(2)}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            {/* GST Summary Table */}
-            <div className="flex justify-end mt-2">
-              <table className="text-xs border">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border p-1">GST Rate</th>
-                    {isKarnataka ? (
-                      <>
-                        <th className="border p-1">CGST</th>
-                        <th className="border p-1">SGST</th>
-                      </>
-                    ) : (
-                      <th className="border p-1">IGST</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(gstSummary).filter(([_rate, amount]) => amount > 0.001).map(([rate, amount]) => {
-                    if (isKarnataka) {
-                      const halfRate = (Number(rate) / 2).toFixed(1).replace(/\.0$/, "");
-                      return (
-                        <tr key={rate}>
-                          <td className="border p-1">{rate}%</td>
-                          <td className="border p-1 text-right">&#8377; {(amount/2).toFixed(2)} <span className="text-gray-500">({halfRate}%)</span></td>
-                          <td className="border p-1 text-right">&#8377; {(amount/2).toFixed(2)} <span className="text-gray-500">({halfRate}%)</span></td>
-                        </tr>
-                      );
-                    } else {
-                      return (
-                        <tr key={rate}>
-                          <td className="border p-1">{rate}%</td>
-                          <td className="border p-1 text-right" colSpan={2}>&#8377; {amount.toFixed(2)}</td>
-                        </tr>
-                      );
-                    }
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="flex justify-end mt-2">
-              <table className="text-sm font-bold">
-                <tbody>
-                  <tr className="text-lg">
-                    <td className="text-right pr-8 align-middle">GRAND TOTAL</td>
-                    <td className="text-right">&#8377; {grandTotal.toFixed(2)}</td>
-                  </tr>
-                </tbody>
-              </table>
+                    <td className="p-2 border w-14 text-right">
+                      <input
+                        className="w-full border px-1 py-0.5 text-xs text-right"
+                        type="number"
+                        min={1}
+                        value={item.quantity || 1}
+                        onChange={e => updateItemField(idx, 'quantity', e.target.value)}
+                        onBlur={e => handleItemBlur(idx, 'quantity', e.target.value)}
+                      />
+                    </td>
+                    <td className="p-2 border w-20 text-right">
+                      {item.id
+                        ? getScaledRate(item).toFixed(2)
+                        : ''}
+                    </td>
+                    {/* Amount */}
+                    <td className="p-2 border w-24 text-right">
+                      {item.id
+                        ? (getScaledRate(item) * (Number(item.quantity) || 1)).toFixed(2)
+                        : ''}
+                    </td>
+                    {/* GST Percent */}
+                    <td className="p-2 border w-20">
+                      <input
+                        className="w-full border px-1 py-0.5 text-xs text-right"
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={items[idx]?.gst_percent ?? 18}
+                        onChange={async e => {
+                          const value = Number(e.target.value) || 0;
+                          updateItemField(idx, 'gst_percent', value);
+                          if (item.id) {
+                            await updateSignageItem(item.id, { ...item, gst_percent: value });
+                            const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                            await addFeedNote({
+                              type: 'feed',
+                              content: `Signage item GST updated by ${user?.data?.user?.email || 'Unknown'}`,
+                              signage_item_id: item.id,
+                              orderId,
+                              created_by: user?.data?.user?.id,
+                              created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                              created_by_email: user?.data?.user?.email || ''
+                            });
+                          }
+                        }}
+                      />
+                    </td>
+                    {/* GST Amount */}
+                    <td className="p-2 border w-24 text-right">
+                      {(() => {
+                        const amt = getScaledRate(item) * (Number(item.quantity) || 1);
+                        const gst = Number(item.gst_percent ?? 18);
+                        return (amt * gst / 100).toFixed(2);
+                      })()}
+                    </td>
+                    {/* Cost After Tax */}
+                    <td className="p-2 border w-28 text-right">
+                      {(() => {
+                        const amt = getScaledRate(item) * (Number(item.quantity) || 1);
+                        const gst = Number(item.gst_percent ?? 18);
+                        return (amt + (amt * gst / 100)).toFixed(2);
+                      })()}
+                    </td>
+                    <td className="p-2 border w-8 text-center align-middle no-print">
+                      {item.id && (item.name || item.description || Number(item.quantity) > 1 || Number(item.cost) > 0) && (
+                        <span
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const confirmed = confirm("Are you sure you want to delete this item?");
+                            if (confirmed) {
+                              await deleteSignageItem(item.id);
+                              setItems(items.filter(it => it.id !== item.id));
+                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                              await addFeedNote({
+                                type: 'feed',
+                                content: `Signage item deleted by ${user?.data?.user?.email || 'Unknown'}`,
+                                signage_item_id: item.id,
+                                orderId,
+                                created_by: user?.data?.user?.id,
+                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                created_by_email: user?.data?.user?.email || ''
+                              });
+                            }
+                          }}
+                          className="text-red-500 cursor-pointer flex items-center justify-center"
+                          title="Delete"
+                        >
+                          🗑
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-2 border w-10 text-center align-middle no-print">
+                      {item.id && (
+                        <span
+                          className="text-blue-600 underline cursor-pointer"
+                          onClick={e => {
+                            e.stopPropagation();
+                            const next = showBoqForItemId === item.id ? null : item.id;
+                            setShowBoqForItemId(next);
+                            setSelectedItemId(next);
+                          }}
+                        >
+                          {allBoqs.filter(b => b.signage_item_id === item.id).length}
+                        </span>
+                      )}
+                    </td>
+                  </tr>,
+                  showBoqForItemId === item.id && item.id ? (
+                    <tr key={item.id + '-boq-details'}>
+                      <td colSpan={7} className="bg-yellow-100 p-4 border-t-2 border-yellow-300">
+                        <h3 className="font-medium mb-2">BOQ for selected item</h3>
+                        {(() => {
+                          const boqsWithBlank = [...boqs];
+                          return (
+                            <>
+                              <table className="min-w-full text-sm border mb-2" style={{ minWidth: 900 }}>
+                                <thead className="bg-gray-100 text-left">
+                                  <tr>
+                                    <th className="p-2 border w-8 text-center">S. No.</th>
+                                    <th className="p-2 border w-48">Item</th>
+                                    <th className="p-2 border w-48">Material</th>
+                                    <th className="p-2 border w-20 text-center">Unit</th>
+                                    <th className="p-2 border w-20 text-center">Quantity</th>
+                                    <th className="p-2 border w-28 text-center">Cost/Unit</th>
+                                    <th className="p-2 border w-28 text-center">Total</th>
+                                    <th className="p-2 border"></th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {boqsWithBlank.map((boq, bidx) => (
+                                    <tr key={boq.id}>
+                                      <td className="p-2 border w-8 text-center">{bidx + 1}</td>
+                                      <td className="p-2 border w-32">
+                                        <input
+                                          className="w-full border px-1 py-0.5 text-xs"
+                                          value={boq.item || ''}
+                                          onChange={e => {
+                                            const value = e.target.value;
+                                            if (boq.id) {
+                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, item: value } : b));
+                                            }
+                                          }}
+                                          onBlur={async (e) => {
+                                            const value = e.target.value.trim();
+                                            if (boq.id) {
+                                              await updateBoqItem(boq.id, { ...boq, item: value });
+                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                              await addFeedNote({
+                                                type: 'feed',
+                                                content: `BOQ item field updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                                boq_item_id: boq.id,
+                                                signage_item_id: boq.signage_item_id,
+                                                orderId,
+                                                created_by: user?.data?.user?.id,
+                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                created_by_email: user?.data?.user?.email || ''
+                                              });
+                                            }
+                                          }}
+                                        />
+                                      </td>
+                                      <td className="p-2 border">
+                                        <input
+                                          className="w-full border px-1 py-0.5 text-xs"
+                                          value={boq.material}
+                                          onChange={e => {
+                                            const value = e.target.value;
+                                            if (boq.id) {
+                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, material: value } : b));
+                                            }
+                                          }}
+                                          onBlur={async (e) => {
+                                            const value = e.target.value.trim();
+                                            if (boq.id) {
+                                              await updateBoqItem(boq.id, boq);
+                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                              await addFeedNote({
+                                                type: 'feed',
+                                                content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                                boq_item_id: boq.id,
+                                                signage_item_id: boq.signage_item_id,
+                                                orderId,
+                                                created_by: user?.data?.user?.id,
+                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                created_by_email: user?.data?.user?.email || ''
+                                              });
+                                            }
+                                          }}
+                                        />
+                                      </td>
+                                      <td className="p-2 border w-16 text-center">
+                                        <input
+                                          className="w-full border px-1 py-0.5 text-xs text-center"
+                                          value={boq.unit}
+                                          onChange={e => {
+                                            const value = e.target.value;
+                                            if (boq.id) {
+                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
+                                            }
+                                          }}
+                                          onBlur={async () => {
+                                            if (boq.id) {
+                                              await updateBoqItem(boq.id, boq);
+                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                              await addFeedNote({
+                                                type: 'feed',
+                                                content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                                boq_item_id: boq.id,
+                                                signage_item_id: boq.signage_item_id,
+                                                orderId,
+                                                created_by: user?.data?.user?.id,
+                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                created_by_email: user?.data?.user?.email || ''
+                                              });
+                                            }
+                                          }}
+                                        />
+                                      </td>
+                                      <td className="p-2 border w-16 text-center">
+                                        <input
+                                          className="w-full border px-1 py-0.5 text-xs text-right"
+                                          type="number"
+                                          value={boq.quantity}
+                                          onChange={e => {
+                                            const value = e.target.value;
+                                            if (boq.id) {
+                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, quantity: value } : b));
+                                            }
+                                          }}
+                                          onBlur={async () => {
+                                            if (boq.id) {
+                                              await updateBoqItem(boq.id, boq);
+                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                              await addFeedNote({
+                                                type: 'feed',
+                                                content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                                boq_item_id: boq.id,
+                                                signage_item_id: boq.signage_item_id,
+                                                orderId,
+                                                created_by: user?.data?.user?.id,
+                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                created_by_email: user?.data?.user?.email || ''
+                                              });
+                                            }
+                                          }}
+                                        />
+                                      </td>
+                                      <td className="p-2 border w-20 text-center">
+                                        <input
+                                          className="w-full border px-1 py-0.5 text-xs text-right"
+                                          type="number"
+                                          value={boq.cost_per_unit}
+                                          onChange={e => {
+                                            const value = e.target.value;
+                                            if (boq.id) {
+                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, cost_per_unit: value } : b));
+                                            }
+                                          }}
+                                          onBlur={async () => {
+                                            if (boq.id) {
+                                              await updateBoqItem(boq.id, boq);
+                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                              await addFeedNote({
+                                                type: 'feed',
+                                                content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                                boq_item_id: boq.id,
+                                                signage_item_id: boq.signage_item_id,
+                                                orderId,
+                                                created_by: user?.data?.user?.id,
+                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                created_by_email: user?.data?.user?.email || ''
+                                              });
+                                            }
+                                          }}
+                                        />
+                                      </td>
+                                      <td className="p-2 border w-20 text-center">
+                                        <input
+                                          className="w-full border px-1 py-0.5 text-xs text-right"
+                                          type="number"
+                                          value={Number(boq.quantity) * Number(boq.cost_per_unit) || 0}
+                                          readOnly
+                                        />
+                                      </td>
+                                      <td className="p-2 border text-right">
+                                        {boq.id && (
+                                          <span
+                                            onClick={async () => {
+                                              const confirmed = confirm("Delete this BOQ entry?");
+                                              if (confirmed) {
+                                                await deleteBoqItem(boq.id);
+                                                setBoqs(boqs.filter(b => b.id !== boq.id));
+                                              }
+                                            }}
+                                            className="ml-2 text-red-500 cursor-pointer"
+                                          >
+                                            🗑
+                                          </span>
+                                        )}
+                                        {boq.id && procurementTasksByBoqId[boq.id]?.length > 0 && (
+                                          <span
+                                            title={
+                                              procurementTasksByBoqId[boq.id][0].status === 'received'
+                                                ? 'Procurement received, material available'
+                                                : 'Procurement created'
+                                            }
+                                            style={{ cursor: 'pointer', marginLeft: 8 }}
+                                            onClick={() => setSelectedProcurement(procurementTasksByBoqId[boq.id][0])}
+                                          >
+                                            {procurementTasksByBoqId[boq.id][0].status === 'received' ? '✅' : '🛒'}
+                                          </span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                              <button
+                                className="mt-2 px-3 py-1 bg-yellow-400 text-black rounded hover:bg-yellow-500 self-start"
+                                onClick={async () => {
+                                  if (selectedItemId) {
+                                    const newBoq = await addBoqItem(selectedItemId, { material: '', quantity: 1, unit: '', cost_per_unit: 0 });
+                                    setBoqs([...boqs, newBoq]);
+                                  }
+                                }}
+                                type="button"
+                              >
+                                + Add BOQ
+                              </button>
+                            </>
+                          );
+                        })()}
+                      </td>
+                    </tr>
+                  ) : null
+                ])}
+              </tbody>
+            </table>
+            <button
+              className="mt-4 px-3 py-1 bg-yellow-400 text-black rounded hover:bg-yellow-500 self-start"
+              onClick={handleAddBlankItem}
+              type="button"
+            >
+              + Add Item
+            </button>
+            <div className="mt-8 border-t pt-4">
+              <div className="flex justify-end">
+                <table className="text-sm font-semibold">
+                  <tbody>
+                    <tr>
+                      <td className="text-right pr-8 align-middle">TOTAL</td>
+                      <td className="text-right">&#8377; {totalCost.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td className="text-right pr-8 align-middle">DISCOUNT</td>
+                      <td className="text-right">
+                        <input
+                          type="number"
+                          className="border px-1 py-0.5 text-right w-20 text-xs"
+                          value={discount}
+                          onChange={(e) => setDiscount(Number(e.target.value) || 0)}
+                          onBlur={handleDiscountBlur}
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="text-right pr-8 align-middle">NET TOTAL</td>
+                      <td className="text-right">&#8377; {netTotal.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              {/* GST Summary Table */}
+              <div className="flex justify-end mt-2">
+                <table className="text-xs border">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-1">GST Rate</th>
+                      {isKarnataka ? (
+                        <>
+                          <th className="border p-1">CGST</th>
+                          <th className="border p-1">SGST</th>
+                        </>
+                      ) : (
+                        <th className="border p-1">IGST</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(gstSummary).filter(([_rate, amount]) => amount > 0.001).map(([rate, amount]) => {
+                      if (isKarnataka) {
+                        const halfRate = (Number(rate) / 2).toFixed(1).replace(/\.0$/, "");
+                        return (
+                          <tr key={rate}>
+                            <td className="border p-1">{rate}%</td>
+                            <td className="border p-1 text-right">&#8377; {(amount/2).toFixed(2)} <span className="text-gray-500">({halfRate}%)</span></td>
+                            <td className="border p-1 text-right">&#8377; {(amount/2).toFixed(2)} <span className="text-gray-500">({halfRate}%)</span></td>
+                          </tr>
+                        );
+                      } else {
+                        return (
+                          <tr key={rate}>
+                            <td className="border p-1">{rate}%</td>
+                            <td className="border p-1 text-right" colSpan={2}>&#8377; {amount.toFixed(2)}</td>
+                          </tr>
+                        );
+                      }
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex justify-end mt-2">
+                <table className="text-sm font-bold">
+                  <tbody>
+                    <tr className="text-lg">
+                      <td className="text-right pr-8 align-middle">GRAND TOTAL</td>
+                      <td className="text-right">&#8377; {grandTotal.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
