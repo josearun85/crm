@@ -181,7 +181,7 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
       status: 'Confirmed',
       invoice_number: String(nextNumber),
       invoice_json_snapshot,
-      confirmed_at: new Date().toISOString()
+      invoice_date: inv.invoice_date || new Date().toISOString().slice(0, 10)
     }).eq('id', inv.id);
     if (onReorder) onReorder();
   };
