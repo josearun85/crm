@@ -114,7 +114,7 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
 
   // Split invoices by status
   const draftInvoices = invoices.filter(inv => inv.status === 'Draft');
-  const pendingInvoices = invoices.filter(inv => inv.status === 'Confirmed' && inv.payment_status !== 'Paid');
+  const pendingInvoices = invoices.filter(inv => inv.status === 'Confirmed');
   const pastInvoices = invoices.filter(inv => inv.status !== 'Draft' && (inv.status !== 'Confirmed' || inv.payment_status === 'Paid'));
   const paginatedPending = pendingInvoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const paginatedPast = pastInvoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
