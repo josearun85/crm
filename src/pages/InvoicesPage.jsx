@@ -46,7 +46,7 @@ export default function InvoicesPage() {
 
   useEffect(() => {
     fetchInvoices();
-  }, []);
+  }, [activeTab]);
 
   // Handler to create a new draft invoice
   const handleCreateInvoice = () => setShowCreateModal(true);
