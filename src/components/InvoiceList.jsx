@@ -185,7 +185,7 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
                         {(provided, snapshot) => (
                           <tr ref={provided.innerRef} {...provided.draggableProps} style={{ ...provided.draggableProps.style, background: snapshot.isDragging ? '#ffe066' : undefined }}>
                             <td {...provided.dragHandleProps} style={{ cursor: 'grab', width: 24, textAlign: 'center' }}>☰</td>
-                            <td>{inv.status === 'Draft' ? `draft${lastLegalNumber + sortedDraftInvoices.findIndex(d => d.id === inv.id) + 1}` : inv.invoice_number || '-'}</td>
+                            <td>{inv.status === 'Draft' ? `draft${idx + 1}` : inv.invoice_number || '-'}</td>
                             <td>
                               {inv.status === 'Draft' ? (
                                 <input
