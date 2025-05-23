@@ -18,6 +18,7 @@ export default function Navbar({ session }) {
         <Link to="/enquiries" className={location.pathname.startsWith('/enquiries') ? 'active' : ''}>Enquiries</Link>
         <Link to="/customers" className={location.pathname.startsWith('/customers') ? 'active' : ''}>Customers</Link>
         <Link to="/orders-v2" className={location.pathname.startsWith('/orders-v2') ? 'active' : ''}>Orders</Link>
+        <Link to="/invoices" className={location.pathname.startsWith('/invoices') ? 'active' : ''}>Invoices</Link>
         <Link to="/inventory" className={location.pathname.startsWith('/inventory') ? 'active' : ''}>Inventory</Link>
         <Link to="/vendors" className={location.pathname.startsWith('/vendors') ? 'active' : ''}>Vendors</Link>
         <Link to="/feeds" className={location.pathname.startsWith('/feeds') ? 'active' : ''}>Feeds</Link>

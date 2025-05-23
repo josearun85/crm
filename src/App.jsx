@@ -4,7 +4,7 @@ import CustomersPage from './pages/CustomersPage.jsx'
 import OrderPage from './pages/OrderPage.jsx'
 import EnquiriesPage from './pages/EnquiriesPage.jsx'
 import OrderDetailPage from './pages/orders/OrderDetailPage.jsx';
-// import InvoicesPage from './pages/InvoicesPage.jsx'
+import InvoicesPage from './pages/InvoicesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import ResetPassword from './pages/ResetPassword.jsx';
 import Navbar from './components/Navbar.jsx'
@@ -62,6 +62,7 @@ export default function App() {
                 <Route path="/inventory" element={<InventoryPage />} />
                 <Route path="/vendors" element={<VendorsPage />} />
                 <Route path="/feeds" element={<FeedPage />} />
+                <Route path="/invoices" element={<InvoicesPage />} />
               </>
             )}
           </Routes>

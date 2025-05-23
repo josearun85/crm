@@ -84,57 +84,54 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
           const bgColor = isOverdue ? '#ffcdd2' : (statusColorMap[normalizedStatus] || '#f5f5f5');
 
           return (
-            <tr key={`order-${order.id}`}>
-              <td colSpan="6" style={{ paddingLeft: '2rem' }}>
+            <div key={`order-${order.id}`} style={{ paddingLeft: '2rem', marginBottom: '10px' }}>
+              <div
+                style={{
+                  backgroundColor: bgColor,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                  borderRadius: '6px',
+                  padding: '12px',
+                }}
+              >
                 <div
-                  style={{
-                    backgroundColor: bgColor,
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-                    borderRadius: '6px',
-                    padding: '12px',
-                    marginBottom: '10px'
-                  }}
+                  style={{ fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}
+                  onClick={() => goToGantt(order.id)}
                 >
-                  <div
-                    style={{ fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}
-                    onClick={() => goToGantt(order.id)}
-                  >
-                    Order #{order.id}
-                  </div>
-                  <div style={{ fontSize: '0.85rem', marginTop: '8px', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <label>
-                      Due:{' '}
-                      <input
-                        type="date"
-                        value={order.due_date}
-                        onChange={(e) => {
-                          updateOrder(order.id, { due_date: e.target.value });
-                          if (onOrderUpdated) onOrderUpdated();
-                        }}
-                        style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
-                      />
-                    </label>
-                    <label>
-                      Status:{' '}
-                      <select
-                        value={normalizedStatus}
-                        onChange={(e) => {
-                          updateOrder(order.id, { status: e.target.value.toLowerCase() });
-                          if (onOrderUpdated) onOrderUpdated();
-                        }}
-                        style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
-                      >
-                        <option value="NEW">New</option>
-                        <option value="IN PROGRESS">In Progress</option>
-                        <option value="HOLD">Hold</option>
-                        <option value="CLOSED">Closed</option>
-                        <option value="DELAYED">Delayed</option>
-                      </select>
-                    </label>
-                  </div>
+                  Order #{order.id}
                 </div>
-              </td>
-            </tr>
+                <div style={{ fontSize: '0.85rem', marginTop: '8px', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <label>
+                    Due:{' '}
+                    <input
+                      type="date"
+                      value={order.due_date}
+                      onChange={(e) => {
+                        updateOrder(order.id, { due_date: e.target.value });
+                        if (onOrderUpdated) onOrderUpdated();
+                      }}
+                      style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
+                    />
+                  </label>
+                  <label>
+                    Status:{' '}
+                    <select
+                      value={normalizedStatus}
+                      onChange={(e) => {
+                        updateOrder(order.id, { status: e.target.value.toLowerCase() });
+                        if (onOrderUpdated) onOrderUpdated();
+                      }}
+                      style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ccc' }}
+                    >
+                      <option value="NEW">New</option>
+                      <option value="IN PROGRESS">In Progress</option>
+                      <option value="HOLD">Hold</option>
+                      <option value="CLOSED">Closed</option>
+                      <option value="DELAYED">Delayed</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>

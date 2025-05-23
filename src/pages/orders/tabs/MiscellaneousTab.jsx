@@ -30,24 +30,58 @@ export default function MiscellaneousTab({ orderId, gstBillablePercent, setGstBi
     setLocalPercent(gstBillablePercent || "");
   }, [orderId, gstBillablePercent]);
 
+  // Track if user is actively editing the amount field
+  const [editingAmount, setEditingAmount] = useState(false);
+
   // Calculate amount on the fly from percent and signage value
   const calculatedAmount = localPercent && !isNaN(localPercent) && totalSignageValue
     ? ((parseFloat(localPercent) / 100) * totalSignageValue).toFixed(2)
     : "";
 
+  // Track local amount for editing
+  const [localAmount, setLocalAmount] = useState(calculatedAmount);
+
+  // Keep localAmount in sync with percent edits, unless user is editing amount
+  useEffect(() => {
+    if (!editingAmount && lastEdited !== 'amount') {
+      setLocalAmount(calculatedAmount);
+    }
+    // eslint-disable-next-line
+  }, [localPercent, totalSignageValue, calculatedAmount]);
+
+  // When switching order or percent from parent, reset localAmount
+  useEffect(() => {
+    setLocalAmount(calculatedAmount);
+    setEditingAmount(false);
+    // eslint-disable-next-line
+  }, [orderId, gstBillablePercent]);
+
   const handlePercentChange = (val) => {
     setLastEdited('percent');
     setLocalPercent(val);
+    setEditingAmount(false);
+    // Update amount field immediately
+    if (val === '' || isNaN(val)) {
+      setLocalAmount('');
+    } else {
+      setLocalAmount(((parseFloat(val) / 100) * totalSignageValue).toFixed(2));
+    }
   };
   const handleAmountChange = (val) => {
     setLastEdited('amount');
+    setEditingAmount(true);
+    setLocalAmount(val);
     // Convert amount to percent and update localPercent
-    if (val === "" || isNaN(val)) {
-      setLocalPercent("");
+    if (val === '' || isNaN(val)) {
+      setLocalPercent('');
       return;
     }
     const pct = totalSignageValue === 0 ? 0 : ((parseFloat(val) / totalSignageValue) * 100).toFixed(2);
     setLocalPercent(pct);
+  };
+  const handleAmountBlur = () => {
+    setEditingAmount(false);
+    setLocalAmount(calculatedAmount); // Snap to calculated value after editing
   };
 
   const handleSave = async () => {
@@ -107,8 +141,9 @@ export default function MiscellaneousTab({ orderId, gstBillablePercent, setGstBi
         <input
           type="number"
           className="border px-2 py-1 rounded w-full"
-          value={lastEdited === 'amount' ? (calculatedAmount || "") : calculatedAmount}
+          value={editingAmount ? localAmount : calculatedAmount}
           onChange={e => handleAmountChange(e.target.value)}
+          onBlur={handleAmountBlur}
           placeholder="e.g. 20000"
           min="0"
         />

@@ -1,0 +1,138 @@
+/* Modal overlay and content styles for CreateInvoiceModal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  padding: 32px 24px;
+  min-width: 340px;
+  max-width: 90vw;
+}
+.modal-content h2 {
+  margin-top: 0;
+}
+.modal-content label {
+  display: block;
+  margin-bottom: 12px;
+}
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+  width: 100%;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+.modal-content button[type="submit"] {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.modal-content button[type="button"] {
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Improved invoice table layout */
+.invoice-list-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  margin-top: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  font-size: 1rem;
+}
+.invoice-list-table th, .invoice-list-table td {
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 0.92rem;
+}
+.invoice-list-table th {
+  background: #f5f5f5;
+  font-weight: 700;
+  border-bottom: 2px solid #eee;
+  font-size: 0.97rem;
+}
+.invoice-list-table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+.invoice-list-table tbody tr:hover {
+  background: #f0f6ff;
+}
+.invoice-list-table td {
+  vertical-align: middle;
+}
+.invoice-list-table .actions {
+  display: flex;
+  gap: 8px;
+}
+.invoice-list-table button {
+  background: none;
+  border: none;
+  color: #1976d2;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.invoice-list-table button:hover {
+  background: #e3eefd;
+}
+.invoice-list-table button[style*='red'] {
+  color: #d32f2f;
+}
+
+/* Invoice tabs styles */
+.invoice-tabs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.invoice-tabs button {
+  font-size: 1rem;
+  font-weight: 400;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 8px 8px 0 0;
+  transition: background 0.2s, font-weight 0.2s;
+}
+.invoice-tabs button.active {
+  font-weight: 700;
+  background: #ffe066;
+  border-bottom: 2px solid #ffd600;
+  font-size: 1.05rem;
+}
+
+/* Invoices page wrapper */
+.invoices-page-wrapper {
+  font-size: 0.89rem;
+}

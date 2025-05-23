@@ -127,3 +127,44 @@ export async function deleteOrderFiles(orderId) {
     }
   }
 }
+
+// Calculate grand total for an order, matching SignageItemsTab logic
+export function calculateOrderGrandTotal({ signageItems, boqs, discount = 0, gstBillablePercent, gstBillableAmount }) {
+  // Helper: scaling factor for GST-billable
+  function getGstBillableScaling(items) {
+    if (gstBillablePercent !== undefined && gstBillablePercent !== null && gstBillablePercent !== '' && Number(gstBillablePercent) !== 100) {
+      return Number(gstBillablePercent) / 100;
+    }
+    const billable = Number(gstBillableAmount);
+    if (!billable || !items.length) return 1;
+    const originalTotal = items.reduce((sum, item) => sum + Number(item.cost || 0), 0);
+    if (!originalTotal || billable === originalTotal) return 1;
+    return billable / originalTotal;
+  }
+
+  // Calculate scaled cost for each signage item
+  const scaling = getGstBillableScaling(signageItems);
+  const itemsWithCost = signageItems.map(item => {
+    const itemBoqs = (boqs[item.id] || []);
+    const totalCost = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0) * scaling;
+    const qty = Number(item.quantity) || 1;
+    const rate = totalCost / qty;
+    const amount = rate * qty;
+    const gstPercent = Number(item.gst_percent) || 0;
+    const gstAmount = amount * gstPercent / 100;
+    return { ...item, amount, gstPercent, gstAmount, costAfterTax: amount + gstAmount };
+  });
+
+  const total = itemsWithCost.reduce((sum, i) => sum + i.amount, 0);
+  const netTotal = total - (Number(discount) || 0);
+  const gst = itemsWithCost.reduce((sum, i) => sum + i.gstAmount, 0);
+  const grandTotal = netTotal + gst;
+
+  return {
+    total: Number(total.toFixed(2)),
+    netTotal: Number(netTotal.toFixed(2)),
+    gst: Number(gst.toFixed(2)),
+    grandTotal: Number(grandTotal.toFixed(2)),
+    items: itemsWithCost
+  };
+}

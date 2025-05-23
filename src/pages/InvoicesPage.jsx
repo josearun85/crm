@@ -1,143 +1,139 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
 import supabase from '../supabaseClient';
+import InvoiceList from '../components/InvoiceList';
+import CreateInvoiceModal from '../components/CreateInvoiceModal';
 import './InvoicesPage.css';
 
 export default function InvoicesPage() {
-  const { id } = useParams(); // invoice ID from URL
-  const printRef = useRef();
-  const [invoice, setInvoice] = useState(null);
-  const [customer, setCustomer] = useState(null);
-  const [order, setOrder] = useState(null);
+  const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  // Tab and pagination state
+  const [activeTab, setActiveTab] = useState('drafts');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
-  const handlePrint = () => window.print();
-  const handleEmail = () => alert('This would trigger email functionality.');
+  // Filtered invoice lists for each tab
+  const draftInvoices = useMemo(() => invoices.filter(inv => inv.status === 'Draft'), [invoices]);
+  const pendingInvoices = useMemo(() => invoices.filter(inv => inv.status === 'Confirmed' && inv.payment_status !== 'Paid'), [invoices]);
+  const pastInvoices = useMemo(() => invoices.filter(inv => inv.status !== 'Draft' && (inv.status !== 'Confirmed' || inv.payment_status === 'Paid')), [invoices]);
 
+  // Pagination logic for pending and past
+  const paginatedPending = useMemo(() => pendingInvoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [pendingInvoices, page]);
+  const paginatedPast = useMemo(() => pastInvoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [pastInvoices, page]);
+  const totalPendingPages = Math.ceil(pendingInvoices.length / PAGE_SIZE);
+  const totalPastPages = Math.ceil(pastInvoices.length / PAGE_SIZE);
+
+  // Reset page to 1 when tab changes
+  useEffect(() => { setPage(1); }, [activeTab]);
+
+  // Fetch all invoices, reverse chronological order
   useEffect(() => {
-    const fetchInvoice = async () => {
+    const fetchInvoices = async () => {
       setLoading(true);
-      const { data: invoiceData, error: invoiceError } = await supabase
+      const { data, error } = await supabase
         .from('invoices')
         .select('*')
-        .eq('id', id)
-        .single();
-
-      if (invoiceError) {
-        console.error('Invoice fetch error:', invoiceError);
+        .order('created_at', { ascending: false });
+      if (error) {
+        setError(error.message);
         setLoading(false);
         return;
       }
-
-      setInvoice(invoiceData);
-
-      const [{ data: customerData }, { data: orderData }] = await Promise.all([
-        supabase
-          .from('customers')
-          .select('*')
-          .eq('id', invoiceData.customer_id)
-          .single(),
-        supabase
-          .from('orders')
-          .select('id, name')
-          .eq('id', invoiceData.order_id)
-          .single()
-      ]);
-
-      setCustomer(customerData);
-      setOrder(orderData);
+      setInvoices(data || []);
       setLoading(false);
     };
+    fetchInvoices();
+  }, []);
 
-    fetchInvoice();
-  }, [id]);
+  // Handler to create a new draft invoice
+  const handleCreateInvoice = () => setShowCreateModal(true);
 
-  if (loading || !invoice || !customer || !order) return <p>Loading...</p>;
+  const handleModalCreate = async (invoiceData) => {
+    setShowCreateModal(false);
+    const { data, error } = await supabase
+      .from('invoices')
+      .insert([invoiceData])
+      .select()
+      .single();
+    if (error) {
+      alert('Error creating invoice: ' + error.message);
+      return;
+    }
+    setInvoices((prev) => [data, ...prev]);
+  };
 
-  const {
-    items = [],
-    date,
-    due_date,
-    subtotal,
-    tax,
-    total,
-    id: invoiceId,
-    gst_breakup = {}
-  } = invoice;
+  // Handler to remove deleted invoice from UI
+  const handleDeleteInvoice = (id) => {
+    setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+  };
 
   return (
-    <div className="invoice-wrapper">
-      <div className="invoice-toolbar">
-        <button onClick={handlePrint}>🖨️ Print / PDF</button>
-        <button onClick={handleEmail}>📧 Email to Customer</button>
+    <div className="invoices-page-wrapper" style={{ fontSize: '0.93rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div className="invoice-tabs">
+          <button
+            className={activeTab === 'drafts' ? 'active' : ''}
+            onClick={() => setActiveTab('drafts')}
+          >
+            Drafts
+          </button>
+          <button
+            className={activeTab === 'pending' ? 'active' : ''}
+            onClick={() => setActiveTab('pending')}
+          >
+            Pending Payment
+          </button>
+          <button
+            className={activeTab === 'past' ? 'active' : ''}
+            onClick={() => setActiveTab('past')}
+          >
+            Past Invoices
+          </button>
+        </div>
+        <button
+          onClick={handleCreateInvoice}
+          style={{ background: '#1976d2', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' }}
+        >
+          + Create Invoice
+        </button>
       </div>
-
-      <div className="invoice" ref={printRef}>
-        <header>
-          <h1>Sign Company</h1>
-          <p>123 Banner Street, Bangalore</p>
-          <p>GSTIN: 29ABCDE1234F2Z5</p>
-          <p>PAN: ABCDE1234F</p>
-          <p>+91 98765 43210 | info@citysigns.in</p>
-        </header>
-
-        <section className="invoice-details">
-          <div>
-            <h2>Invoice To:</h2>
-            <p><strong>{customer.name}</strong></p>
-            <p>{customer.email}</p>
-            <p>{customer.phone}</p>
-            <p>GSTIN: {customer.gstin || 'N/A'}</p>
-            <p>PAN: {customer.pan || 'N/A'}</p>
-          </div>
-          <div>
-            <h2>Invoice #{invoiceId}</h2>
-            <p>Order: {order.name || order.id}</p>
-            <p>Date: {new Date(date).toLocaleDateString()}</p>
-            <p>Due: {new Date(due_date).toLocaleDateString()}</p>
-          </div>
-        </section>
-
-        <table className="invoice-table">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Qty</th>
-              <th>Rate</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, i) => (
-              <tr key={i}>
-                <td>{item.description}</td>
-                <td>{item.qty}</td>
-                <td>₹ {item.rate}</td>
-                <td>₹ {item.qty * item.rate}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <section className="invoice-total">
-          <p><strong>Subtotal:</strong> ₹ {subtotal}</p>
-          {gst_breakup?.cgst && (
-            <>
-              <p><strong>CGST (9%):</strong> ₹ {gst_breakup.cgst}</p>
-              <p><strong>SGST (9%):</strong> ₹ {gst_breakup.sgst}</p>
-            </>
-          )}
-          {gst_breakup?.igst && (
-            <p><strong>IGST (18%):</strong> ₹ {gst_breakup.igst}</p>
-          )}
-          <p><strong>Tax Total:</strong> ₹ {tax}</p>
-          <h3><strong>Grand Total:</strong> ₹ {total}</h3>
-        </section>
-
-        <footer>
-          <p>Thank you for your business!</p>
-        </footer>
-      </div>
+      {showCreateModal && (
+        <CreateInvoiceModal
+          onCreate={handleModalCreate}
+          onClose={() => setShowCreateModal(false)}
+        />
+      )}
+      {loading ? (
+        <p>Loading invoices...</p>
+      ) : error ? (
+        <p style={{ color: 'red' }}>{error}</p>
+      ) : (
+        <>
+          {activeTab === 'drafts' && <InvoiceList invoices={draftInvoices} onDelete={handleDeleteInvoice} />}
+          {activeTab === 'pending' && <>
+            <InvoiceList invoices={paginatedPending} onDelete={handleDeleteInvoice} />
+            {totalPendingPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
+                <button onClick={() => setPage(page - 1)} disabled={page === 1}>Prev</button>
+                <span>Page {page} of {totalPendingPages}</span>
+                <button onClick={() => setPage(page + 1)} disabled={page === totalPendingPages}>Next</button>
+              </div>
+            )}
+          </>}
+          {activeTab === 'past' && <>
+            <InvoiceList invoices={paginatedPast} onDelete={handleDeleteInvoice} />
+            {totalPastPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
+                <button onClick={() => setPage(page - 1)} disabled={page === 1}>Prev</button>
+                <span>Page {page} of {totalPastPages}</span>
+                <button onClick={() => setPage(page + 1)} disabled={page === totalPastPages}>Next</button>
+              </div>
+            )}
+          </>}
+        </>
+      )}
     </div>
   );
 }
