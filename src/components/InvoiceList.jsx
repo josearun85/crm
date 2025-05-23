@@ -136,6 +136,14 @@ export default function InvoiceList({ invoices, onDelete }) {
     // No need to set state here, parent will re-fetch invoices
   };
 
+  const handleDateChange = async (inv, newDate) => {
+    await supabase.from('invoices').update({ invoice_date: newDate }).eq('id', inv.id);
+    // Optionally, refresh the UI or update state
+    inv.invoice_date = newDate;
+    // Force re-render
+    setOrderMap(orderMap => ({ ...orderMap }));
+  };
+
   return (
     <div>
       <DragDropContext onDragEnd={onDragEnd}>
@@ -172,7 +180,18 @@ export default function InvoiceList({ invoices, onDelete }) {
                           <tr ref={provided.innerRef} {...provided.draggableProps} style={{ ...provided.draggableProps.style, background: snapshot.isDragging ? '#ffe066' : undefined }}>
                             <td {...provided.dragHandleProps} style={{ cursor: 'grab', width: 24, textAlign: 'center' }}>☰</td>
                             <td>{inv.invoice_number || <em>Draft</em>}</td>
-                            <td>{inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'}</td>
+                            <td>
+                              {inv.status === 'Draft' ? (
+                                <input
+                                  type="date"
+                                  value={inv.invoice_date ? inv.invoice_date.slice(0, 10) : ''}
+                                  onChange={e => handleDateChange(inv, e.target.value)}
+                                  style={{ minWidth: 110 }}
+                                />
+                              ) : (
+                                inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'
+                              )}
+                            </td>
                             <td>{customer ? customer.name : '-'}</td>
                             <td>{customer ? customer.gstin : '-'}</td>
                             <td>{order ? (order.name || order.id) : '-'}</td>
