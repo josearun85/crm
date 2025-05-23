@@ -110,6 +110,104 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 </span>
               )}
             </div>
+            {/* Editable Customer Info Below Job Name */}
+            {order?.customer && (
+              <>
+                {/* Address */}
+                <div>ADDRESS:</div>
+                <div className="truncate relative group font-normal">
+                  {editBuffer._editingAddress ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        className="border rounded p-1 w-full text-xs bg-gray-50 focus:bg-white focus:border-yellow-400 transition"
+                        value={editBuffer.address !== undefined ? editBuffer.address : order.customer.address || ''}
+                        onChange={e => handleFieldChange('address', e.target.value)}
+                        onBlur={async () => {
+                          if (editBuffer.address !== undefined && editBuffer.address !== order.customer.address) {
+                            await import('../services/orderDetailsService').then(m => m.updateCustomerDetails(order.customer.id, { address: editBuffer.address }));
+                            setOrder(prev => ({ ...prev, customer: { ...prev.customer, address: editBuffer.address } }));
+                          }
+                          handleFieldChange('_editingAddress', false);
+                        }}
+                        autoFocus
+                      />
+                      <span className="cursor-pointer text-gray-400 hover:text-red-500" onMouseDown={() => handleFieldChange('_editingAddress', false)} title="Cancel">✖️</span>
+                    </div>
+                  ) : (
+                    <span
+                      className="cursor-pointer group-hover:underline group-hover:text-yellow-700"
+                      onClick={() => handleFieldChange('_editingAddress', true)}
+                      title="Click to edit address"
+                    >
+                      {order.customer.address || <span className="text-gray-400 italic">(no address)</span>}
+                      <span className="ml-1 text-gray-400 group-hover:inline hidden">✏️</span>
+                    </span>
+                  )}
+                </div>
+                {/* Phone */}
+                <div>PHONE:</div>
+                <div className="truncate relative group font-normal">
+                  {editBuffer._editingPhone ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        className="border rounded p-1 w-full text-xs bg-gray-50 focus:bg-white focus:border-yellow-400 transition"
+                        value={editBuffer.phone !== undefined ? editBuffer.phone : order.customer.phone || ''}
+                        onChange={e => handleFieldChange('phone', e.target.value)}
+                        onBlur={async () => {
+                          if (editBuffer.phone !== undefined && editBuffer.phone !== order.customer.phone) {
+                            await import('../services/orderDetailsService').then(m => m.updateCustomerDetails(order.customer.id, { phone: editBuffer.phone }));
+                            setOrder(prev => ({ ...prev, customer: { ...prev.customer, phone: editBuffer.phone } }));
+                          }
+                          handleFieldChange('_editingPhone', false);
+                        }}
+                        autoFocus
+                      />
+                      <span className="cursor-pointer text-gray-400 hover:text-red-500" onMouseDown={() => handleFieldChange('_editingPhone', false)} title="Cancel">✖️</span>
+                    </div>
+                  ) : (
+                    <span
+                      className="cursor-pointer group-hover:underline group-hover:text-yellow-700"
+                      onClick={() => handleFieldChange('_editingPhone', true)}
+                      title="Click to edit phone"
+                    >
+                      {order.customer.phone || <span className="text-gray-400 italic">(no phone)</span>}
+                      <span className="ml-1 text-gray-400 group-hover:inline hidden">✏️</span>
+                    </span>
+                  )}
+                </div>
+                {/* Email */}
+                <div>EMAIL:</div>
+                <div className="truncate relative group font-normal">
+                  {editBuffer._editingEmail ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        className="border rounded p-1 w-full text-xs bg-gray-50 focus:bg-white focus:border-yellow-400 transition"
+                        value={editBuffer.email !== undefined ? editBuffer.email : order.customer.email || ''}
+                        onChange={e => handleFieldChange('email', e.target.value)}
+                        onBlur={async () => {
+                          if (editBuffer.email !== undefined && editBuffer.email !== order.customer.email) {
+                            await import('../services/orderDetailsService').then(m => m.updateCustomerDetails(order.customer.id, { email: editBuffer.email }));
+                            setOrder(prev => ({ ...prev, customer: { ...prev.customer, email: editBuffer.email } }));
+                          }
+                          handleFieldChange('_editingEmail', false);
+                        }}
+                        autoFocus
+                      />
+                      <span className="cursor-pointer text-gray-400 hover:text-red-500" onMouseDown={() => handleFieldChange('_editingEmail', false)} title="Cancel">✖️</span>
+                    </div>
+                  ) : (
+                    <span
+                      className="cursor-pointer group-hover:underline group-hover:text-yellow-700"
+                      onClick={() => handleFieldChange('_editingEmail', true)}
+                      title="Click to edit email"
+                    >
+                      {order.customer.email || <span className="text-gray-400 italic">(no email)</span>}
+                      <span className="ml-1 text-gray-400 group-hover:inline hidden">✏️</span>
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
         {/* Center: Prominent Logo */}

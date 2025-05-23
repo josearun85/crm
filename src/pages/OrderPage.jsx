@@ -133,6 +133,25 @@ export default function OrderPage() {
     setActiveStep({ ...steps[idx], popupPosition: { x: adjustedX, y: adjustedY } });
   };
 
+  useEffect(() => {
+    if (!order || !order.id) return;
+    async function ensureDraftInvoice() {
+      const { data: invoices, error } = await import('../supabaseClient').then(m => m.default
+        .from('invoices')
+        .select('id, order_id, status')
+        .eq('order_id', order.id)
+      );
+      if (!error && (!invoices || invoices.length === 0)) {
+        // No invoice exists, insert a draft
+        await import('../supabaseClient').then(m => m.default
+          .from('invoices')
+          .insert([{ order_id: order.id, status: 'Draft', created_at: new Date().toISOString() }])
+        );
+      }
+    }
+    ensureDraftInvoice();
+  }, [order]);
+
   if (loading) {
     return <p>Loading...</p>;
   }

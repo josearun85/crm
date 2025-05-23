@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import supabase from '../supabaseClient';
 import { FaTrash, FaEdit, FaCheckCircle, FaTimesCircle, FaFilePdf, FaSync } from 'react-icons/fa';
 import { calculateOrderGrandTotal } from '../services/orderService';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const PAGE_SIZE = 10;
 
@@ -114,52 +115,86 @@ export default function InvoiceList({ invoices, onDelete }) {
   const totalPendingPages = Math.ceil(pendingInvoices.length / PAGE_SIZE);
   const totalPastPages = Math.ceil(pastInvoices.length / PAGE_SIZE);
 
+  // Sort draft invoices by sort_order (or fallback to created_at/id)
+  const sortedDraftInvoices = [...draftInvoices].sort((a, b) => {
+    if (a.sort_order !== undefined && b.sort_order !== undefined) return a.sort_order - b.sort_order;
+    if (a.created_at && b.created_at) return new Date(a.created_at) - new Date(b.created_at);
+    return (a.id || 0) - (b.id || 0);
+  });
+
+  // Handle drag end for draft invoices
+  const onDragEnd = async (result) => {
+    if (!result.destination) return;
+    const reordered = Array.from(sortedDraftInvoices);
+    const [removed] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, removed);
+    // Update sort_order in DB and in-memory
+    for (let i = 0; i < reordered.length; i++) {
+      reordered[i].sort_order = i;
+      await supabase.from('invoices').update({ sort_order: i }).eq('id', reordered[i].id);
+    }
+    // No need to set state here, parent will re-fetch invoices
+  };
+
   return (
     <div>
-      <table className="invoice-list-table">
-        <thead>
-          <tr>
-            <th>Invoice #</th>
-            <th>Date</th>
-            <th>Customer</th>
-            <th>GSTIN</th>
-            <th>Order</th>
-            <th>Status</th>
-            <th>Amount</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
-            <tr><td colSpan={8} style={{textAlign:'center'}}>Loading...</td></tr>
-          ) : draftInvoices.length === 0 ? (
-            <tr>
-              <td colSpan={8} style={{ textAlign: 'center' }}>No draft invoices found.</td>
-            </tr>
-          ) : (
-            draftInvoices.map((inv) => {
-              const order = orderMap[inv.order_id];
-              const customer = order ? customerMap[order.customer_id] : null;
-              return (
-                <tr key={inv.id}>
-                  <td>{inv.invoice_number || <em>Draft</em>}</td>
-                  <td>{inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'}</td>
-                  <td>{customer ? customer.name : '-'}</td>
-                  <td>{customer ? customer.gstin : '-'}</td>
-                  <td>{order ? (order.name || order.id) : '-'}</td>
-                  <td>{inv.status}</td>
-                  <td>{getTotal(inv)}</td>
-                  <td className="actions">
-                    <button onClick={() => handleDelete(inv.id)} title="Delete"><FaTrash style={{color:'#d32f2f'}} /> Delete</button>
-                    <button title="Edit"><FaEdit /> Edit</button>
-                    <button title="Confirm"><FaCheckCircle style={{color:'#388e3c'}} /> Confirm</button>
-                  </td>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="draft-invoices-droppable" direction="vertical">
+          {(provided) => (
+            <table className="invoice-list-table" ref={provided.innerRef} {...provided.droppableProps}>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Invoice #</th>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>GSTIN</th>
+                  <th>Order</th>
+                  <th>Status</th>
+                  <th>Amount</th>
+                  <th>Actions</th>
                 </tr>
-              );
-            })
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={9} style={{textAlign:'center'}}>Loading...</td></tr>
+                ) : sortedDraftInvoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} style={{ textAlign: 'center' }}>No draft invoices found.</td>
+                  </tr>
+                ) : (
+                  sortedDraftInvoices.map((inv, idx) => {
+                    const order = orderMap[inv.order_id];
+                    const customer = order ? customerMap[order.customer_id] : null;
+                    return (
+                      <Draggable key={inv.id} draggableId={String(inv.id)} index={idx}>
+                        {(provided, snapshot) => (
+                          <tr ref={provided.innerRef} {...provided.draggableProps} style={{ ...provided.draggableProps.style, background: snapshot.isDragging ? '#ffe066' : undefined }}>
+                            <td {...provided.dragHandleProps} style={{ cursor: 'grab', width: 24, textAlign: 'center' }}>☰</td>
+                            <td>{inv.invoice_number || <em>Draft</em>}</td>
+                            <td>{inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'}</td>
+                            <td>{customer ? customer.name : '-'}</td>
+                            <td>{customer ? customer.gstin : '-'}</td>
+                            <td>{order ? (order.name || order.id) : '-'}</td>
+                            <td>{inv.status}</td>
+                            <td>{getTotal(inv)}</td>
+                            <td className="actions">
+                              <button onClick={() => handleDelete(inv.id)} title="Delete"><FaTrash style={{color:'#d32f2f'}} /> Delete</button>
+                              <button title="Edit"><FaEdit /> Edit</button>
+                              <button title="Confirm"><FaCheckCircle style={{color:'#388e3c'}} /> Confirm</button>
+                            </td>
+                          </tr>
+                        )}
+                      </Draggable>
+                    );
+                  })
+                )}
+                {provided.placeholder}
+              </tbody>
+            </table>
           )}
-        </tbody>
-      </table>
+        </Droppable>
+      </DragDropContext>
       {totalPendingPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
           <button onClick={() => setPage(page - 1)} disabled={page === 1}>Prev</button>
