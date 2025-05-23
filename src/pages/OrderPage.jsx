@@ -135,22 +135,28 @@ export default function OrderPage() {
 
   useEffect(() => {
     if (!order || !order.id) return;
+    let cancelled = false;
     async function ensureDraftInvoice() {
-      const { data: invoices, error } = await import('../supabaseClient').then(m => m.default
-        .from('invoices')
-        .select('id, order_id, status')
-        .eq('order_id', order.id)
-      );
-      if (!error && (!invoices || invoices.length === 0)) {
-        // No invoice exists, insert a draft
-        await import('../supabaseClient').then(m => m.default
+      try {
+        const supabaseClient = await import('../supabaseClient').then(m => m.default);
+        const { data: invoices, error: fetchError } = await supabaseClient
           .from('invoices')
-          .insert([{ order_id: order.id, status: 'Draft', created_at: new Date().toISOString() }])
-        );
+          .select('id, order_id, status')
+          .eq('order_id', order.id);
+        if (fetchError) return; // fail silently
+        if (!invoices || invoices.length === 0) {
+          const { error: insertError } = await supabaseClient
+            .from('invoices')
+            .insert([{ order_id: order.id, status: 'Draft', created_at: new Date().toISOString() }]);
+          if (insertError) return; // fail silently
+        }
+      } catch (err) {
+        // fail silently
       }
     }
     ensureDraftInvoice();
-  }, [order]);
+    return () => { cancelled = true; };
+  }, [order && order.id]);
 
   if (loading) {
     return <p>Loading...</p>;
