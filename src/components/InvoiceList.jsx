@@ -121,12 +121,26 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
   const totalPendingPages = Math.ceil(pendingInvoices.length / PAGE_SIZE);
   const totalPastPages = Math.ceil(pastInvoices.length / PAGE_SIZE);
 
-  // Sort draft invoices by sort_order (or fallback to created_at/id)
-  const sortedDraftInvoices = [...draftInvoices].sort((a, b) => {
-    if (a.sort_order !== undefined && b.sort_order !== undefined) return a.sort_order - b.sort_order;
-    if (a.created_at && b.created_at) return new Date(a.created_at) - new Date(b.created_at);
-    return (a.id || 0) - (b.id || 0);
-  });
+  // Helper: get all draft numbers already used by reverted drafts
+  const revertedDraftNumbers = draftInvoices
+    .filter(inv => inv.invoice_number && /^\d+$/.test(inv.invoice_number))
+    .map(inv => parseInt(inv.invoice_number, 10));
+
+  // Helper: get the next available draft number, skipping reverted numbers
+  function getNextDraftNumber(usedNumbers) {
+    let n = 1;
+    while (usedNumbers.includes(n)) n++;
+    return n;
+  }
+
+  // Sort: reverted drafts (with invoice_number) first, then new drafts, but draft number is always based on position
+  const sortedDraftInvoices = [
+    ...draftInvoices.filter(inv => inv.invoice_number && /^\d+$/.test(inv.invoice_number)),
+    ...draftInvoices.filter(inv => !inv.invoice_number || !/^\d+$/.test(inv.invoice_number))
+  ];
+
+  // Track used draft numbers for new drafts
+  let usedDraftNumbers = [...revertedDraftNumbers];
 
   // Handle drag end for draft invoices
   const onDragEnd = async (result) => {
@@ -148,6 +162,38 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
     inv.invoice_date = newDate;
     // Force re-render
     setOrderMap(orderMap => ({ ...orderMap }));
+  };
+
+  // Helper to get next invoice number
+  const getNextInvoiceNumber = () => {
+    const numbers = invoices
+      .filter(inv => inv.status !== 'Draft' && inv.invoice_number && /^\d+$/.test(inv.invoice_number))
+      .map(inv => parseInt(inv.invoice_number, 10));
+    return numbers.length ? Math.max(...numbers) + 1 : 1;
+  };
+
+  // Confirm draft invoice
+  const handleConfirm = async (inv) => {
+    const nextNumber = getNextInvoiceNumber();
+    // Save a JSON snapshot (for now, just a shallow copy)
+    const invoice_json_snapshot = { ...inv };
+    await supabase.from('invoices').update({
+      status: 'Confirmed',
+      invoice_number: String(nextNumber),
+      invoice_json_snapshot,
+      confirmed_at: new Date().toISOString()
+    }).eq('id', inv.id);
+    if (onReorder) onReorder();
+  };
+
+  // Revert confirmed invoice to draft
+  const handleRevert = async (inv) => {
+    await supabase.from('invoices').update({
+      status: 'Draft',
+      invoice_number: null,
+      invoice_json_snapshot: null
+    }).eq('id', inv.id);
+    if (onReorder) onReorder();
   };
 
   return (
@@ -206,7 +252,12 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
                             <td className="actions">
                               <button onClick={() => handleDelete(inv.id)} title="Delete"><FaTrash style={{color:'#d32f2f'}} /> Delete</button>
                               <button title="Edit"><FaEdit /> Edit</button>
-                              <button title="Confirm"><FaCheckCircle style={{color:'#388e3c'}} /> Confirm</button>
+                              {inv.status === 'Draft' && (
+                                <button title="Confirm" onClick={() => handleConfirm(inv)}><FaCheckCircle style={{color:'#388e3c'}} /> Confirm</button>
+                              )}
+                              {inv.status === 'Confirmed' && (
+                                <button title="Revert to Draft" onClick={() => handleRevert(inv)}><FaTimesCircle style={{color:'#d32f2f'}} /> Revert</button>
+                              )}
                             </td>
                           </tr>
                         )}
