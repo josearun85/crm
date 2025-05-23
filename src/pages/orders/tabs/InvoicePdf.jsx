@@ -47,7 +47,9 @@ export default function InvoicePdf({ invoice, customer, items }) {
         <div style={{ flex: 2, borderRight: '1px solid #222', padding: 8 }}>
           <div style={{ fontWeight: 'bold' }}>Bill to</div>
           <div>{customer.name || '-'}</div>
-          <div style={{ whiteSpace: 'pre-line' }}>{customer.address || '-'}</div>
+          {/* <div style={{ whiteSpace: 'pre-line' }}>{customer.address || '-'}</div> */}
+          <div style={{ whiteSpace: 'pre-line' }}>No46, 9th main road, 80ft main road, HAL 3rd stage, Bangalore 560038</div>
+          
           <div><b>GSTIN No:-</b> {(customer.gstin || '').toUpperCase()}</div>
         </div>
         <div style={{ flex: 1, borderRight: '1px solid #222', padding: 8 }}>
@@ -56,8 +58,8 @@ export default function InvoicePdf({ invoice, customer, items }) {
         </div>
         <div style={{ flex: 1, padding: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 'bold' }}>INVOICE No</span>
-            <span>{invoice.number}.{invoice.version || 1}.{invoice.date ? new Date(invoice.date).getFullYear() : new Date().getFullYear()}</span>
+            <span style={{ fontWeight: 'bold' }}>INVOICE No:2</span>
+            {/* <span>{invoice.number}.{invoice.version || 1}.{invoice.date ? new Date(invoice.date).getFullYear() : new Date().getFullYear()}</span> */}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
             <span style={{ fontWeight: 'bold' }}>Dated</span>
@@ -120,14 +122,14 @@ export default function InvoicePdf({ invoice, customer, items }) {
           <div style={{ maxWidth: 340, float: 'left' }}>
             <div style={{ marginBottom: 2 }}>Total</div>
             {Number(invoice.discount) > 0 && <div style={{ marginBottom: 2 }}>Less Discount</div>}
-            <div style={{ marginBottom: 2 }}>Taxable Value</div>
+            {/* <div style={{ marginBottom: 2 }}>Taxable Value</div> */}
             <div style={{ marginBottom: 2 }}>ADD SGST</div>
             <div style={{ marginBottom: 2 }}>ADD CGST</div>
           </div>
           <div style={{ float: 'right', textAlign: 'right', fontWeight: 'normal', minWidth: 120 }}>
             <div style={{ marginBottom: 2 }}>{invoice.total}</div>
             {Number(invoice.discount) > 0 && <div style={{ marginBottom: 2 }}>{invoice.discount}</div>}
-            <div style={{ marginBottom: 2 }}>{invoice.taxable_value}</div>
+            {/* <div style={{ marginBottom: 2 }}>{invoice.taxable_value}</div> */}
             <div style={{ marginBottom: 2 }}>9% {invoice.sgst}</div>
             <div style={{ marginBottom: 2 }}>9% {invoice.cgst}</div>
             <div style={{ marginTop: 12, fontWeight: 'bold', fontSize: 16 }}>Total<br />{invoice.grand_total}</div>
