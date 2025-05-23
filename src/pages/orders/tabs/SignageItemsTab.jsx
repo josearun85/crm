@@ -4,6 +4,25 @@ import SignageItemsPdf from "./SignageItemsPdf";
 import InvoicePdf from "./InvoicePdf";
 import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem, fetchProcurementTasks, ensureFabricationStepsForSignageItems, fetchInventory, addFeedNote, fetchOrderOverview, updateOrderDetails } from "../services/orderDetailsService";
 import { createRoot } from "react-dom/client";
+import Select from 'react-select';
+
+const unitOptions = [
+  { value: 'nos', label: 'nos' },
+  { value: 'kg', label: 'kg' },
+  { value: 'm', label: 'm' },
+  { value: 'cm', label: 'cm' },
+  { value: 'mm', label: 'mm' },
+  { value: 'ft', label: 'ft' },
+  { value: 'inch', label: 'inch' },
+  { value: 'set', label: 'set' },
+  { value: 'box', label: 'box' },
+  { value: 'sheet', label: 'sheet' },
+  { value: 'trip', label: 'trip (logistics)' },
+  { value: 'km', label: 'km (logistics)' },
+  { value: 'hour', label: 'hour (man hours)' },
+  { value: 'day', label: 'day (man hours)' },
+  { value: 'lump sum', label: 'lump sum' },
+];
 
 export default function SignageItemsTab({ orderId, customerGstin, setCustomerGstin, customerPan, setCustomerPan, gstBillableAmount, gstBillablePercent }) {
   const [items, setItems] = useState([]);
@@ -851,31 +870,25 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                                         />
                                       </td>
                                       <td className="p-2 border w-16 text-center">
-                                        <input
-                                          className="w-full border px-1 py-0.5 text-xs text-center"
-                                          value={boq.unit}
-                                          onChange={e => {
-                                            const value = e.target.value;
+                                        <Select
+                                          classNamePrefix="unit-select"
+                                          options={unitOptions}
+                                          value={unitOptions.find(opt => opt.value === boq.unit) || (boq.unit ? { value: boq.unit, label: boq.unit } : null)}
+                                          onChange={selected => {
+                                            const value = selected ? selected.value : '';
                                             if (boq.id) {
                                               setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
                                             }
                                           }}
-                                          onBlur={async () => {
-                                            if (boq.id) {
-                                              await updateBoqItem(boq.id, boq);
-                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                              await addFeedNote({
-                                                type: 'feed',
-                                                content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                                boq_item_id: boq.id,
-                                                signage_item_id: boq.signage_item_id,
-                                                orderId,
-                                                created_by: user?.data?.user?.id,
-                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                                created_by_email: user?.data?.user?.email || ''
-                                              });
+                                          onInputChange={inputValue => {
+                                            if (boq.id && inputValue !== boq.unit) {
+                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: inputValue } : b));
                                             }
                                           }}
+                                          isClearable
+                                          isSearchable
+                                          placeholder="Unit"
+                                          menuPlacement="auto"
                                         />
                                       </td>
                                       <td className="p-2 border w-16 text-center">
