@@ -46,6 +46,25 @@ export default function OrderDetailPage() {
     });
   }, [orderId]);
 
+  // Ensure a draft invoice exists for the order
+  useEffect(() => {
+    if (!orderId) return;
+    async function ensureDraftInvoice() {
+      const supabase = (await import("../../supabaseClient")).default;
+      const { data: invoices, error: fetchError } = await supabase
+        .from('invoices')
+        .select('id, order_id, status')
+        .eq('order_id', orderId);
+      if (fetchError) return;
+      if (!invoices || invoices.length === 0) {
+        await supabase
+          .from('invoices')
+          .insert([{ order_id: orderId, status: 'Draft', created_at: new Date().toISOString() }]);
+      }
+    }
+    ensureDraftInvoice();
+  }, [orderId]);
+
   // Handler to update GST billable percent and persist to backend
   const handleGstBillableChange = async (_amount, percent) => {
     setGstBillablePercent(percent);
