@@ -41,6 +41,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
   const pdfRef = useRef();
   const pdfDivRef = useRef();
   const [customer, setCustomer] = useState(null);
+  const [editingUnitIdx, setEditingUnitIdx] = useState(null);
 
   // Helper to keep refs for each textarea
   const descriptionRefs = useRef({});
@@ -870,26 +871,39 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                                         />
                                       </td>
                                       <td className="p-2 border w-16 text-center">
-                                        <Select
-                                          classNamePrefix="unit-select"
-                                          options={unitOptions}
-                                          value={unitOptions.find(opt => opt.value === boq.unit) || (boq.unit ? { value: boq.unit, label: boq.unit } : null)}
-                                          onChange={selected => {
-                                            const value = selected ? selected.value : '';
-                                            if (boq.id) {
-                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
-                                            }
-                                          }}
-                                          onInputChange={inputValue => {
-                                            if (boq.id && inputValue !== boq.unit) {
-                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: inputValue } : b));
-                                            }
-                                          }}
-                                          isClearable
-                                          isSearchable
-                                          placeholder="Unit"
-                                          menuPlacement="auto"
-                                        />
+                                        {editingUnitIdx === bidx ? (
+                                          <Select
+                                            classNamePrefix="unit-select"
+                                            options={unitOptions}
+                                            value={unitOptions.find(opt => opt.value === boq.unit) || (boq.unit ? { value: boq.unit, label: boq.unit } : null)}
+                                            onChange={selected => {
+                                              const value = selected ? selected.value : '';
+                                              if (boq.id) {
+                                                setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
+                                              }
+                                              setEditingUnitIdx(null);
+                                            }}
+                                            onInputChange={inputValue => {
+                                              if (boq.id && inputValue !== boq.unit) {
+                                                setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: inputValue } : b));
+                                              }
+                                            }}
+                                            onBlur={() => setEditingUnitIdx(null)}
+                                            autoFocus
+                                            isClearable
+                                            isSearchable
+                                            placeholder="Unit"
+                                            menuPlacement="auto"
+                                          />
+                                        ) : (
+                                          <span
+                                            style={{ cursor: 'pointer', minWidth: 32, display: 'inline-block' }}
+                                            onClick={() => setEditingUnitIdx(bidx)}
+                                            title="Click to edit unit"
+                                          >
+                                            {boq.unit || <span className="text-gray-400 italic">(unit)</span>}
+                                          </span>
+                                        )}
                                       </td>
                                       <td className="p-2 border w-16 text-center">
                                         <input
