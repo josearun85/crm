@@ -29,21 +29,22 @@ export default function InvoicesPage() {
   useEffect(() => { setPage(1); }, [activeTab]);
 
   // Fetch all invoices, reverse chronological order
-  useEffect(() => {
-    const fetchInvoices = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('invoices')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-      setInvoices(data || []);
+  const fetchInvoices = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      setError(error.message);
       setLoading(false);
-    };
+      return;
+    }
+    setInvoices(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchInvoices();
   }, []);
 
