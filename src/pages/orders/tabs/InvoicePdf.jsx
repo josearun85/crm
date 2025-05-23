@@ -147,7 +147,7 @@ Bangalore 560025 KA India</div>
         <div style={{ flex: 2 }}>
           <div><b>Amount Chargeable (in words)</b></div>
           <div>{amountInWords}</div>
-          <div>Company's PAN: BPYPK6641B</div>
+          <div>Company's PAN: BYPPK6641B</div>
           <div>Payment Terms: Immediate</div>
           <div>Note-Please make cheques in favor of "SIGN COMPANY"</div>
         </div>
