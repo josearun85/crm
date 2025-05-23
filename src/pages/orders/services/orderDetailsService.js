@@ -4,7 +4,7 @@ import supabase from "../../../supabaseClient";
 export async function fetchOrderOverview(orderId) {
   const { data, error } = await supabase
     .from("orders")
-    .select("*, customer:customer_id(id, name, gstin, pan)")
+    .select("*, customer:customer_id(id, name, gstin, pan, address)")
     .eq("id", orderId)
     .single();
   if (error) {
