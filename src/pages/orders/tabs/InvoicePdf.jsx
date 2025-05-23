@@ -127,9 +127,9 @@ export default function InvoicePdf({ invoice, customer, items }) {
             <div style={{ marginBottom: 2 }}>ADD CGST</div>
           </div>
           <div style={{ float: 'right', textAlign: 'right', fontWeight: 'normal', minWidth: 120 }}>
-            <div style={{ marginBottom: 2 }}>{invoice.total}</div>
+            {/* <div style={{ marginBottom: 2 }}>{invoice.total}</div> */}
             {Number(invoice.discount) > 0 && <div style={{ marginBottom: 2 }}>{invoice.discount}</div>}
-            {/* <div style={{ marginBottom: 2 }}>{invoice.taxable_value}</div> */}
+            <div style={{ marginBottom: 2 }}>{invoice.taxable_value}</div>
             <div style={{ marginBottom: 2 }}>9% {invoice.sgst}</div>
             <div style={{ marginBottom: 2 }}>9% {invoice.cgst}</div>
             <div style={{ marginTop: 12, fontWeight: 'bold', fontSize: 16 }}>Total<br />{invoice.grand_total}</div>
