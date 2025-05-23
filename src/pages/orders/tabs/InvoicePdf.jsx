@@ -63,7 +63,7 @@ Bangalore 560025 KA India</div>
         </div>
         <div style={{ flex: 1, padding: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 'bold' }}>INVOICE No:2</span>
+            <span style={{ fontWeight: 'bold' }}>INVOICE No:3</span>
             {/* <span>{invoice.number}.{invoice.version || 1}.{invoice.date ? new Date(invoice.date).getFullYear() : new Date().getFullYear()}</span> */}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
