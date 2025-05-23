@@ -6,7 +6,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const PAGE_SIZE = 10;
 
-export default function InvoiceList({ invoices, onDelete }) {
+export default function InvoiceList({ invoices, onDelete, onReorder }) {
   const [orderMap, setOrderMap] = useState({});
   const [customerMap, setCustomerMap] = useState({});
   const [signageItemsMap, setSignageItemsMap] = useState({});
@@ -106,6 +106,12 @@ export default function InvoiceList({ invoices, onDelete }) {
     return result.grandTotal ? result.grandTotal.toFixed(2) : '-';
   };
 
+  // Find the last confirmed invoice number
+  const lastLegalNumber = invoices
+    .filter(inv => inv.status !== 'Draft' && inv.invoice_number && /^\d+$/.test(inv.invoice_number))
+    .map(inv => parseInt(inv.invoice_number, 10))
+    .reduce((max, n) => Math.max(max, n), 0);
+
   // Split invoices by status
   const draftInvoices = invoices.filter(inv => inv.status === 'Draft');
   const pendingInvoices = invoices.filter(inv => inv.status === 'Confirmed' && inv.payment_status !== 'Paid');
@@ -133,7 +139,7 @@ export default function InvoiceList({ invoices, onDelete }) {
       reordered[i].sort_order = i;
       await supabase.from('invoices').update({ sort_order: i }).eq('id', reordered[i].id);
     }
-    // No need to set state here, parent will re-fetch invoices
+    if (onReorder) onReorder(); // Ask parent to refresh
   };
 
   const handleDateChange = async (inv, newDate) => {
@@ -179,7 +185,7 @@ export default function InvoiceList({ invoices, onDelete }) {
                         {(provided, snapshot) => (
                           <tr ref={provided.innerRef} {...provided.draggableProps} style={{ ...provided.draggableProps.style, background: snapshot.isDragging ? '#ffe066' : undefined }}>
                             <td {...provided.dragHandleProps} style={{ cursor: 'grab', width: 24, textAlign: 'center' }}>☰</td>
-                            <td>{inv.invoice_number || <em>Draft</em>}</td>
+                            <td>{inv.status === 'Draft' ? `draft${lastLegalNumber + sortedDraftInvoices.findIndex(d => d.id === inv.id) + 1}` : inv.invoice_number || '-'}</td>
                             <td>
                               {inv.status === 'Draft' ? (
                                 <input

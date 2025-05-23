@@ -111,7 +111,7 @@ export default function InvoicesPage() {
         <p style={{ color: 'red' }}>{error}</p>
       ) : (
         <>
-          {activeTab === 'drafts' && <InvoiceList invoices={draftInvoices} onDelete={handleDeleteInvoice} />}
+          {activeTab === 'drafts' && <InvoiceList invoices={draftInvoices} onDelete={handleDeleteInvoice} onReorder={fetchInvoices} />}
           {activeTab === 'pending' && <>
             <InvoiceList invoices={paginatedPending} onDelete={handleDeleteInvoice} />
             {totalPendingPages > 1 && (
