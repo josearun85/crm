@@ -134,7 +134,7 @@ export default function OrderPage() {
   };
 
   useEffect(() => {
-    if (!order || !order.id) return;
+    if (!order?.id) return;
     let cancelled = false;
     async function ensureDraftInvoice() {
       try {
@@ -156,7 +156,7 @@ export default function OrderPage() {
     }
     ensureDraftInvoice();
     return () => { cancelled = true; };
-  }, [order && order.id]);
+  }, [order?.id]);
 
   if (loading) {
     return <p>Loading...</p>;
