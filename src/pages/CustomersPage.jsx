@@ -75,9 +75,9 @@ export default function CustomersPage() {
                 const q = search.trim().toLowerCase();
                 if (!q) return true;
                 return (
-                  c.name?.toLowerCase().includes(q) ||
-                  c.phone?.toLowerCase().includes(q) ||
-                  c.email?.toLowerCase().includes(q)
+                  (c.name || '').toLowerCase().includes(q) ||
+                  (c.phone || '').toLowerCase().includes(q) ||
+                  (c.email || '').toLowerCase().includes(q)
                 );
               })
               .map(customer => (
