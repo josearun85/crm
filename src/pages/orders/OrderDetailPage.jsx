@@ -110,8 +110,10 @@ export default function OrderDetailPage() {
     <div className="min-h-screen flex flex-col items-center justify-start bg-[#fffbe6]">
       <div className="w-full flex-1 flex flex-col items-center">
         <div className="w-full max-w-[1000px] mx-auto px-4 py-6 bg-white">
-          <OrderHeader orderId={orderId} customerGstin={customerGstin} setCustomerGstin={setCustomerGstin} customerPan={customerPan} setCustomerPan={setCustomerPan} />
-          <TabNav currentTab={tab} onTabChange={(t) => navigate(`?tab=${t}`)} />
+          <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#fffbe6' }}>
+            <OrderHeader orderId={orderId} customerGstin={customerGstin} setCustomerGstin={setCustomerGstin} customerPan={customerPan} setCustomerPan={setCustomerPan} />
+            <TabNav currentTab={tab} onTabChange={(t) => navigate(`?tab=${t}`)} />
+          </div>
           <div className="mt-6">
             <TabComponent
               orderId={orderId}

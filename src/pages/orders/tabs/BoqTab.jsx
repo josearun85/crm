@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchSignageItems, fetchBoqItems, updateBoqItem, fetchVendors, addVendor, fetchInventory, addInventoryEntry, ensureProcurementStepsForOrder, fetchProcurementTasks, createProcurementTaskAndLinkBoq, addFeedNote } from "../services/orderDetailsService";
 import supabase from "../../../supabaseClient";
+import Select from 'react-select';
 
 export default function BoqTab({ orderId }) {
   const [materials, setMaterials] = useState([]);
@@ -14,6 +15,24 @@ export default function BoqTab({ orderId }) {
   const [procuredBoqIds, setProcuredBoqIds] = useState(new Set());
   const [procurementTasksByBoqId, setProcurementTasksByBoqId] = useState({});
   const [selectedProcurement, setSelectedProcurement] = useState(null);
+
+  const unitOptions = [
+    { value: 'nos', label: 'nos' },
+    { value: 'kg', label: 'kg' },
+    { value: 'm', label: 'm' },
+    { value: 'cm', label: 'cm' },
+    { value: 'mm', label: 'mm' },
+    { value: 'ft', label: 'ft' },
+    { value: 'inch', label: 'inch' },
+    { value: 'set', label: 'set' },
+    { value: 'box', label: 'box' },
+    { value: 'sheet', label: 'sheet' },
+    { value: 'trip', label: 'trip (logistics)' },
+    { value: 'km', label: 'km (logistics)' },
+    { value: 'hour', label: 'hour (man hours)' },
+    { value: 'day', label: 'day (man hours)' },
+    { value: 'lump sum', label: 'lump sum' },
+  ];
 
   useEffect(() => {
     if (!orderId || isNaN(Number(orderId))) return;
@@ -277,7 +296,28 @@ export default function BoqTab({ orderId }) {
                 </>
               )}
               <td className="p-2 border font-medium">{row.material}</td>
-              <td className="p-2 border">{row.unit}</td>
+              <td className="p-2 border w-16 text-center">
+                <Select
+                  classNamePrefix="unit-select"
+                  options={unitOptions}
+                  value={unitOptions.find(opt => opt.value === row.unit) || { value: row.unit, label: row.unit }}
+                  onChange={selected => {
+                    const value = selected ? selected.value : '';
+                    if (row.id) {
+                      setRawBoqs(boqs => boqs.map(b => b.id === row.id ? { ...b, unit: value } : b));
+                    }
+                  }}
+                  onInputChange={inputValue => {
+                    if (row.id && inputValue !== row.unit) {
+                      setRawBoqs(boqs => boqs.map(b => b.id === row.id ? { ...b, unit: inputValue } : b));
+                    }
+                  }}
+                  isClearable
+                  isSearchable
+                  placeholder="Unit"
+                  menuPlacement="auto"
+                />
+              </td>
               <td className="p-2 border">{row.quantity}</td>
               <td className="p-2 border">{row.cost_per_unit}</td>
               <td className="p-2 border">{(row.quantity * row.cost_per_unit).toFixed(2)}</td>
@@ -336,7 +376,26 @@ export default function BoqTab({ orderId }) {
                 {procPlan.map((row, idx) => (
                   <tr key={row.material}>
                     <td className="p-2 border font-medium">{row.material}</td>
-                    <td className="p-2 border">{row.unit}</td>
+                    <td className="p-2 border">
+                      <Select
+                        classNamePrefix="unit-select"
+                        options={unitOptions}
+                        value={unitOptions.find(opt => opt.value === row.unit) || { value: row.unit, label: row.unit }}
+                        onChange={selected => {
+                          const value = selected ? selected.value : '';
+                          setProcPlan(plan => plan.map((p, i) => i === idx ? { ...p, unit: value } : p));
+                        }}
+                        onInputChange={inputValue => {
+                          if (row.id && inputValue !== row.unit) {
+                            setProcPlan(plan => plan.map((p, i) => i === idx ? { ...p, unit: inputValue } : p));
+                          }
+                        }}
+                        isClearable
+                        isSearchable
+                        placeholder="Unit"
+                        menuPlacement="auto"
+                      />
+                    </td>
                     <td className="p-2 border">{row.required}</td>
                     <td className="p-2 border">{row.available}</td>
                     <td className="p-2 border">{row.shortfall}</td>
