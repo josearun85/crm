@@ -49,7 +49,11 @@ export default function InvoicePdf({ invoice, customer, items }) {
           <div>{customer.name || '-'}</div>
           {/* <div style={{ whiteSpace: 'pre-line' }}>{customer.address || '-'}</div> */}
           {/* <div style={{ whiteSpace: 'pre-line' }}>No46, 9th main road, 80ft main road, HAL 3rd stage, Bangalore 560038</div> */}
-          <div style={{ whiteSpace: 'pre-line' }}>No46, 9th main road, 80ft main road, HAL 3rd stage, Bangalore 560038</div>
+          <div style={{ whiteSpace: 'pre-line' }}>G7, Ground Floor,
+Cears Plaza,
+Opp. Bangalore Club,
+136, Residency Road,
+Bangalore 560025 KA India</div>
           
           <div><b>GSTIN No:-</b> {(customer.gstin || '').toUpperCase()}</div>
         </div>
