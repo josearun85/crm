@@ -11,27 +11,28 @@ export default function InvoicesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeTab, setActiveTab] = useState('drafts');
 
-  useEffect(() => {
-    const fetchInvoices = async () => {
-      setLoading(true);
-      let query = supabase.from('invoices').select('*');
-      if (activeTab === 'drafts') {
-        query = query.eq('status', 'Draft');
-      } else if (activeTab === 'pending') {
-        query = query.eq('status', 'Confirmed');
-      } else if (activeTab === 'past') {
-        query = query.neq('status', 'Draft');
-      }
-      const { data, error } = await query.order('created_at', { ascending: false });
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-      setInvoices(data || []);
+  // Move fetchInvoices to top-level so it's available everywhere
+  const fetchInvoices = async () => {
+    setLoading(true);
+    let query = supabase.from('invoices').select('*');
+    if (activeTab === 'drafts') {
+      query = query.eq('status', 'Draft');
+    } else if (activeTab === 'pending') {
+      query = query.eq('status', 'Confirmed');
+    } else if (activeTab === 'past') {
+      query = query.neq('status', 'Draft');
+    }
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) {
+      setError(error.message);
       setLoading(false);
-    };
+      return;
+    }
+    setInvoices(data || []);
+    setLoading(false);
+  };
 
+  useEffect(() => {
     fetchInvoices();
   }, [activeTab]);
 
