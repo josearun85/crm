@@ -32,7 +32,7 @@ export default function InvoicePdf({ invoice, customer, items }) {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #e0e0e0', padding: '24px 28px 12px 28px', borderTopLeftRadius: 12, borderTopRightRadius: 12, background: '#fafbfc' }}>
         <div>
-          <img src="/logo.png" alt="Sign Company Logo" style={{ height: 56, width: 56, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #e0e0e0', background: '#fff', boxShadow: '0 1px 4px #0001' }} />
+          <img src="/logo.png" alt="Sign Company Logo" style={{ height: 90, width: 90, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #e0e0e0', background: '#fff', boxShadow: '0 1px 4px #0001' }} />
         </div>
         <div style={{ textAlign: 'right', fontSize: 13, lineHeight: 1.5 }}>
           <div style={{ fontWeight: 700, fontSize: 18, color: '#232323', letterSpacing: 0.2, fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase' }}>Sign Company</div>
