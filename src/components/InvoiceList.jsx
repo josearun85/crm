@@ -196,87 +196,135 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
     if (onReorder) onReorder();
   };
 
+  // Detect if this is the Drafts tab (all invoices are drafts)
+  const allDrafts = invoices.length > 0 && invoices.every(inv => inv.status === 'Draft');
+
   return (
     <div>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="draft-invoices-droppable" direction="vertical">
-          {(provided) => (
-            <table className="invoice-list-table" ref={provided.innerRef} {...provided.droppableProps}>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Invoice #</th>
-                  <th>Date</th>
-                  <th>Customer</th>
-                  <th>GSTIN</th>
-                  <th>Order</th>
-                  <th>Status</th>
-                  <th>Amount</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={9} style={{textAlign:'center'}}>Loading...</td></tr>
-                ) : sortedDraftInvoices.length === 0 ? (
+      {allDrafts ? (
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="draft-invoices-droppable" direction="vertical">
+            {(provided) => (
+              <table className="invoice-list-table" ref={provided.innerRef} {...provided.droppableProps}>
+                <thead>
                   <tr>
-                    <td colSpan={9} style={{ textAlign: 'center' }}>No draft invoices found.</td>
+                    <th></th>
+                    <th>Invoice #</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>GSTIN</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
                   </tr>
-                ) : (
-                  sortedDraftInvoices.map((inv, idx) => {
-                    const order = orderMap[inv.order_id];
-                    const customer = order ? customerMap[order.customer_id] : null;
-                    return (
-                      <Draggable key={inv.id} draggableId={String(inv.id)} index={idx}>
-                        {(provided, snapshot) => (
-                          <tr ref={provided.innerRef} {...provided.draggableProps} style={{ ...provided.draggableProps.style, background: snapshot.isDragging ? '#ffe066' : undefined }}>
-                            <td {...provided.dragHandleProps} style={{ cursor: 'grab', width: 24, textAlign: 'center' }}>☰</td>
-                            <td>{inv.status === 'Draft' ? `draft${idx + 1}` : inv.invoice_number || '-'}</td>
-                            <td>
-                              {inv.status === 'Draft' ? (
-                                <input
-                                  type="date"
-                                  value={inv.invoice_date ? inv.invoice_date.slice(0, 10) : ''}
-                                  onChange={e => handleDateChange(inv, e.target.value)}
-                                  style={{ minWidth: 110 }}
-                                />
-                              ) : (
-                                inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'
-                              )}
-                            </td>
-                            <td>{customer ? customer.name : '-'}</td>
-                            <td>{customer ? customer.gstin : '-'}</td>
-                            <td>{order ? (order.name || order.id) : '-'}</td>
-                            <td>{inv.status}</td>
-                            <td>{getTotal(inv)}</td>
-                            <td className="actions">
-                              <button onClick={() => handleDelete(inv.id)} title="Delete"><FaTrash style={{color:'#d32f2f'}} /> Delete</button>
-                              <button title="Edit"><FaEdit /> Edit</button>
-                              {inv.status === 'Draft' && (
-                                <button title="Confirm" onClick={() => handleConfirm(inv)}><FaCheckCircle style={{color:'#388e3c'}} /> Confirm</button>
-                              )}
-                              {inv.status === 'Confirmed' && (
-                                <button title="Revert to Draft" onClick={() => handleRevert(inv)}><FaTimesCircle style={{color:'#d32f2f'}} /> Revert</button>
-                              )}
-                            </td>
-                          </tr>
-                        )}
-                      </Draggable>
-                    );
-                  })
-                )}
-                {provided.placeholder}
-              </tbody>
-            </table>
-          )}
-        </Droppable>
-      </DragDropContext>
-      {totalPendingPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
-          <button onClick={() => setPage(page - 1)} disabled={page === 1}>Prev</button>
-          <span>Page {page} of {totalPendingPages}</span>
-          <button onClick={() => setPage(page + 1)} disabled={page === totalPendingPages}>Next</button>
-        </div>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={9} style={{textAlign:'center'}}>Loading...</td></tr>
+                  ) : sortedDraftInvoices.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} style={{ textAlign: 'center' }}>No draft invoices found.</td>
+                    </tr>
+                  ) : (
+                    sortedDraftInvoices.map((inv, idx) => {
+                      const order = orderMap[inv.order_id];
+                      const customer = order ? customerMap[order.customer_id] : null;
+                      return (
+                        <Draggable key={inv.id} draggableId={String(inv.id)} index={idx}>
+                          {(provided, snapshot) => (
+                            <tr ref={provided.innerRef} {...provided.draggableProps} style={{ ...provided.draggableProps.style, background: snapshot.isDragging ? '#ffe066' : undefined }}>
+                              <td {...provided.dragHandleProps} style={{ cursor: 'grab', width: 24, textAlign: 'center' }}>☰</td>
+                              <td>{inv.status === 'Draft' ? `draft${idx + 1}` : inv.invoice_number || '-'}</td>
+                              <td>
+                                {inv.status === 'Draft' ? (
+                                  <input
+                                    type="date"
+                                    value={inv.invoice_date ? inv.invoice_date.slice(0, 10) : ''}
+                                    onChange={e => handleDateChange(inv, e.target.value)}
+                                    style={{ minWidth: 110 }}
+                                  />
+                                ) : (
+                                  inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'
+                                )}
+                              </td>
+                              <td>{customer ? customer.name : '-'}</td>
+                              <td>{customer ? customer.gstin : '-'}</td>
+                              <td>{order ? (order.name || order.id) : '-'}</td>
+                              <td>{inv.status}</td>
+                              <td>{getTotal(inv)}</td>
+                              <td className="actions">
+                                <button onClick={() => handleDelete(inv.id)} title="Delete"><FaTrash style={{color:'#d32f2f'}} /> Delete</button>
+                                <button title="Edit"><FaEdit /> Edit</button>
+                                {inv.status === 'Draft' && (
+                                  <button title="Confirm" onClick={() => handleConfirm(inv)}><FaCheckCircle style={{color:'#388e3c'}} /> Confirm</button>
+                                )}
+                                {inv.status === 'Confirmed' && (
+                                  <button title="Revert to Draft" onClick={() => handleRevert(inv)}><FaTimesCircle style={{color:'#d32f2f'}} /> Revert</button>
+                                )}
+                              </td>
+                            </tr>
+                          )}
+                        </Draggable>
+                      );
+                    })
+                  )}
+                  {provided.placeholder}
+                </tbody>
+              </table>
+            )}
+          </Droppable>
+        </DragDropContext>
+      ) : (
+        <table className="invoice-list-table">
+          <thead>
+            <tr>
+              <th>Invoice #</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>GSTIN</th>
+              <th>Order</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={8} style={{textAlign:'center'}}>Loading...</td></tr>
+            ) : invoices.length === 0 ? (
+              <tr>
+                <td colSpan={8} style={{ textAlign: 'center' }}>No invoices found.</td>
+              </tr>
+            ) : (
+              invoices.map((inv, idx) => {
+                const order = orderMap[inv.order_id];
+                const customer = order ? customerMap[order.customer_id] : null;
+                return (
+                  <tr key={inv.id}>
+                    <td>{inv.invoice_number || '-'}</td>
+                    <td>{inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'}</td>
+                    <td>{customer ? customer.name : '-'}</td>
+                    <td>{customer ? customer.gstin : '-'}</td>
+                    <td>{order ? (order.name || order.id) : '-'}</td>
+                    <td>{inv.status}</td>
+                    <td>{getTotal(inv)}</td>
+                    <td className="actions">
+                      <button onClick={() => handleDelete(inv.id)} title="Delete"><FaTrash style={{color:'#d32f2f'}} /> Delete</button>
+                      <button title="Edit"><FaEdit /> Edit</button>
+                      {inv.status === 'Draft' && (
+                        <button title="Confirm" onClick={() => handleConfirm(inv)}><FaCheckCircle style={{color:'#388e3c'}} /> Confirm</button>
+                      )}
+                      {inv.status === 'Confirmed' && (
+                        <button title="Revert to Draft" onClick={() => handleRevert(inv)}><FaTimesCircle style={{color:'#d32f2f'}} /> Revert</button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       )}
     </div>
   );
