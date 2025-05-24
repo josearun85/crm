@@ -28,63 +28,63 @@ export default function InvoicePdf({ invoice, customer, items }) {
   const amountInWords = invoice.amount_in_words || numberToWords(invoice.grand_total || 0);
 
   return (
-    <div style={{ fontFamily: 'Inter, Arial, sans-serif', maxWidth: 950, margin: '0 auto', color: '#232323', fontSize: 15, background: '#fff', border: '2px solid #ffd600', borderRadius: 16, boxShadow: '0 4px 24px #ffe06644', padding: 0 }}>
+    <div style={{ fontFamily: 'Inter, Arial, sans-serif', maxWidth: 950, margin: '0 auto', color: '#232323', fontSize: 15, background: '#fff', border: '2.5px solid #ffd600', borderRadius: 18, boxShadow: '0 4px 24px #ffd60022', padding: 0 }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #ffd600', padding: '32px 32px 18px 32px', borderTopLeftRadius: 16, borderTopRightRadius: 16, background: 'linear-gradient(90deg, #ffe066 0%, #fffbe6 60%, #fff 100%)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #ffd600', padding: '40px 40px 24px 40px', borderTopLeftRadius: 18, borderTopRightRadius: 18, background: 'linear-gradient(90deg, #fffbe6 0%, #fff 100%)' }}>
         <div>
-          <img src="/logo.png" alt="Sign Company Logo" style={{ height: 110, width: 110, borderRadius: '50%', objectFit: 'cover', border: '3px solid #ffd600', background: '#fff', boxShadow: '0 2px 12px #ffd60033' }} />
+          <img src="/logo.png" alt="Sign Company Logo" style={{ height: 120, width: 120, borderRadius: '50%', objectFit: 'cover', border: '4px solid #ffd600', background: '#fff', boxShadow: '0 2px 16px #ffd60033' }} />
         </div>
-        <div style={{ textAlign: 'right', fontSize: 15, lineHeight: 1.5 }}>
-          <div style={{ fontWeight: 800, fontSize: 28, color: '#0a3d62', letterSpacing: 1, fontFamily: 'Inter, Arial, sans-serif' }}>Sign Company</div>
-          <div style={{ fontSize: 15, color: '#555' }}>Shed #7, No.120, Malleshpalya Main Road,<br />New Thippasandra Post, Bangalore - 560 075</div>
-          <div style={{ fontSize: 15, color: '#555' }}>PHONE: <b>8431550507</b></div>
-          <div style={{ fontSize: 15, color: '#555' }}>GSTN: <b>29BPYPK6641B2Z6</b></div>
+        <div style={{ textAlign: 'right', fontSize: 16, lineHeight: 1.7 }}>
+          <div style={{ fontWeight: 900, fontSize: 32, color: '#d32f2f', letterSpacing: 1, fontFamily: 'Inter, Arial, sans-serif', textTransform: 'uppercase' }}>Sign Company</div>
+          <div style={{ fontSize: 16, color: '#232323', fontWeight: 500 }}>Shed #7, No.120, Malleshpalya Main Road,<br />New Thippasandra Post, Bangalore - 560 075</div>
+          <div style={{ fontSize: 16, color: '#232323', fontWeight: 500 }}>PHONE: <b>8431550507</b></div>
+          <div style={{ fontSize: 16, color: '#232323', fontWeight: 500 }}>GSTN: <b>29BPYPK6641B2Z6</b></div>
         </div>
       </div>
-      <div style={{ textAlign: 'center', fontWeight: 900, fontSize: 26, letterSpacing: 2, color: '#ffd600', background: '#0a3d62', padding: '12px 0', borderBottom: '3px solid #ffd600', fontFamily: 'Inter, Arial, sans-serif', textShadow: '0 2px 8px #0a3d6222' }}>TAX INVOICE</div>
+      <div style={{ textAlign: 'center', fontWeight: 900, fontSize: 28, letterSpacing: 2, color: '#ffd600', background: '#232323', padding: '18px 0', borderBottom: '4px solid #ffd600', fontFamily: 'Inter, Arial, sans-serif', textShadow: '0 2px 8px #ffd60022', textTransform: 'uppercase' }}>Tax Invoice</div>
       {/* Bill to, Place of Supply, Invoice No, Date */}
-      <div style={{ display: 'flex', borderBottom: '2px solid #ffe066', fontSize: 15, background: '#fffbe6', padding: '18px 32px' }}>
-        <div style={{ flex: 2, borderRight: '2px solid #ffe066', paddingRight: 24 }}>
-          <div style={{ fontWeight: 700, color: '#0a3d62', marginBottom: 2, fontFamily: 'Inter, Arial, sans-serif' }}>Bill to</div>
-          <div style={{ fontWeight: 500 }}>{customer.name || '-'}</div>
-          <div style={{ whiteSpace: 'pre-line', color: '#444' }}>{customer.address || '-'}</div>
-          <div style={{ color: '#444' }}><b>GSTIN No:-</b> {(customer.gstin || '').toUpperCase()}</div>
+      <div style={{ display: 'flex', borderBottom: '2.5px solid #ffd600', fontSize: 16, background: '#fffbe6', padding: '28px 40px', gap: 32 }}>
+        <div style={{ flex: 2, borderRight: '2.5px solid #ffd600', paddingRight: 32 }}>
+          <div style={{ fontWeight: 800, color: '#d32f2f', marginBottom: 4, fontFamily: 'Inter, Arial, sans-serif', fontSize: 17 }}>Bill to</div>
+          <div style={{ fontWeight: 600 }}>{customer.name || '-'}</div>
+          <div style={{ whiteSpace: 'pre-line', color: '#232323', fontWeight: 500 }}>{customer.address || '-'}</div>
+          <div style={{ color: '#232323', fontWeight: 500 }}><b>GSTIN No:-</b> {(customer.gstin || '').toUpperCase()}</div>
         </div>
-        <div style={{ flex: 1, borderRight: '2px solid #ffe066', paddingLeft: 24, paddingRight: 24 }}>
-          <div style={{ fontWeight: 700, color: '#0a3d62', marginBottom: 2, fontFamily: 'Inter, Arial, sans-serif' }}>Place of Supply</div>
-          <div style={{ fontWeight: 500 }}>{invoice.place_of_supply}</div>
+        <div style={{ flex: 1, borderRight: '2.5px solid #ffd600', paddingLeft: 32, paddingRight: 32 }}>
+          <div style={{ fontWeight: 800, color: '#d32f2f', marginBottom: 4, fontFamily: 'Inter, Arial, sans-serif', fontSize: 17 }}>Place of Supply</div>
+          <div style={{ fontWeight: 600 }}>{invoice.place_of_supply}</div>
         </div>
-        <div style={{ flex: 1, paddingLeft: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#0a3d62', fontFamily: 'Inter, Arial, sans-serif' }}>
+        <div style={{ flex: 1, paddingLeft: 32 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: '#d32f2f', fontFamily: 'Inter, Arial, sans-serif', fontSize: 17 }}>
             <span>{invoice.status === 'Draft' ? 'DRAFT' : `INVOICE No: ${invoice.number}`}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-            <span style={{ fontWeight: 700 }}>Dated</span>
-            <span style={{ fontWeight: 500 }}>{invoice.date}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
+            <span style={{ fontWeight: 800 }}>Dated</span>
+            <span style={{ fontWeight: 600 }}>{invoice.date}</span>
           </div>
           {/* Show PO Number and PO Date if available */}
           {invoice.po_number && (
-            <div style={{ marginTop: 4, color: '#444' }}>
+            <div style={{ marginTop: 8, color: '#232323', fontWeight: 500 }}>
               <b>PO Number:</b> {invoice.po_number}
               {invoice.po_date && (
-                <span style={{ marginLeft: 12 }}><b>PO Date:</b> {new Date(invoice.po_date).toLocaleDateString('en-GB')}</span>
+                <span style={{ marginLeft: 16 }}><b>PO Date:</b> {new Date(invoice.po_date).toLocaleDateString('en-GB')}</span>
               )}
             </div>
           )}
         </div>
       </div>
       {/* Table */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 0, fontSize: 15, marginBottom: 0, fontFamily: 'Inter, Arial, sans-serif' }}>
+      <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, marginTop: 0, fontSize: 16, marginBottom: 0, fontFamily: 'Inter, Arial, sans-serif', letterSpacing: 0.2 }}>
         <thead>
-          <tr style={{ background: '#ffe066', color: '#0a3d62', fontWeight: 700, fontSize: 16 }}>
-            <th style={{ border: '2px solid #ffd600', padding: 10 }}>S. No.</th>
-            <th style={{ border: '2px solid #ffd600', padding: 10 }}>Name & Description</th>
-            <th style={{ border: '2px solid #ffd600', padding: 10 }}>HSN Code</th>
-            <th style={{ border: '2px solid #ffd600', padding: 10 }}>Qty</th>
-            <th style={{ border: '2px solid #ffd600', padding: 10 }}>Rate</th>
-            <th style={{ border: '2px solid #ffd600', padding: 10 }}>Amount</th>
-            <th style={{ border: '2px solid #ffd600', padding: 10 }}>GST</th>
-            <th style={{ border: '2px solid #ffd600', padding: 10 }}>Cost After Tax</th>
+          <tr style={{ background: '#fff', color: '#d32f2f', fontWeight: 800, fontSize: 17 }}>
+            <th style={{ border: '2px solid #ffd600', padding: 14 }}>S. No.</th>
+            <th style={{ border: '2px solid #ffd600', padding: 14 }}>Name & Description</th>
+            <th style={{ border: '2px solid #ffd600', padding: 14 }}>HSN Code</th>
+            <th style={{ border: '2px solid #ffd600', padding: 14 }}>Qty</th>
+            <th style={{ border: '2px solid #ffd600', padding: 14 }}>Rate</th>
+            <th style={{ border: '2px solid #ffd600', padding: 14 }}>Amount</th>
+            <th style={{ border: '2px solid #ffd600', padding: 14 }}>GST</th>
+            <th style={{ border: '2px solid #ffd600', padding: 14 }}>Cost After Tax</th>
           </tr>
         </thead>
         <tbody>
@@ -95,67 +95,67 @@ export default function InvoicePdf({ invoice, customer, items }) {
             const costAfterTax = amount + gstAmount;
             return (
               <tr key={idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fffbe6' }}>
-                <td style={{ border: '2px solid #ffd600', padding: 10, textAlign: 'center' }}>{idx + 1}</td>
-                <td style={{ border: '2px solid #ffd600', padding: 10 }}>
-                  <div style={{ fontWeight: 600 }}>{item.name || ''}</div>
+                <td style={{ border: '2px solid #ffd600', padding: 14, textAlign: 'center', fontWeight: 600 }}>{idx + 1}</td>
+                <td style={{ border: '2px solid #ffd600', padding: 14 }}>
+                  <div style={{ fontWeight: 700 }}>{item.name || ''}</div>
                   {item.description && item.description !== 'EMPTY' && (
-                    <div style={{ fontWeight: 400, color: '#555', whiteSpace: 'pre-line' }}>{item.description}</div>
+                    <div style={{ fontWeight: 500, color: '#232323', whiteSpace: 'pre-line' }}>{item.description}</div>
                   )}
                 </td>
-                <td style={{ border: '2px solid #ffd600', padding: 10, textAlign: 'center' }}>{item.hsn_code}</td>
-                <td style={{ border: '2px solid #ffd600', padding: 10, textAlign: 'center' }}>{item.qty}</td>
-                <td style={{ border: '2px solid #ffd600', padding: 10, textAlign: 'right' }}>{Number(item.rate).toFixed(2)}</td>
-                <td style={{ border: '2px solid #ffd600', padding: 10, textAlign: 'right' }}>{amount.toFixed(2)}</td>
-                <td style={{ border: '2px solid #ffd600', padding: 10, textAlign: 'right' }}>{gstAmount.toFixed(2)} <span style={{ color: '#888' }}>({gstPercent}%)</span></td>
-                <td style={{ border: '2px solid #ffd600', padding: 10, textAlign: 'right' }}>{costAfterTax.toFixed(2)}</td>
+                <td style={{ border: '2px solid #ffd600', padding: 14, textAlign: 'center', fontWeight: 600 }}>{item.hsn_code}</td>
+                <td style={{ border: '2px solid #ffd600', padding: 14, textAlign: 'center', fontWeight: 600 }}>{item.qty}</td>
+                <td style={{ border: '2px solid #ffd600', padding: 14, textAlign: 'right', fontWeight: 600 }}>{Number(item.rate).toFixed(2)}</td>
+                <td style={{ border: '2px solid #ffd600', padding: 14, textAlign: 'right', fontWeight: 600 }}>{amount.toFixed(2)}</td>
+                <td style={{ border: '2px solid #ffd600', padding: 14, textAlign: 'right', fontWeight: 600 }}>{gstAmount.toFixed(2)} <span style={{ color: '#d32f2f', fontWeight: 700 }}>({gstPercent}%)</span></td>
+                <td style={{ border: '2px solid #ffd600', padding: 14, textAlign: 'right', fontWeight: 700 }}>{costAfterTax.toFixed(2)}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
       {/* Summary */}
-      <div style={{ display: 'flex', fontSize: 16, marginTop: 0, background: '#fffbe6', padding: '18px 32px 0 32px', borderBottom: '2px solid #ffe066' }}>
-        <div style={{ flex: 1, paddingRight: 24 }}>
-          <div style={{ maxWidth: 340, float: 'left', fontWeight: 600, color: '#0a3d62', fontFamily: 'Inter, Arial, sans-serif' }}>
-            <div style={{ marginBottom: 2 }}>Total</div>
-            {Number(invoice.discount) > 0 && <div style={{ marginBottom: 2 }}>Less Discount</div>}
-            <div style={{ marginBottom: 2 }}>ADD SGST</div>
-            <div style={{ marginBottom: 2 }}>ADD CGST</div>
+      <div style={{ display: 'flex', fontSize: 17, marginTop: 0, background: '#fffbe6', padding: '28px 40px 0 40px', borderBottom: '2.5px solid #ffd600', gap: 32 }}>
+        <div style={{ flex: 1, paddingRight: 32 }}>
+          <div style={{ maxWidth: 340, float: 'left', fontWeight: 800, color: '#d32f2f', fontFamily: 'Inter, Arial, sans-serif', fontSize: 17 }}>
+            <div style={{ marginBottom: 4 }}>Total</div>
+            {Number(invoice.discount) > 0 && <div style={{ marginBottom: 4 }}>Less Discount</div>}
+            <div style={{ marginBottom: 4 }}>ADD SGST</div>
+            <div style={{ marginBottom: 4 }}>ADD CGST</div>
           </div>
-          <div style={{ float: 'right', textAlign: 'right', fontWeight: 600, minWidth: 120, color: '#232323' }}>
-            {Number(invoice.discount) > 0 && <div style={{ marginBottom: 2 }}>{invoice.discount}</div>}
-            <div style={{ marginBottom: 2 }}>{invoice.taxable_value}</div>
-            <div style={{ marginBottom: 2 }}>9% {invoice.sgst}</div>
-            <div style={{ marginBottom: 2 }}>9% {invoice.cgst}</div>
-            <div style={{ marginTop: 12, fontWeight: 900, fontSize: 22, color: '#0a3d62' }}>Total<br />{invoice.grand_total}</div>
+          <div style={{ float: 'right', textAlign: 'right', fontWeight: 800, minWidth: 120, color: '#232323', fontSize: 17 }}>
+            {Number(invoice.discount) > 0 && <div style={{ marginBottom: 4 }}>{invoice.discount}</div>}
+            <div style={{ marginBottom: 4 }}>{invoice.taxable_value}</div>
+            <div style={{ marginBottom: 4 }}>9% {invoice.sgst}</div>
+            <div style={{ marginBottom: 4 }}>9% {invoice.cgst}</div>
+            <div style={{ marginTop: 16, fontWeight: 900, fontSize: 26, color: '#d32f2f', letterSpacing: 1 }}>Total<br />{invoice.grand_total}</div>
           </div>
           <div style={{ clear: 'both' }}></div>
         </div>
       </div>
       {/* Footer */}
-      <div style={{ borderTop: '2px solid #ffd600', fontSize: 15, marginTop: 0, padding: '18px 32px 32px 32px', display: 'flex', background: '#fff', borderBottomLeftRadius: 16, borderBottomRightRadius: 16 }}>
-        <div style={{ flex: 2, paddingRight: 24 }}>
-          <div style={{ fontWeight: 700, color: '#0a3d62', marginBottom: 4, fontFamily: 'Inter, Arial, sans-serif' }}>Amount Chargeable (in words)</div>
-          <div style={{ fontWeight: 500, color: '#232323', marginBottom: 8 }}>{amountInWords}</div>
-          <div style={{ color: '#444' }}>Company's PAN: <b>BYPPK6641B</b></div>
-          <div style={{ color: '#444' }}>Payment Terms: <b>Immediate</b></div>
-          <div style={{ color: '#444' }}>Note-Please make cheques in favor of <b>"SIGN COMPANY"</b></div>
+      <div style={{ borderTop: '2.5px solid #ffd600', fontSize: 16, marginTop: 0, padding: '28px 40px 40px 40px', display: 'flex', background: '#fff', borderBottomLeftRadius: 18, borderBottomRightRadius: 18, gap: 32 }}>
+        <div style={{ flex: 2, paddingRight: 32 }}>
+          <div style={{ fontWeight: 900, color: '#d32f2f', marginBottom: 8, fontFamily: 'Inter, Arial, sans-serif', fontSize: 17 }}>Amount Chargeable (in words)</div>
+          <div style={{ fontWeight: 700, color: '#232323', marginBottom: 12 }}>{amountInWords}</div>
+          <div style={{ color: '#232323', fontWeight: 600 }}>Company's PAN: <b>BYPPK6641B</b></div>
+          <div style={{ color: '#232323', fontWeight: 600 }}>Payment Terms: <b>Immediate</b></div>
+          <div style={{ color: '#232323', fontWeight: 600 }}>Note-Please make cheques in favor of <b>"SIGN COMPANY"</b></div>
         </div>
-        <div style={{ flex: 2, borderLeft: '2px solid #ffd600', paddingLeft: 24, paddingRight: 24 }}>
-          <div style={{ fontWeight: 700, color: '#0a3d62', marginBottom: 4, fontFamily: 'Inter, Arial, sans-serif' }}>BANK DETAILS</div>
-          <div style={{ fontWeight: 500, color: '#232323', marginBottom: 2 }}>Sign Company</div>
-          <div style={{ color: '#444' }}>A/C No: <b>59986534909</b></div>
-          <div style={{ color: '#444' }}>IFSC: <b>IDFB0080184</b></div>
-          <div style={{ color: '#444' }}>Bank name: <b>IDFC FIRST</b></div>
-          <div style={{ color: '#444' }}>Branch: <b>JEEVAN BIMA NAGAR BRANCH</b></div>
-          <div style={{ color: '#444' }}>UPI ID: <b>signcompany@idfcbank</b></div>
+        <div style={{ flex: 2, borderLeft: '2.5px solid #ffd600', paddingLeft: 32, paddingRight: 32 }}>
+          <div style={{ fontWeight: 900, color: '#d32f2f', marginBottom: 8, fontFamily: 'Inter, Arial, sans-serif', fontSize: 17 }}>BANK DETAILS</div>
+          <div style={{ fontWeight: 700, color: '#232323', marginBottom: 4 }}>Sign Company</div>
+          <div style={{ color: '#232323', fontWeight: 600 }}>A/C No: <b>59986534909</b></div>
+          <div style={{ color: '#232323', fontWeight: 600 }}>IFSC: <b>IDFB0080184</b></div>
+          <div style={{ color: '#232323', fontWeight: 600 }}>Bank name: <b>IDFC FIRST</b></div>
+          <div style={{ color: '#232323', fontWeight: 600 }}>Branch: <b>JEEVAN BIMA NAGAR BRANCH</b></div>
+          <div style={{ color: '#232323', fontWeight: 600 }}>UPI ID: <b>signcompany@idfcbank</b></div>
         </div>
-        <div style={{ flex: 1, textAlign: 'center', borderLeft: '2px solid #ffd600', paddingLeft: 24 }}>
-          <div style={{ fontWeight: 700, color: '#0a3d62', marginBottom: 8, fontSize: 16, fontFamily: 'Inter, Arial, sans-serif' }}>SCAN & PAY</div>
-          <img src="/qr.png" alt="UPI QR" style={{ height: 110, width: 110, objectFit: 'contain', border: '2px solid #ffd600', borderRadius: 12, background: '#fff', marginBottom: 8 }} />
-          <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>UPI ID: signcompany@idfcbank</div>
-          <div style={{ fontWeight: 700, color: '#0a3d62', marginTop: 24, fontFamily: 'Inter, Arial, sans-serif' }}>For SIGN COMPANY</div>
-          <div style={{ fontWeight: 500, marginTop: 24, color: '#232323' }}>Authorised Signatory</div>
+        <div style={{ flex: 1, textAlign: 'center', borderLeft: '2.5px solid #ffd600', paddingLeft: 32 }}>
+          <div style={{ fontWeight: 900, color: '#d32f2f', marginBottom: 12, fontSize: 17, fontFamily: 'Inter, Arial, sans-serif' }}>SCAN & PAY</div>
+          <img src="/qr.png" alt="UPI QR" style={{ height: 120, width: 120, objectFit: 'contain', border: '2.5px solid #ffd600', borderRadius: 14, background: '#fff', marginBottom: 12 }} />
+          <div style={{ fontSize: 13, color: '#888', marginBottom: 20, fontWeight: 600 }}>UPI ID: signcompany@idfcbank</div>
+          <div style={{ fontWeight: 900, color: '#d32f2f', marginTop: 32, fontFamily: 'Inter, Arial, sans-serif', fontSize: 17 }}>For SIGN COMPANY</div>
+          <div style={{ fontWeight: 700, marginTop: 32, color: '#232323', fontSize: 16 }}>Authorised Signatory</div>
         </div>
       </div>
     </div>
