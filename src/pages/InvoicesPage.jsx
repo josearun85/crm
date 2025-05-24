@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import supabase from '../supabaseClient';
 import InvoiceList from '../components/InvoiceList';
 import CreateInvoiceModal from '../components/CreateInvoiceModal';
@@ -9,54 +9,32 @@ export default function InvoicesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  // Tab and pagination state
   const [activeTab, setActiveTab] = useState('drafts');
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
-
-  // Filtered invoice lists for each tab
-  const draftInvoices = useMemo(() => invoices.filter(inv => inv.status === 'Draft'), [invoices]);
-  const pendingInvoices = useMemo(() => invoices.filter(inv => inv.status === 'Confirmed'), [invoices]);
-  const pastInvoices = useMemo(() => invoices.filter(inv => inv.status !== 'Draft' && (inv.status !== 'Confirmed' || inv.payment_status === 'Paid')), [invoices]);
-
-  // Pagination logic for pending and past
-  const paginatedPending = useMemo(() => pendingInvoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [pendingInvoices, page]);
-  const paginatedPast = useMemo(() => pastInvoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [pastInvoices, page]);
-  const totalPendingPages = Math.ceil(pendingInvoices.length / PAGE_SIZE);
-  const totalPastPages = Math.ceil(pastInvoices.length / PAGE_SIZE);
-
-  // Reset page to 1 when tab changes
-  useEffect(() => { setPage(1); }, [activeTab]);
-
-  // Fetch invoices for the current tab only
-  const fetchInvoices = async () => {
-    setLoading(true);
-    let query = supabase.from('invoices').select('*');
-    if (activeTab === 'drafts') {
-      query = query.eq('status', 'Draft');
-    } else if (activeTab === 'pending') {
-      query = query.eq('status', 'Confirmed');
-    } else if (activeTab === 'past') {
-      // Past: not Draft, and (not Confirmed or payment_status = Paid)
-      query = query.neq('status', 'Draft');
-      // Optionally, if you want to filter by payment_status, add:
-      // query = query.or('status.neq.Confirmed,payment_status.eq.Paid');
-    }
-    const { data, error } = await query.order('created_at', { ascending: false });
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
-    }
-    setInvoices(data || []);
-    setLoading(false);
-  };
 
   useEffect(() => {
+    const fetchInvoices = async () => {
+      setLoading(true);
+      let query = supabase.from('invoices').select('*');
+      if (activeTab === 'drafts') {
+        query = query.eq('status', 'Draft');
+      } else if (activeTab === 'pending') {
+        query = query.eq('status', 'Confirmed');
+      } else if (activeTab === 'past') {
+        query = query.neq('status', 'Draft');
+      }
+      const { data, error } = await query.order('created_at', { ascending: false });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+      setInvoices(data || []);
+      setLoading(false);
+    };
+
     fetchInvoices();
   }, [activeTab]);
 
-  // Handler to create a new draft invoice
   const handleCreateInvoice = () => setShowCreateModal(true);
 
   const handleModalCreate = async (invoiceData) => {
@@ -73,7 +51,6 @@ export default function InvoicesPage() {
     setInvoices((prev) => [data, ...prev]);
   };
 
-  // Handler to remove deleted invoice from UI
   const handleDeleteInvoice = (id) => {
     setInvoices((prev) => prev.filter((inv) => inv.id !== id));
   };
@@ -119,29 +96,7 @@ export default function InvoicesPage() {
       ) : error ? (
         <p style={{ color: 'red' }}>{error}</p>
       ) : (
-        <>
-          {activeTab === 'drafts' && <InvoiceList invoices={draftInvoices} onDelete={handleDeleteInvoice} onReorder={fetchInvoices} />}
-          {activeTab === 'pending' && <>
-            <InvoiceList invoices={pendingInvoices} onDelete={handleDeleteInvoice} />
-            {totalPendingPages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
-                <button onClick={() => setPage(page - 1)} disabled={page === 1}>Prev</button>
-                <span>Page {page} of {totalPendingPages}</span>
-                <button onClick={() => setPage(page + 1)} disabled={page === totalPendingPages}>Next</button>
-              </div>
-            )}
-          </>}
-          {activeTab === 'past' && <>
-            <InvoiceList invoices={paginatedPast} onDelete={handleDeleteInvoice} />
-            {totalPastPages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
-                <button onClick={() => setPage(page - 1)} disabled={page === 1}>Prev</button>
-                <span>Page {page} of {totalPastPages}</span>
-                <button onClick={() => setPage(page + 1)} disabled={page === totalPastPages}>Next</button>
-              </div>
-            )}
-          </>}
-        </>
+        <InvoiceList invoices={invoices} onDelete={handleDeleteInvoice} onReorder={fetchInvoices} />
       )}
     </div>
   );
