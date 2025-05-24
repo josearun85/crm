@@ -40,10 +40,12 @@ export default function CreateInvoiceModal({ onCreate, onClose }) {
     // Always use customer_id from selected order
     const selectedOrder = orders.find(o => o.id === orderId);
     const customerId = selectedOrder ? selectedOrder.customer_id : null;
+    // Default invoice_date to today if blank
+    const dateToUse = invoiceDate || new Date().toISOString().slice(0, 10);
     onCreate({
       order_id: orderId,
       customer_id: customerId,
-      invoice_date: invoiceDate,
+      invoice_date: dateToUse,
       notes,
       status: 'Draft',
       created_at: new Date().toISOString(),
