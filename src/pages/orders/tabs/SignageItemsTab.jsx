@@ -159,6 +159,14 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
 
     // Fetch all required data
     const order = await fetchOrderOverview(orderId);
+    // Fetch the invoice record for this order
+    const supabase = (await import('../../../supabaseClient')).default;
+    const { data: invoices, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('order_id', orderId)
+      .order('created_at', { ascending: false });
+    let invoiceRecord = invoices && invoices.length > 0 ? invoices[0] : null;
 
     // Prepare customer info
     const customer = order.customer || {};
@@ -210,11 +218,20 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     }
     const amountInWords = numberToWords(grandTotal);
 
+    // Use invoice_number for confirmed, or 'DRAFT' for draft
+    let invoiceNumber = 'DRAFT';
+    if (invoiceRecord) {
+      if (invoiceRecord.status === 'Confirmed' && invoiceRecord.invoice_number) {
+        invoiceNumber = invoiceRecord.invoice_number;
+      }
+    }
+
     // Prepare invoice object for InvoicePdf
     const invoice = {
-      number: order.id,
+      number: invoiceNumber,
       version: order.version || 1,
-      date: order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+      status: invoiceRecord ? invoiceRecord.status : 'Draft',
+      date: invoiceRecord && invoiceRecord.invoice_date ? new Date(invoiceRecord.invoice_date).toLocaleDateString('en-GB') : (order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')),
       place_of_supply: order.place_of_supply || 'Bangalore',
       sgst: (gst / 2).toFixed(2),
       cgst: (gst / 2).toFixed(2),
