@@ -114,7 +114,7 @@ export default function InvoicesPage() {
         <>
           {activeTab === 'drafts' && <InvoiceList invoices={draftInvoices} onDelete={handleDeleteInvoice} onReorder={fetchInvoices} />}
           {activeTab === 'pending' && <>
-            <InvoiceList invoices={pendingInvoices} onDelete={handleDeleteInvoice} />
+            <InvoiceList invoices={paginatedPending} onDelete={handleDeleteInvoice} />
             {totalPendingPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
                 <button onClick={() => setPage(page - 1)} disabled={page === 1}>Prev</button>
