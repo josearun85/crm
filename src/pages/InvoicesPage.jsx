@@ -16,7 +16,7 @@ export default function InvoicesPage() {
 
   // Filtered invoice lists for each tab
   const draftInvoices = useMemo(() => invoices.filter(inv => inv.status === 'Draft'), [invoices]);
-  const pendingInvoices = useMemo(() => invoices.filter(inv => inv.status === 'Confirmed' && inv.payment_status !== 'Paid'), [invoices]);
+  const pendingInvoices = useMemo(() => invoices.filter(inv => inv.status === 'Confirmed'), [invoices]);
   const pastInvoices = useMemo(() => invoices.filter(inv => inv.status !== 'Draft' && (inv.status !== 'Confirmed' || inv.payment_status === 'Paid')), [invoices]);
 
   // Pagination logic for pending and past
@@ -28,13 +28,21 @@ export default function InvoicesPage() {
   // Reset page to 1 when tab changes
   useEffect(() => { setPage(1); }, [activeTab]);
 
-  // Fetch all invoices, reverse chronological order
+  // Fetch invoices for the current tab only
   const fetchInvoices = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('invoices')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let query = supabase.from('invoices').select('*');
+    if (activeTab === 'drafts') {
+      query = query.eq('status', 'Draft');
+    } else if (activeTab === 'pending') {
+      query = query.eq('status', 'Confirmed');
+    } else if (activeTab === 'past') {
+      // Past: not Draft, and (not Confirmed or payment_status = Paid)
+      query = query.neq('status', 'Draft');
+      // Optionally, if you want to filter by payment_status, add:
+      // query = query.or('status.neq.Confirmed,payment_status.eq.Paid');
+    }
+    const { data, error } = await query.order('created_at', { ascending: false });
     if (error) {
       setError(error.message);
       setLoading(false);
