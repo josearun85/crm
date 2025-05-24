@@ -37,11 +37,12 @@ export default function CreateInvoiceModal({ onCreate, onClose }) {
       alert('Please select an order.');
       return;
     }
-    // Find the selected order to get the customer_id
+    // Always use customer_id from selected order
     const selectedOrder = orders.find(o => o.id === orderId);
+    const customerId = selectedOrder ? selectedOrder.customer_id : null;
     onCreate({
       order_id: orderId,
-      customer_id: selectedOrder ? selectedOrder.customer_id : null,
+      customer_id: customerId,
       invoice_date: invoiceDate,
       notes,
       status: 'Draft',
