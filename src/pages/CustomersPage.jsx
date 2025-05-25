@@ -71,6 +71,17 @@ export default function CustomersPage() {
         <table className="customers-table">
           <tbody>
             {customers
+              .slice() // copy array to avoid mutating state
+              .sort((a, b) => {
+                // Find latest order date for each customer (fallback to 0 if no orders)
+                const aLatest = a.orders && a.orders.length
+                  ? Math.max(...a.orders.map(o => o.created_at ? new Date(o.created_at).getTime() : 0))
+                  : 0;
+                const bLatest = b.orders && b.orders.length
+                  ? Math.max(...b.orders.map(o => o.created_at ? new Date(o.created_at).getTime() : 0))
+                  : 0;
+                return bLatest - aLatest;
+              })
               .filter(c => {
                 const q = search.trim().toLowerCase();
                 if (!q) return true;
