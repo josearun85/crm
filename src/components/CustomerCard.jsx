@@ -4,8 +4,7 @@ import { updateOrder } from '../services/orderService';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
-import { deleteCustomerWithFiles } from '../services/customersService';
-import { updateCustomerDetails } from '../pages/orders/services/orderDetailsService';
+import { deleteCustomerWithFiles, updateCustomer } from '../services/customersService';
 import SalesStageSelect from './SalesStageSelect';
 
 export default function CustomerCard({ customer, onOrderUpdated }) { 
@@ -54,7 +53,7 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
       autoSaveTimeoutRef.current = setTimeout(async () => {
         try {
           setIsAutoSaving(true);
-          await updateCustomerDetails(customer.id, editBuffer);
+          await updateCustomer(customer.id, editBuffer);
           setHasUnsavedChanges(false);
           if (onOrderUpdated) {
             onOrderUpdated();
@@ -99,7 +98,7 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
               e.preventDefault();
               setSaving(true);
               try {
-                await updateCustomerDetails(customer.id, editBuffer);
+                await updateCustomer(customer.id, editBuffer);
                 setEditing(false);
                 if (onOrderUpdated) onOrderUpdated();
               } catch (err) {

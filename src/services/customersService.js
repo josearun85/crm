@@ -31,3 +31,31 @@ export async function deleteCustomerWithFiles(customerId) {
 
   if (deleteError) throw deleteError;
 }
+
+export async function updateCustomer(customerId, updates) {
+  // Convert empty strings to null for date fields
+  const processedUpdates = { ...updates };
+  
+  // List of date fields that might be empty
+  const dateFields = ['follow_up_on'];
+  
+  dateFields.forEach(field => {
+    if (processedUpdates[field] === '') {
+      processedUpdates[field] = null;
+    }
+  });
+
+  const { data, error } = await supabase
+    .from('customers')
+    .update(processedUpdates)
+    .eq('id', customerId)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating customer:', error);
+    throw error;
+  }
+  
+  return data;
+}

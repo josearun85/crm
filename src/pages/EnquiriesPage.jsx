@@ -357,7 +357,9 @@ export default function EnquiriesPage() {
                           value={e.follow_up_on ? format(new Date(e.follow_up_on), 'yyyy-MM-dd') : ''}
                           onChange={async (ev) => {
                             const value = ev.target.value;
-                            await supabase.from('enquiries').update({ follow_up_on: value }).eq('id', e.id);
+                            // Convert empty string to null to avoid database errors
+                            const followUpDate = value === '' ? null : value;
+                            await supabase.from('enquiries').update({ follow_up_on: followUpDate }).eq('id', e.id);
                             const user = await supabase.auth.getUser();
                             await addFeedNote({
                               type: 'feed',
