@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import CustomerCard from '../components/CustomerCard';
@@ -11,6 +11,8 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const customerRefs = useRef({});
 
   useEffect(() => {
     fetchData();
@@ -37,64 +39,105 @@ export default function CustomersPage() {
     navigate(`/orders/${orderId}`);
   };
 
+  const scrollToCustomer = (customerId) => {
+    setSelectedCustomer(customerId);
+    const element = customerRefs.current[customerId];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const filteredCustomers = customers
+    .slice() // copy array to avoid mutating state
+    .sort((a, b) => {
+      // Find latest order date for each customer (fallback to 0 if no orders)
+      const aLatest = a.orders && a.orders.length
+        ? Math.max(...a.orders.map(o => o.created_at ? new Date(o.created_at).getTime() : 0))
+        : 0;
+      const bLatest = b.orders && b.orders.length
+        ? Math.max(...b.orders.map(o => o.created_at ? new Date(o.created_at).getTime() : 0))
+        : 0;
+      return bLatest - aLatest;
+    })
+    .filter(c => {
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        String(c.name || '').toLowerCase().includes(q) ||
+        String(c.phone || '').toLowerCase().includes(q) ||
+        String(c.email || '').toLowerCase().includes(q)
+      );
+    });
+
   return (
     <div className="customers-page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Customers</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          style={{
-            backgroundColor: '#1976d2',
-            color: '#fff',
-            border: 'none',
-            padding: '8px 16px',
-            borderRadius: '4px',
-            fontSize: '0.9rem',
-            cursor: 'pointer'
-          }}
-        >
-          + Add Customer
-        </button>
-      </div>
-      <div style={{ margin: '18px 0 12px 0', maxWidth: 340 }}>
-        <input
-          type="text"
-          placeholder="Search customers..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ width: '100%', padding: '8px', borderRadius: 6, border: '1px solid #ccc', fontSize: '1rem' }}
-        />
-      </div>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <table className="customers-table">
-          <tbody>
-            {customers
-              .slice() // copy array to avoid mutating state
-              .sort((a, b) => {
-                // Find latest order date for each customer (fallback to 0 if no orders)
-                const aLatest = a.orders && a.orders.length
-                  ? Math.max(...a.orders.map(o => o.created_at ? new Date(o.created_at).getTime() : 0))
-                  : 0;
-                const bLatest = b.orders && b.orders.length
-                  ? Math.max(...b.orders.map(o => o.created_at ? new Date(o.created_at).getTime() : 0))
-                  : 0;
-                return bLatest - aLatest;
-              })
-              .filter(c => {
-                const q = search.trim().toLowerCase();
-                if (!q) return true;
-                return (
-                  String(c.name || '').toLowerCase().includes(q) ||
-                  String(c.phone || '').toLowerCase().includes(q) ||
-                  String(c.email || '').toLowerCase().includes(q)
-                );
-              })
-              .map(customer => (
-                <tr key={customer.id}>
-                  <td style={{ padding: '1rem' }}>
-                    <CustomerCard customer={customer} onOrderUpdated={fetchData} onAddOrder={async () => {
+      <div className="customers-layout">
+        {/* Left Panel */}
+        <div className="left-panel">
+          <div className="left-panel-header">
+            <h2>Customers</h2>
+            <button
+              onClick={() => setShowForm(true)}
+              className="add-customer-btn"
+            >
+              + Add
+            </button>
+          </div>
+          
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search customers..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="search-input"
+            />
+          </div>
+
+          <div className="customer-list">
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              filteredCustomers.map(customer => (
+                <div
+                  key={customer.id}
+                  className={`customer-list-item ${selectedCustomer === customer.id ? 'selected' : ''}`}
+                  onClick={() => scrollToCustomer(customer.id)}
+                >
+                  <div className="customer-name">{customer.name}</div>
+                  <div className="customer-info">
+                    {customer.phone && <span>{customer.phone}</span>}
+                    {customer.sales_stage && <span className="sales-stage">{customer.sales_stage}</span>}
+                  </div>
+                  {customer.orders && customer.orders.length > 0 && (
+                    <div className="order-count">{customer.orders.length} order{customer.orders.length !== 1 ? 's' : ''}</div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="right-panel">
+          <div className="right-panel-header">
+            <h1>Customer Details</h1>
+          </div>
+          
+          <div className="customer-cards">
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              filteredCustomers.map(customer => (
+                <div
+                  key={customer.id}
+                  ref={el => customerRefs.current[customer.id] = el}
+                  className="customer-card-container"
+                >
+                  <CustomerCard 
+                    customer={customer} 
+                    onOrderUpdated={fetchData} 
+                    onAddOrder={async () => {
                       const dueDate = new Date();
                       dueDate.setDate(dueDate.getDate() + 14);
 
@@ -145,13 +188,15 @@ export default function CustomersPage() {
                       }
 
                       navigate(`/orders/${order.id}`);
-                    }} />
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      )}
+                    }} 
+                  />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
       <AddCustomerForm
         isOpen={showForm}
         onClose={() => setShowForm(false)}
