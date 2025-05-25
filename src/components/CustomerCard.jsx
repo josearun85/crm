@@ -43,44 +43,53 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
           )}
         </div>
         {editing ? (
-          <>
-            <div style={{ marginBottom: 8 }}>
-              <label><strong>Name:</strong> <input value={editBuffer.name} onChange={e => setEditBuffer(buf => ({ ...buf, name: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc' }} /></label>
+          <form
+            onSubmit={async e => {
+              e.preventDefault();
+              setSaving(true);
+              try {
+                await updateCustomerDetails(customer.id, editBuffer);
+                setEditing(false);
+                if (onOrderUpdated) onOrderUpdated();
+              } catch (err) {
+                alert('Failed to update customer: ' + err.message);
+              }
+              setSaving(false);
+            }}
+          >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Name:</strong> <input value={editBuffer.name} onChange={e => setEditBuffer(buf => ({ ...buf, name: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Phone:</strong> <input value={editBuffer.phone} onChange={e => setEditBuffer(buf => ({ ...buf, phone: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Email:</strong> <input value={editBuffer.email} onChange={e => setEditBuffer(buf => ({ ...buf, email: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Address:</strong> <input value={editBuffer.address} onChange={e => setEditBuffer(buf => ({ ...buf, address: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Sales Stage:</strong> <input value={editBuffer.sales_stage} onChange={e => setEditBuffer(buf => ({ ...buf, sales_stage: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+              </div>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Follow Up On:</strong> <input type="date" value={editBuffer.follow_up_on} onChange={e => setEditBuffer(buf => ({ ...buf, follow_up_on: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>GSTIN:</strong> <input value={editBuffer.gstin} onChange={e => setEditBuffer(buf => ({ ...buf, gstin: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160, textTransform: 'uppercase' }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>PAN:</strong> <input value={editBuffer.pan} onChange={e => setEditBuffer(buf => ({ ...buf, pan: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160, textTransform: 'uppercase' }} /></label>
+                </div>
+              </div>
             </div>
-            <div style={{ marginBottom: 8 }}>
-              <label><strong>Phone:</strong> <input value={editBuffer.phone} onChange={e => setEditBuffer(buf => ({ ...buf, phone: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc' }} /></label>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <label><strong>Email:</strong> <input value={editBuffer.email} onChange={e => setEditBuffer(buf => ({ ...buf, email: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc' }} /></label>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <label><strong>Address:</strong> <input value={editBuffer.address} onChange={e => setEditBuffer(buf => ({ ...buf, address: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 240 }} /></label>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <label><strong>Sales Stage:</strong> <input value={editBuffer.sales_stage} onChange={e => setEditBuffer(buf => ({ ...buf, sales_stage: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc' }} /></label>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <label><strong>Follow Up On:</strong> <input type="date" value={editBuffer.follow_up_on} onChange={e => setEditBuffer(buf => ({ ...buf, follow_up_on: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc' }} /></label>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <label><strong>GSTIN:</strong> <input value={editBuffer.gstin} onChange={e => setEditBuffer(buf => ({ ...buf, gstin: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', textTransform: 'uppercase' }} /></label>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <label><strong>PAN:</strong> <input value={editBuffer.pan} onChange={e => setEditBuffer(buf => ({ ...buf, pan: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', textTransform: 'uppercase' }} /></label>
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button disabled={saving} onClick={async () => {
-                setSaving(true);
-                try {
-                  await updateCustomerDetails(customer.id, editBuffer);
-                  setEditing(false);
-                  if (onOrderUpdated) onOrderUpdated();
-                } catch (err) {
-                  alert('Failed to update customer: ' + err.message);
-                }
-                setSaving(false);
-              }} style={{ background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', marginRight: 8, cursor: 'pointer' }}>Save</button>
-              <button disabled={saving} onClick={() => { setEditing(false); setEditBuffer({
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <button type="submit" disabled={saving} style={{ background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', marginRight: 8, cursor: 'pointer' }}>Save</button>
+              <button type="button" disabled={saving} onClick={() => { setEditing(false); setEditBuffer({
                 name: customer.name || '',
                 phone: customer.phone || '',
                 email: customer.email || '',
@@ -91,19 +100,25 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
                 pan: customer.pan || ''
               }); }} style={{ background: '#ccc', color: '#333', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>Cancel</button>
             </div>
-          </>
+          </form>
         ) : (
-          <>
-            <p><strong>Customer:</strong> {customer.name}</p>
-            <p><strong>Phone:</strong> {customer.phone}</p>
-            <p><strong>Email:</strong> {customer.email}</p>
-            <p><strong>Address:</strong> {customer.address}</p>
-            <p><strong>Sales Stage:</strong> {customer.sales_stage}</p>
-            <p><strong>Follow Up On:</strong> {customer.follow_up_on ? customer.follow_up_on.split('T')[0] : ''}</p>
-            <p><strong>GSTIN:</strong> {customer.gstin}</p>
-            <p><strong>PAN:</strong> {customer.pan}</p>
-            <button onClick={() => setEditing(true)} style={{ background: '#fbc02d', color: '#333', border: 'none', borderRadius: 4, padding: '4px 12px', marginTop: 8, cursor: 'pointer' }}>Edit</button>
-          </>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <p><strong>Customer:</strong> {customer.name}</p>
+              <p><strong>Phone:</strong> {customer.phone}</p>
+              <p><strong>Email:</strong> {customer.email}</p>
+              <p><strong>Address:</strong> {customer.address}</p>
+              <p><strong>Sales Stage:</strong> {customer.sales_stage}</p>
+            </div>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <p><strong>Follow Up On:</strong> {customer.follow_up_on ? customer.follow_up_on.split('T')[0] : ''}</p>
+              <p><strong>GSTIN:</strong> {customer.gstin}</p>
+              <p><strong>PAN:</strong> {customer.pan}</p>
+            </div>
+            <div style={{ flexBasis: '100%', marginTop: 8 }}>
+              <button onClick={() => setEditing(true)} style={{ background: '#fbc02d', color: '#333', border: 'none', borderRadius: 4, padding: '4px 12px', marginTop: 8, cursor: 'pointer' }}>Edit</button>
+            </div>
+          </div>
         )}
 
         {showConfirm && (
