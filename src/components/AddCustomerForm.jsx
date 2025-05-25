@@ -6,7 +6,19 @@ export default function AddCustomerForm({ isOpen, onClose, onCustomerAdded }) {
     name: '',
     phone: '',
     email: '',
-    sales_stage: ''
+    address: '',
+    sales_stage: '',
+    about: '',
+    primary_stakeholder: '',
+    secondary_stakeholder: '',
+    primary_phone: '',
+    secondary_phone: '',
+    primary_email: '',
+    secondary_email: '',
+    follow_up_on: '',
+    gstin: '',
+    pan: '',
+    referral_source: ''
   })
   const [loading, setLoading] = useState(false)
 
@@ -25,7 +37,24 @@ export default function AddCustomerForm({ isOpen, onClose, onCustomerAdded }) {
     } else {
       onCustomerAdded()
       onClose()
-      setForm({ name: '', phone: '', email: '', sales_stage: '' })
+      setForm({
+        name: '',
+        phone: '',
+        email: '',
+        address: '',
+        sales_stage: '',
+        about: '',
+        primary_stakeholder: '',
+        secondary_stakeholder: '',
+        primary_phone: '',
+        secondary_phone: '',
+        primary_email: '',
+        secondary_email: '',
+        follow_up_on: '',
+        gstin: '',
+        pan: '',
+        referral_source: ''
+      })
     }
   }
 
@@ -39,7 +68,19 @@ export default function AddCustomerForm({ isOpen, onClose, onCustomerAdded }) {
           <input name="name" placeholder="Name" onChange={handleChange} value={form.name} required style={{ width: '100%', padding: '0.5rem' }} />
           <input name="phone" placeholder="Phone" onChange={handleChange} value={form.phone} style={{ width: '100%', padding: '0.5rem' }} />
           <input name="email" placeholder="Email" onChange={handleChange} value={form.email} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="address" placeholder="Address" onChange={handleChange} value={form.address} style={{ width: '100%', padding: '0.5rem' }} />
           <input name="sales_stage" placeholder="Sales Stage" onChange={handleChange} value={form.sales_stage} style={{ width: '100%', padding: '0.5rem' }} />
+          <textarea name="about" placeholder="About" onChange={handleChange} value={form.about} style={{ width: '100%', padding: '0.5rem', minHeight: '60px' }} />
+          <input name="primary_stakeholder" placeholder="Primary Stakeholder" onChange={handleChange} value={form.primary_stakeholder} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="primary_phone" placeholder="Primary Phone" onChange={handleChange} value={form.primary_phone} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="primary_email" placeholder="Primary Email" onChange={handleChange} value={form.primary_email} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="secondary_stakeholder" placeholder="Secondary Stakeholder" onChange={handleChange} value={form.secondary_stakeholder} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="secondary_phone" placeholder="Secondary Phone" onChange={handleChange} value={form.secondary_phone} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="secondary_email" placeholder="Secondary Email" onChange={handleChange} value={form.secondary_email} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="follow_up_on" type="date" placeholder="Follow Up On" onChange={handleChange} value={form.follow_up_on} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="gstin" placeholder="GSTIN" onChange={handleChange} value={form.gstin} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="pan" placeholder="PAN" onChange={handleChange} value={form.pan} style={{ width: '100%', padding: '0.5rem' }} />
+          <input name="referral_source" placeholder="Referral Source" onChange={handleChange} value={form.referral_source} style={{ width: '100%', padding: '0.5rem' }} />
           <div style={{ marginTop: '1rem' }}>
             <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.75rem' }}>Add</button>
             <button type="button" onClick={onClose} style={{ marginLeft: '1rem', width: '100%', padding: '0.75rem' }}>Cancel</button>

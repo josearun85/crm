@@ -152,12 +152,24 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
               <p><strong>Email:</strong> {customer.email}</p>
               <p><strong>Address:</strong> {customer.address}</p>
               <p><strong>Sales Stage:</strong> {customer.sales_stage}</p>
+              <p><strong>Primary Stakeholder:</strong> {customer.primary_stakeholder}</p>
+              <p><strong>Primary Phone:</strong> {customer.primary_phone}</p>
+              <p><strong>Primary Email:</strong> {customer.primary_email}</p>
+              <p><strong>Referral Source:</strong> {customer.referral_source}</p>
             </div>
             <div style={{ flex: 1, minWidth: 220 }}>
+              <p><strong>Secondary Stakeholder:</strong> {customer.secondary_stakeholder}</p>
+              <p><strong>Secondary Phone:</strong> {customer.secondary_phone}</p>
+              <p><strong>Secondary Email:</strong> {customer.secondary_email}</p>
               <p><strong>Follow Up On:</strong> {customer.follow_up_on ? customer.follow_up_on.split('T')[0] : ''}</p>
               <p><strong>GSTIN:</strong> {customer.gstin}</p>
               <p><strong>PAN:</strong> {customer.pan}</p>
             </div>
+            {customer.about && (
+              <div style={{ flex: '100%', marginTop: 8 }}>
+                <p><strong>About:</strong> {customer.about}</p>
+              </div>
+            )}
             <div style={{ flexBasis: '100%', marginTop: 8 }}>
               <button onClick={() => setEditing(true)} style={{ background: '#fbc02d', color: '#333', border: 'none', borderRadius: 4, padding: '4px 12px', marginTop: 8, cursor: 'pointer' }}>Edit</button>
             </div>
