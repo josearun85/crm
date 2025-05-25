@@ -21,7 +21,7 @@ export default function CustomersPage() {
 
     const { data, error } = await supabase
       .from('customers')
-      .select('id,name,phone,email,address,sales_stage,follow_up_on,gstin,pan,orders:orders(id,status,due_date,created_at)');
+      .select('id,name,phone,email,address,sales_stage,follow_up_on,gstin,pan,about,primary_stakeholder,secondary_stakeholder,primary_phone,secondary_phone,primary_email,secondary_email,referral_source,orders:orders(id,status,due_date,created_at)');
 
     if (error) {
       console.error('Error fetching customers:', error);

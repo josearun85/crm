@@ -21,7 +21,15 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
     sales_stage: customer.sales_stage || '',
     follow_up_on: customer.follow_up_on ? customer.follow_up_on.split('T')[0] : '',
     gstin: customer.gstin || '',
-    pan: customer.pan || ''
+    pan: customer.pan || '',
+    about: customer.about || '',
+    primary_stakeholder: customer.primary_stakeholder || '',
+    secondary_stakeholder: customer.secondary_stakeholder || '',
+    primary_phone: customer.primary_phone || '',
+    secondary_phone: customer.secondary_phone || '',
+    primary_email: customer.primary_email || '',
+    secondary_email: customer.secondary_email || '',
+    referral_source: customer.referral_source || ''
   });
   const [saving, setSaving] = useState(false);
 
