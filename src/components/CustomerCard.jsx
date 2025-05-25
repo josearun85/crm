@@ -82,8 +82,29 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
                 <div style={{ marginBottom: 8 }}>
                   <label><strong>Sales Stage:</strong> <input value={editBuffer.sales_stage} onChange={e => setEditBuffer(buf => ({ ...buf, sales_stage: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Primary Stakeholder:</strong> <input value={editBuffer.primary_stakeholder} onChange={e => setEditBuffer(buf => ({ ...buf, primary_stakeholder: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Primary Phone:</strong> <input value={editBuffer.primary_phone} onChange={e => setEditBuffer(buf => ({ ...buf, primary_phone: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Primary Email:</strong> <input value={editBuffer.primary_email} onChange={e => setEditBuffer(buf => ({ ...buf, primary_email: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Referral Source:</strong> <input value={editBuffer.referral_source} onChange={e => setEditBuffer(buf => ({ ...buf, referral_source: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
               </div>
               <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Secondary Stakeholder:</strong> <input value={editBuffer.secondary_stakeholder} onChange={e => setEditBuffer(buf => ({ ...buf, secondary_stakeholder: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Secondary Phone:</strong> <input value={editBuffer.secondary_phone} onChange={e => setEditBuffer(buf => ({ ...buf, secondary_phone: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>Secondary Email:</strong> <input value={editBuffer.secondary_email} onChange={e => setEditBuffer(buf => ({ ...buf, secondary_email: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                </div>
                 <div style={{ marginBottom: 8 }}>
                   <label><strong>Follow Up On:</strong> <input type="date" value={editBuffer.follow_up_on} onChange={e => setEditBuffer(buf => ({ ...buf, follow_up_on: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
@@ -92,6 +113,12 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
                 </div>
                 <div style={{ marginBottom: 8 }}>
                   <label><strong>PAN:</strong> <input value={editBuffer.pan} onChange={e => setEditBuffer(buf => ({ ...buf, pan: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160, textTransform: 'uppercase' }} /></label>
+                </div>
+              </div>
+              <div style={{ flex: '100%', marginTop: 8 }}>
+                <div style={{ marginBottom: 8 }}>
+                  <label><strong>About:</strong></label>
+                  <textarea value={editBuffer.about} onChange={e => setEditBuffer(buf => ({ ...buf, about: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: '100%', minHeight: 60, resize: 'vertical' }} placeholder="About this customer..." />
                 </div>
               </div>
             </div>
@@ -105,7 +132,15 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
                 sales_stage: customer.sales_stage || '',
                 follow_up_on: customer.follow_up_on ? customer.follow_up_on.split('T')[0] : '',
                 gstin: customer.gstin || '',
-                pan: customer.pan || ''
+                pan: customer.pan || '',
+                about: customer.about || '',
+                primary_stakeholder: customer.primary_stakeholder || '',
+                secondary_stakeholder: customer.secondary_stakeholder || '',
+                primary_phone: customer.primary_phone || '',
+                secondary_phone: customer.secondary_phone || '',
+                primary_email: customer.primary_email || '',
+                secondary_email: customer.secondary_email || '',
+                referral_source: customer.referral_source || ''
               }); }} style={{ background: '#ccc', color: '#333', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>Cancel</button>
             </div>
           </form>
