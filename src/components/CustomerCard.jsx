@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import { deleteCustomerWithFiles } from '../services/customersService';
 import { updateCustomerDetails } from '../pages/orders/services/orderDetailsService';
+import SalesStageSelect from './SalesStageSelect';
 
 export default function CustomerCard({ customer, onOrderUpdated }) { 
   const navigate = useNavigate();
@@ -80,7 +81,12 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
                   <label><strong>Address:</strong> <input value={editBuffer.address} onChange={e => setEditBuffer(buf => ({ ...buf, address: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Sales Stage:</strong> <input value={editBuffer.sales_stage} onChange={e => setEditBuffer(buf => ({ ...buf, sales_stage: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Sales Stage:</strong> <SalesStageSelect
+                    value={editBuffer.sales_stage}
+                    onChange={e => setEditBuffer(buf => ({ ...buf, sales_stage: e.target.value }))}
+                    name="sales_stage"
+                    placeholder="Sales Stage"
+                  /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
                   <label><strong>Primary Stakeholder:</strong> <input value={editBuffer.primary_stakeholder} onChange={e => setEditBuffer(buf => ({ ...buf, primary_stakeholder: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>

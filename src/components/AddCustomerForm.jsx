@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import supabase from '../supabaseClient'
+import SalesStageSelect from './SalesStageSelect'
 
 export default function AddCustomerForm({ isOpen, onClose, onCustomerAdded }) {
   const [form, setForm] = useState({
@@ -69,7 +70,7 @@ export default function AddCustomerForm({ isOpen, onClose, onCustomerAdded }) {
           <input name="phone" placeholder="Phone" onChange={handleChange} value={form.phone} style={{ width: '100%', padding: '0.5rem' }} />
           <input name="email" placeholder="Email" onChange={handleChange} value={form.email} style={{ width: '100%', padding: '0.5rem' }} />
           <input name="address" placeholder="Address" onChange={handleChange} value={form.address} style={{ width: '100%', padding: '0.5rem' }} />
-          <input name="sales_stage" placeholder="Sales Stage" onChange={handleChange} value={form.sales_stage} style={{ width: '100%', padding: '0.5rem' }} />
+          <SalesStageSelect value={form.sales_stage} onChange={handleChange} placeholder="Sales Stage" />
           <textarea name="about" placeholder="About" onChange={handleChange} value={form.about} style={{ width: '100%', padding: '0.5rem', minHeight: '60px' }} />
           <input name="primary_stakeholder" placeholder="Primary Stakeholder" onChange={handleChange} value={form.primary_stakeholder} style={{ width: '100%', padding: '0.5rem' }} />
           <input name="primary_phone" placeholder="Primary Phone" onChange={handleChange} value={form.primary_phone} style={{ width: '100%', padding: '0.5rem' }} />
