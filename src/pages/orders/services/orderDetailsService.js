@@ -31,9 +31,21 @@ export async function updateOrderStatus(orderId, newStatus) {
 
 // Update customer details (GSTIN, PAN, etc.)
 export async function updateCustomerDetails(customerId, updates) {
+  // Convert empty strings to null for date fields
+  const processedUpdates = { ...updates };
+  
+  // List of date fields that might be empty
+  const dateFields = ['follow_up_on'];
+  
+  dateFields.forEach(field => {
+    if (processedUpdates[field] === '') {
+      processedUpdates[field] = null;
+    }
+  });
+
   const { data, error } = await supabase
     .from("customers")
-    .update(updates)
+    .update(processedUpdates)
     .eq("id", customerId)
     .select()
     .single();
@@ -531,8 +543,12 @@ export async function addOrderNote(orderId, noteContent) {
   return data;
 }
 
-export async function deleteOrderNote(noteId) {
-  const { error } = await supabase.from("order_notes").delete().eq("id", noteId);
+// Delete a note
+export async function deleteNote(noteId) {
+  const { error } = await supabase
+    .from("order_notes")
+    .delete()
+    .eq("id", noteId);
   if (error) {
     console.error(error);
     throw error;
@@ -752,6 +768,7 @@ export async function updatePayment(paymentId, updates) {
   return data;
 }
 
+// Delete payment
 export async function deletePayment(paymentId) {
   const { error } = await supabase.from("payments").delete().eq("id", paymentId);
   if (error) {
@@ -810,4 +827,14 @@ export async function addFeedNote({
     invoice_id,
     created_at: new Date().toISOString()
   }]);
+}
+
+// Get inventory items
+export async function getInventoryItems() {
+  const { data, error } = await supabase.from("inventory").select("*");
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+  return data;
 }
