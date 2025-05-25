@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './CustomerCard.css';
 import { updateOrder } from '../services/orderService';
 import moment from 'moment';
@@ -33,9 +33,51 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
     referral_source: customer.referral_source || ''
   });
   const [saving, setSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const autoSaveTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const goToGantt = (orderId) => {
     navigate(`/orders-v2/${orderId}`);
+  };
+
+  // Auto-save functionality with debouncing
+  useEffect(() => {
+    if (hasUnsavedChanges && editing) {
+      // Clear existing timeout
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+
+      // Set new timeout for auto-save
+      autoSaveTimeoutRef.current = setTimeout(async () => {
+        try {
+          setIsAutoSaving(true);
+          await updateCustomerDetails(customer.id, editBuffer);
+          setHasUnsavedChanges(false);
+          if (onOrderUpdated) {
+            onOrderUpdated();
+          }
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+        } finally {
+          setIsAutoSaving(false);
+        }
+      }, 2000); // Auto-save after 2 seconds of inactivity
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [editBuffer, editing, onOrderUpdated, hasUnsavedChanges, customer.id]);
+
+  const handleInputChange = (field, value) => {
+    setEditBuffer(prev => ({ ...prev, [field]: value }));
+    setHasUnsavedChanges(true);
   };
 
   return (
@@ -69,67 +111,87 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
               <div style={{ flex: 1, minWidth: 220 }}>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Name:</strong> <input value={editBuffer.name} onChange={e => setEditBuffer(buf => ({ ...buf, name: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Name:</strong> <input value={editBuffer.name} onChange={e => handleInputChange('name', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Phone:</strong> <input value={editBuffer.phone} onChange={e => setEditBuffer(buf => ({ ...buf, phone: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Phone:</strong> <input value={editBuffer.phone} onChange={e => handleInputChange('phone', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Email:</strong> <input value={editBuffer.email} onChange={e => setEditBuffer(buf => ({ ...buf, email: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Email:</strong> <input value={editBuffer.email} onChange={e => handleInputChange('email', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Address:</strong> <input value={editBuffer.address} onChange={e => setEditBuffer(buf => ({ ...buf, address: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Address:</strong> <input value={editBuffer.address} onChange={e => handleInputChange('address', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
                   <label><strong>Sales Stage:</strong> <SalesStageSelect
                     value={editBuffer.sales_stage}
-                    onChange={e => setEditBuffer(buf => ({ ...buf, sales_stage: e.target.value }))}
+                    onChange={e => handleInputChange('sales_stage', e.target.value)}
                     name="sales_stage"
                     placeholder="Sales Stage"
                   /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Primary Stakeholder:</strong> <input value={editBuffer.primary_stakeholder} onChange={e => setEditBuffer(buf => ({ ...buf, primary_stakeholder: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Primary Stakeholder:</strong> <input value={editBuffer.primary_stakeholder} onChange={e => handleInputChange('primary_stakeholder', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Primary Phone:</strong> <input value={editBuffer.primary_phone} onChange={e => setEditBuffer(buf => ({ ...buf, primary_phone: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Primary Phone:</strong> <input value={editBuffer.primary_phone} onChange={e => handleInputChange('primary_phone', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Primary Email:</strong> <input value={editBuffer.primary_email} onChange={e => setEditBuffer(buf => ({ ...buf, primary_email: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Primary Email:</strong> <input value={editBuffer.primary_email} onChange={e => handleInputChange('primary_email', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Referral Source:</strong> <input value={editBuffer.referral_source} onChange={e => setEditBuffer(buf => ({ ...buf, referral_source: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Referral Source:</strong> <input value={editBuffer.referral_source} onChange={e => handleInputChange('referral_source', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
               </div>
               <div style={{ flex: 1, minWidth: 220 }}>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Secondary Stakeholder:</strong> <input value={editBuffer.secondary_stakeholder} onChange={e => setEditBuffer(buf => ({ ...buf, secondary_stakeholder: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Secondary Stakeholder:</strong> <input value={editBuffer.secondary_stakeholder} onChange={e => handleInputChange('secondary_stakeholder', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Secondary Phone:</strong> <input value={editBuffer.secondary_phone} onChange={e => setEditBuffer(buf => ({ ...buf, secondary_phone: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Secondary Phone:</strong> <input value={editBuffer.secondary_phone} onChange={e => handleInputChange('secondary_phone', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Secondary Email:</strong> <input value={editBuffer.secondary_email} onChange={e => setEditBuffer(buf => ({ ...buf, secondary_email: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Secondary Email:</strong> <input value={editBuffer.secondary_email} onChange={e => handleInputChange('secondary_email', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>Follow Up On:</strong> <input type="date" value={editBuffer.follow_up_on} onChange={e => setEditBuffer(buf => ({ ...buf, follow_up_on: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
+                  <label><strong>Follow Up On:</strong> <input type="date" value={editBuffer.follow_up_on} onChange={e => handleInputChange('follow_up_on', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160 }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>GSTIN:</strong> <input value={editBuffer.gstin} onChange={e => setEditBuffer(buf => ({ ...buf, gstin: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160, textTransform: 'uppercase' }} /></label>
+                  <label><strong>GSTIN:</strong> <input value={editBuffer.gstin} onChange={e => handleInputChange('gstin', e.target.value.toUpperCase())} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160, textTransform: 'uppercase' }} /></label>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  <label><strong>PAN:</strong> <input value={editBuffer.pan} onChange={e => setEditBuffer(buf => ({ ...buf, pan: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160, textTransform: 'uppercase' }} /></label>
+                  <label><strong>PAN:</strong> <input value={editBuffer.pan} onChange={e => handleInputChange('pan', e.target.value.toUpperCase())} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: 160, textTransform: 'uppercase' }} /></label>
                 </div>
               </div>
               <div style={{ flex: '100%', marginTop: 8 }}>
                 <div style={{ marginBottom: 8 }}>
                   <label><strong>About:</strong></label>
-                  <textarea value={editBuffer.about} onChange={e => setEditBuffer(buf => ({ ...buf, about: e.target.value }))} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: '100%', minHeight: 60, resize: 'vertical' }} placeholder="About this customer..." />
+                  <textarea value={editBuffer.about} onChange={e => handleInputChange('about', e.target.value)} style={{ marginLeft: 8, padding: 4, borderRadius: 4, border: '1px solid #ccc', width: '100%', minHeight: 60, resize: 'vertical' }} placeholder="About this customer..." />
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <button type="submit" disabled={saving} style={{ background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', marginRight: 8, cursor: 'pointer' }}>Save</button>
+            <div className="flex items-center gap-2" style={{ marginTop: '12px' }}>
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                disabled={saving}
+              >
+                {isAutoSaving ? 'Auto-saving...' : 'Save'}
+              </button>
+              {isAutoSaving && (
+                <span className="text-sm text-gray-500 flex items-center gap-1">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Auto-saving...
+                </span>
+              )}
+              {!isAutoSaving && hasUnsavedChanges && (
+                <span className="text-sm text-orange-500">
+                  Unsaved changes
+                </span>
+              )}
               <button type="button" disabled={saving} onClick={() => { setEditing(false); setEditBuffer({
                 name: customer.name || '',
                 phone: customer.phone || '',
