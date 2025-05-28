@@ -45,7 +45,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#fffbe6] flex flex-col">
       {showNavbar && <Navbar session={session} />}
-      <div className="flex-1 flex flex-col items-center justify-start">
+      <div className="flex-1 flex flex-col items-center justify-start pt-[60px]"> {/* Added pt-[60px] for navbar height */}
         <div className="w-full max-w-[1000px] mx-auto px-4 py-6">
           <Routes key={session ? 'auth' : 'guest'}>
             <Route path="/login" element={<LoginPage />} />

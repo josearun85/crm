@@ -99,9 +99,13 @@
 }
 
 .customer-list-item.selected {
-  background-color: #b71c1c;
-  color: white;
-  border-color: #b71c1c;
+  background-color: #fff8e1; /* Lighter yellow for background */
+  color: #212121; /* Dark text for contrast */
+  border-left: 4px solid #fbc02d; /* Yellow border on the left */
+  border-top: 1px solid #fbc02d;
+  border-right: 1px solid #fbc02d;
+  border-bottom: 1px solid #fbc02d;
+  padding-left: 12px; /* Adjust padding to keep content aligned */
 }
 
 .customer-list-item.selected .sales-stage {
