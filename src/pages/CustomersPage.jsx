@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import CustomerCard from '../components/CustomerCard';
 import AddCustomerForm from '../components/AddCustomerForm';
@@ -7,6 +7,7 @@ import './CustomersPage.css';
 
 export default function CustomersPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -18,6 +19,16 @@ export default function CustomersPage() {
     fetchData();
   }, []);
   
+  // On mount or when location changes, check for selected param
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const selected = params.get('selected');
+    if (selected) {
+      setSelectedCustomer(selected);
+      setTimeout(() => scrollToCustomer(selected), 300);
+    }
+  }, [location.search, customers]);
+
   const fetchData = async () => {
     setLoading(true);
 

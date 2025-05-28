@@ -37,7 +37,11 @@ export async function updateCustomer(customerId, updates) {
   const processedUpdates = { ...updates };
   const dateFields = ['follow_up_on'];
   dateFields.forEach(field => {
-    if (processedUpdates[field] === '' || processedUpdates[field] === null || processedUpdates[field] === undefined) {
+    if (
+      processedUpdates[field] === '' ||
+      processedUpdates[field] === null ||
+      processedUpdates[field] === undefined
+    ) {
       // Set to today's date if not set
       const today = new Date();
       const yyyy = today.getFullYear();
@@ -46,6 +50,17 @@ export async function updateCustomer(customerId, updates) {
       processedUpdates[field] = `${yyyy}-${mm}-${dd}`;
     }
   });
+
+  // Ensure the date is always in YYYY-MM-DD format (even if user enters an invalid value)
+  if (processedUpdates.follow_up_on) {
+    const d = new Date(processedUpdates.follow_up_on);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      processedUpdates.follow_up_on = `${yyyy}-${mm}-${dd}`;
+    }
+  }
 
   const { data, error } = await supabase
     .from('customers')

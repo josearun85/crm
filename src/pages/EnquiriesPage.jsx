@@ -205,7 +205,17 @@ export default function EnquiriesPage() {
                     >
                       <td className="p-2">{format(new Date(e.date), 'dd-MMM-yyyy')}</td>
                       <td className="p-2 text-blue-600 hover:underline cursor-pointer">
-                        {e.customers?.name || '—'}
+                        {e.customers?.id ? (
+                          <span
+                            style={{ cursor: 'pointer', color: '#2563eb', textDecoration: 'underline' }}
+                            onClick={() => navigate(`/customers?selected=${e.customers.id}`)}
+                            title="View customer details"
+                          >
+                            {e.customers.name}
+                          </span>
+                        ) : (
+                          e.customers?.name || '—'
+                        )}
                       </td>
                       <td className="p-2">
                         <input
