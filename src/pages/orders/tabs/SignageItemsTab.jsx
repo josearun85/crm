@@ -1130,7 +1130,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         </div>
         {/* PDF Export Content End */}
         {/* Terms & Conditions and Bank Details for PDF - REMOVED from visible UI */}
-        <div className="flex justify-start mt-4">
+        <div className="flex justify-start mt-4 footerheight">
           <button
             onClick={handleDownloadPdf}
             className="px-4 py-2 bg-blue-700 text-white rounded shadow hover:bg-blue-800 text-sm"

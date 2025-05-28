@@ -24,6 +24,9 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+.footerheight {
+  margin-bottom: 200px;
+}
 
 @media (max-width: 768px) {
   .order-container {
