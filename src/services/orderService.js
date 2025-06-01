@@ -168,3 +168,18 @@ export function calculateOrderGrandTotal({ signageItems, boqs, discount = 0, gst
     items: itemsWithCost
   };
 }
+
+// Utility: Calculate signage item total with margin
+export function getSignageItemTotalWithMargin({ boqs, signageItem, scaling = 1 }) {
+  // Calculate raw BOQ total
+  const itemBoqs = (boqs[signageItem.id] || []);
+  const boqTotal = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0) * scaling;
+  // Margin logic
+  if (signageItem.total_with_margin && Number(signageItem.total_with_margin) > 0) {
+    return Number(signageItem.total_with_margin) * scaling;
+  } else if (signageItem.margin_percent && Number(signageItem.margin_percent) > 0) {
+    return boqTotal * (1 + Number(signageItem.margin_percent) / 100);
+  } else {
+    return boqTotal;
+  }
+}

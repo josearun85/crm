@@ -1,6 +1,20 @@
 import React from "react";
+import { getSignageItemTotalWithMargin } from '../../../services/orderService';
 
 export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal, customer = {}, jobName = "", po_number, po_date, version }) {
+  function getRateWithMargin({ item, allBoqs, scaling }) {
+    // Use the shared utility for margin logic
+    const boqsMap = {};
+    allBoqs.forEach(b => {
+      if (!boqsMap[b.signage_item_id]) boqsMap[b.signage_item_id] = [];
+      boqsMap[b.signage_item_id].push(b);
+    });
+    const totalWithMargin = getSignageItemTotalWithMargin({ boqs: boqsMap, signageItem: item, scaling });
+    const qty = Number(item.quantity) || 1;
+    if (!qty) return 0;
+    return totalWithMargin / qty;
+  }
+
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: 900, margin: '0 auto', color: '#222' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>

@@ -3,6 +3,9 @@ import supabase from '../supabaseClient';
 import { FaTrash, FaEdit, FaCheckCircle, FaTimesCircle, FaFilePdf, FaSync } from 'react-icons/fa';
 import { calculateOrderGrandTotal } from '../services/orderService';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import InvoicePdf from '../pages/orders/tabs/InvoicePdf';
+import html2pdf from 'html2pdf.js';
+import { createRoot } from 'react-dom/client';
 
 const PAGE_SIZE = 10;
 
@@ -199,6 +202,135 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
   // Detect if this is the Drafts tab (all invoices are drafts)
   const allDrafts = invoices.length > 0 && invoices.every(inv => inv.status === 'Draft');
 
+  // Download Invoice PDF handler
+  const handlePreviewInvoicePdf = async (inv) => {
+    // If a stored PDF URL exists (for confirmed invoices), open it in a new tab
+    if (inv.status === 'Confirmed' && inv.pdf_url) {
+      window.open(inv.pdf_url, '_blank');
+      return;
+    }
+    // Otherwise, generate a preview in a new tab
+    const order = orderMap[inv.order_id] || {};
+    const customer = order ? customerMap[order.customer_id] : {};
+    const signageItems = signageItemsMap[inv.order_id] || [];
+    const boqs = boqMap;
+    const scaling = (() => {
+      if (order.gst_billable_percent !== undefined && order.gst_billable_percent !== null && order.gst_billable_percent !== '' && Number(order.gst_billable_percent) !== 100) {
+        return Number(order.gst_billable_percent) / 100;
+      }
+      const billable = Number(order.gst_billable_amount);
+      if (!billable || !signageItems.length) return 1;
+      const originalTotal = signageItems.reduce((sum, item) => sum + Number(item.cost || 0), 0);
+      if (!originalTotal || billable === originalTotal) return 1;
+      return billable / originalTotal;
+    })();
+    const items = signageItems.filter(i => i.name || i.description).map(item => {
+      const itemBoqs = (boqs[item.id] || []);
+      const totalCost = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0) * scaling;
+      const qty = Number(item.quantity) || 1;
+      const rate = totalCost / qty;
+      return {
+        name: item.name || '',
+        description: item.description || '',
+        hsn_code: item.hsn_code || '',
+        qty: qty,
+        unit: item.unit || '',
+        rate: rate,
+        amount: (rate * qty).toFixed(2),
+        gst_percent: item.gst_percent || 18,
+      };
+    });
+    const total = items.reduce((sum, i) => sum + Number(i.amount), 0);
+    const discountVal = Number(order.discount) || 0;
+    const netTotal = total - discountVal;
+    const gst = items.reduce((sum, item) => sum + (item.amount * (item.gst_percent || 18) / 100), 0);
+    const grandTotal = netTotal + gst;
+    function numberToWords(num) {
+      const a = [ '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen' ];
+      const b = [ '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety' ];
+      function inWords(n) {
+        if (n < 20) return a[n];
+        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
+        if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' and ' + inWords(n % 100) : '');
+        if (n < 100000) return inWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + inWords(n % 1000) : '');
+        if (n < 10000000) return inWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + inWords(n % 100000) : '');
+        return inWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + inWords(n % 10000000) : '');
+      }
+      if (num === 0) return 'Zero';
+      const rupees = Math.floor(num);
+      const paise = Math.round((num - rupees) * 100);
+      let words = inWords(rupees) + ' Rupees';
+      if (paise > 0) words += ' and ' + inWords(paise) + ' Paise';
+      words += ' Only';
+      return words;
+    }
+    const amountInWords = numberToWords(grandTotal);
+    const invoice = {
+      number: inv.invoice_number || 'DRAFT',
+      version: 1,
+      status: inv.status,
+      date: inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+      place_of_supply: order.place_of_supply || 'Bangalore',
+      sgst: (gst / 2).toFixed(2),
+      cgst: (gst / 2).toFixed(2),
+      total: total.toFixed(2),
+      discount: discountVal.toFixed(2),
+      taxable_value: netTotal.toFixed(2),
+      grand_total: grandTotal.toFixed(2),
+      amount_in_words: amountInWords,
+      po_number: order.po_number || '',
+      po_date: order.po_date || '',
+    };
+    // Open a new tab and render the preview
+    const previewWindow = window.open('', '_blank');
+    if (!previewWindow) {
+      alert('Popup blocked! Please allow popups for this site.');
+      return;
+    }
+    previewWindow.document.write(`
+      <html>
+        <head>
+          <title>Invoice Preview</title>
+          <style>
+            body { font-family: Inter, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; background: #f8fafc; }
+            #pdf-root { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #0001; padding: 0; }
+            .download-btn { margin: 18px 0 0 0; padding: 8px 24px; background: #1976d2; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+          </style>
+        </head>
+        <body>
+          <div id="pdf-root"></div>
+          <button class="download-btn" onclick="window.downloadInvoicePdf && window.downloadInvoicePdf()">⬇️ Download Invoice</button>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+        </body>
+      </html>
+    `);
+    previewWindow.document.close();
+    // Wait for the new tab to load, then render the React component
+    const renderReact = () => {
+      const pdfRoot = previewWindow.document.getElementById('pdf-root');
+      if (!pdfRoot) {
+        setTimeout(renderReact, 100);
+        return;
+      }
+      // Render InvoicePdf into the new tab
+      const root = createRoot(pdfRoot);
+      root.render(
+        React.createElement(InvoicePdf, { invoice, customer, items })
+      );
+      // Attach download handler
+      previewWindow.downloadInvoicePdf = () => {
+        window.html2pdf().set({
+          margin: 0.2,
+          filename: `Invoice_${invoice.number || ''}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        }).from(pdfRoot).save();
+      };
+    };
+    setTimeout(renderReact, 200);
+  };
+
   return (
     <div>
       {allDrafts ? (
@@ -262,6 +394,7 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
                                 {inv.status === 'Confirmed' && (
                                   <button title="Revert to Draft" onClick={() => handleRevert(inv)}><FaTimesCircle style={{color:'#d32f2f'}} /> Revert</button>
                                 )}
+                                <button title="Download Invoice" onClick={() => handlePreviewInvoicePdf(inv)}><FaFilePdf style={{color:'#1976d2'}} /> PDF</button>
                               </td>
                             </tr>
                           )}
@@ -318,6 +451,7 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
                       {inv.status === 'Confirmed' && (
                         <button title="Revert to Draft" onClick={() => handleRevert(inv)}><FaTimesCircle style={{color:'#d32f2f'}} /> Revert</button>
                       )}
+                      <button title="Download Invoice" onClick={() => handlePreviewInvoicePdf(inv)}><FaFilePdf style={{color:'#1976d2'}} /> PDF</button>
                     </td>
                   </tr>
                 );

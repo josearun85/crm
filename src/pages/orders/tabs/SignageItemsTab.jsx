@@ -43,6 +43,9 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
   const [customer, setCustomer] = useState(null);
   const [editingUnitIdx, setEditingUnitIdx] = useState(null);
 
+  // Margin/Total state for expanded item
+  const [marginEdit, setMarginEdit] = useState({}); // { [signageItemId]: { marginPercent, totalWithMargin, lastEdited } }
+
   // Helper to keep refs for each textarea
   const descriptionRefs = useRef({});
 
@@ -71,14 +74,26 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     return billable / originalTotal;
   }
 
-  // Helper to get scaled rate for an item
+  // Helper: get signage item total with margin (shared logic)
+  function getSignageItemTotalWithMargin(item) {
+    const itemBoqs = allBoqs.filter(b => b.signage_item_id === item.id);
+    const boqTotal = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
+    if (item.total_with_margin && Number(item.total_with_margin) > 0) {
+      return Number(item.total_with_margin);
+    } else if (item.margin_percent && Number(item.margin_percent) > 0) {
+      return boqTotal * (1 + Number(item.margin_percent) / 100);
+    } else {
+      return boqTotal;
+    }
+  }
+
+  // Helper to get scaled rate for an item (uses margin logic)
   function getScaledRate(item) {
     const scaling = getGstBillableScaling(items);
-    const itemBoqs = allBoqs.filter(b => b.signage_item_id === item.id);
-    const totalCost = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
+    const totalWithMargin = getSignageItemTotalWithMargin(item) * scaling;
     const qty = Number(item.quantity) || 1;
     if (!qty) return 0;
-    return (totalCost / qty) * scaling;
+    return totalWithMargin / qty;
   }
 
   // Add Item button handler
@@ -328,7 +343,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         </div>
         <div style='display: flex; justify-content: space-between; margin-bottom: 10px;'>
           <div>
-            <div style='font-size: 15px; font-weight: bold; color: #0a3d62;'>ESTIMATE</div>
+            <div style='font-size: 15px; font-weight: bold, color: #0a3d62;'>ESTIMATE</div>
             <div style='font-size: 12px;'>Estimate #: <b>${orderId}.${orderVersion || 1}.${orderYear}</b></div>
             <div style='font-size: 12px;'>Date: <b>${today}</b></div>
           </div>
@@ -374,7 +389,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
           <div style='flex: 1; padding: 8px;'>
             <div style='max-width: 340px; float: left;'>
               <!-- Only show Total and Taxable Value if discount > 0 -->
-              <div style='margin-bottom: 2px;'>
+              <div style='margin-bottom: 2px;>
                 ${discount > 0 ? 'Total' : 'Taxable Value'}
               </div>
               ${discount > 0 ? `<div style='margin-bottom: 2px;'>Less Discount</div>` : ''}
@@ -595,6 +610,65 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         created_by_email: user?.data?.user?.email || ''
       });
     }
+  };
+
+  // Helper: get total BOQ cost for a signage item
+  function getSignageBoqTotal(signageItemId) {
+    return allBoqs.filter(b => b.signage_item_id === signageItemId)
+      .reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
+  }
+
+  // Handler for margin % change
+  const handleMarginPercentChange = (signageItem, val) => {
+    const boqTotal = getSignageBoqTotal(signageItem.id);
+    const marginPercent = parseFloat(val) || 0;
+    const totalWithMargin = boqTotal * (1 + marginPercent / 100);
+    setMarginEdit(edit => ({
+      ...edit,
+      [signageItem.id]: {
+        marginPercent: val,
+        totalWithMargin: totalWithMargin.toFixed(2),
+        lastEdited: 'margin',
+      },
+    }));
+  };
+
+  // Handler for total change
+  const handleTotalWithMarginChange = (signageItem, val) => {
+    const boqTotal = getSignageBoqTotal(signageItem.id);
+    const totalWithMargin = parseFloat(val) || 0;
+    const marginPercent = boqTotal === 0 ? 0 : ((totalWithMargin / boqTotal - 1) * 100);
+    setMarginEdit(edit => ({
+      ...edit,
+      [signageItem.id]: {
+        marginPercent: marginPercent.toFixed(2),
+        totalWithMargin: val,
+        lastEdited: 'total',
+      },
+    }));
+  };
+
+  // Handler to persist margin/total to backend
+  const handleMarginBlur = async (signageItem) => {
+    const edit = marginEdit[signageItem.id];
+    if (!edit) return;
+    const boqTotal = getSignageBoqTotal(signageItem.id);
+    // If totalWithMargin is empty or 0, recalculate from marginPercent
+    let totalWithMargin = parseFloat(edit.totalWithMargin);
+    if (!totalWithMargin && edit.marginPercent) {
+      totalWithMargin = boqTotal * (parseFloat(edit.marginPercent) / 100 + 1);
+    }
+    const updates = {
+      margin_percent: parseFloat(edit.marginPercent) || 0,
+      total_with_margin: totalWithMargin || 0,
+    };
+    await updateSignageItem(signageItem.id, updates);
+    fetchSignageItems(orderId).then(setItems).catch(console.error);
+    setMarginEdit(editState => {
+      const next = { ...editState };
+      delete next[signageItem.id];
+      return next;
+    });
   };
 
   return (
@@ -1036,6 +1110,43 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                             </>
                           );
                         })()}
+                        {/* Margin/Total form for this signage item */}
+                        <div className="flex flex-wrap gap-4 items-center justify-end border p-2 rounded bg-gray-50 mt-2">
+                          <span className="font-medium mr-2">{item.name || 'Signage Item'}:</span>
+                          <label className="flex items-center gap-1">
+                            <span>Margin %</span>
+                            <input
+                              type="number"
+                              className="border px-2 py-1 rounded w-20 text-right"
+                              value={
+                                marginEdit[item.id]?.lastEdited
+                                  ? marginEdit[item.id].marginPercent
+                                  : (item.margin_percent ?? '')
+                              }
+                              onChange={e => handleMarginPercentChange(item, e.target.value)}
+                              onBlur={() => handleMarginBlur(item)}
+                              min={0}
+                              step={0.01}
+                            />
+                          </label>
+                          <label className="flex items-center gap-1">
+                            <span>Total (with margin)</span>
+                            <input
+                              type="number"
+                              className="border px-2 py-1 rounded w-28 text-right"
+                              value={
+                                marginEdit[item.id]?.lastEdited
+                                  ? marginEdit[item.id].totalWithMargin
+                                  : (item.total_with_margin ?? (getSignageBoqTotal(item.id) ? getSignageBoqTotal(item.id).toFixed(2) : ''))
+                              }
+                              onChange={e => handleTotalWithMarginChange(item, e.target.value)}
+                              onBlur={() => handleMarginBlur(item)}
+                              min={0}
+                              step={0.01}
+                            />
+                          </label>
+                          <span className="text-gray-500 text-xs">BOQ: ₹{getSignageBoqTotal(item.id).toFixed(2)}</span>
+                        </div>
                       </td>
                     </tr>
                   ) : null
@@ -1121,6 +1232,21 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                     <tr className="text-lg">
                       <td className="text-right pr-8 align-middle">GRAND TOTAL</td>
                       <td className="text-right">&#8377; {grandTotal.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              {/* Cost to Company and Margin */}
+              <div className="flex justify-end mt-2">
+                <table className="text-sm font-bold">
+                  <tbody>
+                    <tr>
+                      <td className="text-right pr-8 align-middle">COST TO COMPANY</td>
+                      <td className="text-right">&#8377; {allBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0).toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                      <td className="text-right pr-8 align-middle">MARGIN</td>
+                      <td className="text-right">&#8377; {(netTotal - allBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0)).toFixed(2)}</td>
                     </tr>
                   </tbody>
                 </table>
