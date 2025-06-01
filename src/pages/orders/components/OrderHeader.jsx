@@ -216,9 +216,10 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
         </div>
         {/* Right: Editable fields and meta */}
         <div className="flex flex-col gap-1 min-w-[220px] items-end">
-          <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs w-full text-right items-end justify-end">
-            <div className="font-medium">Version</div>
-            <div className="pr-4">
+          <div className="grid grid-cols-4 gap-x-2 gap-y-1 text-xs w-full text-right items-end justify-end">
+            {/* Each label/input pair now takes two columns */}
+            <div className="font-medium col-span-1">Version</div>
+            <div className="pr-4 col-span-1">
               <input
                 type="number"
                 min={1}
@@ -229,10 +230,10 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 placeholder="Version"
               />
             </div>
-            <div className="font-medium">EST NO</div>
-            <div className="pr-4">{order ? `${order.id}.${order.version || 1}.${new Date(order?.due_date || Date.now()).getFullYear()}` : '-'}</div>
-            <div className="font-medium">Date</div>
-            <div className="pr-4">
+            <div className="font-medium col-span-1">EST NO</div>
+            <div className="pr-4 col-span-1">{order ? `${order.id}.${order.version || 1}.${new Date(order?.due_date || Date.now()).getFullYear()}` : '-'}</div>
+            <div className="font-medium col-span-1">Date</div>
+            <div className="pr-4 col-span-1">
               <input
                 type="date"
                 className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right"
@@ -241,8 +242,8 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 onBlur={() => handleFieldBlur("created_at", "Date")}
               />
             </div>
-            <div className="font-medium">Status</div>
-            <div className="pr-4">
+            <div className="font-medium col-span-1">Status</div>
+            <div className="pr-4 col-span-1">
               <select
                 className={`p-1 rounded border font-semibold appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-400 transition text-xs w-full text-right ${statusColor[editBuffer.status !== undefined ? editBuffer.status : order?.status || "new"]}`}
                 style={{ fontFamily: 'inherit', minWidth: 90 }}
@@ -258,8 +259,8 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
-            <div className="font-medium">Due Date</div>
-            <div className="pr-4">
+            <div className="font-medium col-span-1">Due Date</div>
+            <div className="pr-4 col-span-1">
               <input
                 type="date"
                 className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right"
@@ -268,8 +269,8 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 onBlur={() => handleFieldBlur("due_date", "Due Date")}
               />
             </div>
-            <div className="font-medium">Fab Type</div>
-            <div className="pr-4">
+            <div className="font-medium col-span-1">Fab Type</div>
+            <div className="pr-4 col-span-1">
               <input
                 className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
                 value={editBuffer.fab_type !== undefined ? editBuffer.fab_type : order?.fab_type || ""}
@@ -278,8 +279,8 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 placeholder="Fab Type"
               />
             </div>
-            <div className="font-medium">GSTIN</div>
-            <div className="pr-4">
+            <div className="font-medium col-span-1">GSTIN</div>
+            <div className="pr-4 col-span-1">
               <input
                 className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
                 value={customerGstin.toUpperCase()}
@@ -293,8 +294,8 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 placeholder="GSTIN"
               />
             </div>
-            <div className="font-medium">PAN</div>
-            <div className="pr-4">
+            <div className="font-medium col-span-1">PAN</div>
+            <div className="pr-4 col-span-1">
               <input
                 className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
                 value={customerPan.toUpperCase()}
@@ -308,8 +309,8 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 placeholder="PAN"
               />
             </div>
-            <div className="font-medium">PO Number</div>
-            <div className="pr-4">
+            <div className="font-medium col-span-1">PO Number</div>
+            <div className="pr-4 col-span-1">
               <input
                 className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
                 value={editBuffer.po_number !== undefined ? editBuffer.po_number : order?.po_number || ""}
@@ -318,8 +319,8 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
                 placeholder="PO Number"
               />
             </div>
-            <div className="font-medium">PO Date</div>
-            <div className="pr-4">
+            <div className="font-medium col-span-1">PO Date</div>
+            <div className="pr-4 col-span-1">
               <input
                 type="date"
                 className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"

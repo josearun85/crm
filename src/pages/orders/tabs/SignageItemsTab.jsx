@@ -347,12 +347,6 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
             <div style='font-size: 12px;'>Estimate #: <b>${orderId}.${orderVersion || 1}.${orderYear}</b></div>
             <div style='font-size: 12px;'>Date: <b>${today}</b></div>
           </div>
-          <div style='text-align: right; font-size: 12px;'>
-            <div style='font-weight: bold;'>Client:</div>
-            <div>${customer?.name || '-'}</div>
-            <div>${customer?.address || '-'}</div>
-            <div>${customer?.gstin ? `GSTIN: ${customer.gstin.toUpperCase()}` : '-'}</div>
-          </div>
         </div>
         <table style='width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 18px; box-sizing: border-box;'>
           <thead>
@@ -553,6 +547,21 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     });
   }, [allBoqs, items]);
 
+  // Helper: update signage item cost and margin/total in state after BOQ change
+  async function updateSignageItemCostAndMargin(signageItemId) {
+    const itemBoqs = allBoqs.filter(b => b.signage_item_id === signageItemId);
+    const boqTotal = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
+    // Find the signage item
+    const itemIdx = items.findIndex(i => i.id === signageItemId);
+    if (itemIdx === -1) return;
+    const item = items[itemIdx];
+    // Use marginEdit if present, else signage item fields
+    const marginPercent = marginEdit[signageItemId]?.marginPercent ?? item.margin_percent ?? 0;
+    const totalWithMargin = marginEdit[signageItemId]?.totalWithMargin ?? item.total_with_margin ?? '';
+    // Update cost
+    setItems(items => items.map((it, i) => i === itemIdx ? { ...it, cost: boqTotal, margin_percent: marginPercent, total_with_margin: totalWithMargin } : it));
+  }
+
   // Handler to update discount in backend
   const handleDiscountBlur = async (e) => {
     const value = Number(e.target.value) || 0;
@@ -631,6 +640,8 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         lastEdited: 'margin',
       },
     }));
+    // Also update signage item in state for instant UI
+    setItems(items => items.map(it => it.id === signageItem.id ? { ...it, margin_percent: marginPercent, total_with_margin: totalWithMargin.toFixed(2) } : it));
   };
 
   // Handler for total change
@@ -646,6 +657,8 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         lastEdited: 'total',
       },
     }));
+    // Also update signage item in state for instant UI
+    setItems(items => items.map(it => it.id === signageItem.id ? { ...it, margin_percent: marginPercent.toFixed(2), total_with_margin: val } : it));
   };
 
   // Handler to persist margin/total to backend

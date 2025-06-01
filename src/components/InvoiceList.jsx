@@ -9,7 +9,7 @@ import { createRoot } from 'react-dom/client';
 
 const PAGE_SIZE = 10;
 
-export default function InvoiceList({ invoices, onDelete, onReorder }) {
+export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete, onReorder }) {
   const [orderMap, setOrderMap] = useState({});
   const [customerMap, setCustomerMap] = useState({});
   const [signageItemsMap, setSignageItemsMap] = useState({});
@@ -129,11 +129,34 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
     .filter(inv => inv.invoice_number && /^\d+$/.test(inv.invoice_number))
     .map(inv => parseInt(inv.invoice_number, 10));
 
-  // Helper: get the next available draft number, skipping reverted numbers
-  function getNextDraftNumber(usedNumbers) {
+  // Helper: get the next available draft number, skipping numbers used by confirmed invoices
+  function getNextDraftLabel(idx) {
+    // Get all used numbers (confirmed + draft with numeric invoice_number)
+    const usedNumbers = invoices
+      .filter(inv => inv.invoice_number && /^\d+$/.test(inv.invoice_number))
+      .map(inv => parseInt(inv.invoice_number, 10));
+    // The draft label should be draft{N} where N is the next available number after the highest used
     let n = 1;
     while (usedNumbers.includes(n)) n++;
-    return n;
+    // If there are multiple drafts, increment for each draft row
+    return `draft${n + idx}`;
+  }
+
+  // Compute missing numbers for drafts (next available numbers not used by any CONFIRMED invoice)
+  function getDraftLabelsForDrafts(sortedDraftInvoices, confirmedNumbers) {
+    const usedNumbers = Array.isArray(confirmedNumbers) && confirmedNumbers.length > 0
+      ? confirmedNumbers
+      : invoices
+        .filter(inv => inv.status === 'Confirmed' && inv.invoice_number && /^\d+$/.test(inv.invoice_number))
+        .map(inv => parseInt(inv.invoice_number, 10));
+    const draftCount = sortedDraftInvoices.length;
+    let missingNumbers = [];
+    let n = 1;
+    while (missingNumbers.length < draftCount) {
+      if (!usedNumbers.includes(n)) missingNumbers.push(n);
+      n++;
+    }
+    return missingNumbers;
   }
 
   // Sort: reverted drafts (with invoice_number) first, then new drafts, but draft number is always based on position
@@ -161,9 +184,23 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
 
   const handleDateChange = async (inv, newDate) => {
     await supabase.from('invoices').update({ invoice_date: newDate }).eq('id', inv.id);
-    // Optionally, refresh the UI or update state
     inv.invoice_date = newDate;
-    // Force re-render
+    // Resequence all draft invoices by date
+    const { data: drafts } = await supabase
+      .from('invoices')
+      .select('id, invoice_date')
+      .eq('status', 'Draft');
+    if (drafts && drafts.length > 0) {
+      // Sort by invoice_date (oldest first), fallback to id for tie-breaker
+      drafts.sort((a, b) => {
+        if (a.invoice_date === b.invoice_date) return a.id - b.id;
+        return new Date(a.invoice_date) - new Date(b.invoice_date);
+      });
+      for (let i = 0; i < drafts.length; i++) {
+        await supabase.from('invoices').update({ invoice_number: String(i + 1) }).eq('id', drafts[i].id);
+      }
+    }
+    if (onReorder) onReorder();
     setOrderMap(orderMap => ({ ...orderMap }));
   };
 
@@ -177,7 +214,18 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
 
   // Confirm draft invoice
   const handleConfirm = async (inv) => {
-    const nextNumber = getNextInvoiceNumber();
+    // Fetch the latest confirmed invoice number from the database to avoid duplicates
+    const { data: confirmedInvoices, error } = await supabase
+      .from('invoices')
+      .select('invoice_number')
+      .eq('status', 'Confirmed')
+      .order('invoice_number', { ascending: false })
+      .limit(1);
+    let nextNumber = 1;
+    if (!error && confirmedInvoices && confirmedInvoices.length > 0) {
+      const lastNum = parseInt(confirmedInvoices[0].invoice_number, 10);
+      if (!isNaN(lastNum)) nextNumber = lastNum + 1;
+    }
     // Save a JSON snapshot (for now, just a shallow copy)
     const invoice_json_snapshot = { ...inv };
     await supabase.from('invoices').update({
@@ -209,23 +257,48 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
       window.open(inv.pdf_url, '_blank');
       return;
     }
-    // Otherwise, generate a preview in a new tab
-    const order = orderMap[inv.order_id] || {};
-    const customer = order ? customerMap[order.customer_id] : {};
-    const signageItems = signageItemsMap[inv.order_id] || [];
-    const boqs = boqMap;
-    const scaling = (() => {
-      if (order.gst_billable_percent !== undefined && order.gst_billable_percent !== null && order.gst_billable_percent !== '' && Number(order.gst_billable_percent) !== 100) {
-        return Number(order.gst_billable_percent) / 100;
-      }
-      const billable = Number(order.gst_billable_amount);
-      if (!billable || !signageItems.length) return 1;
+    // Always fetch latest signage_items and boq_items for this order
+    const supabaseClient = await import('../supabaseClient').then(m => m.default);
+    const { data: signageItems = [] } = await supabaseClient
+      .from('signage_items')
+      .select('*')
+      .eq('order_id', inv.order_id);
+    const signageItemIds = signageItems.map(i => i.id);
+    let boqs = [];
+    if (signageItemIds.length > 0) {
+      const { data: boqsData = [] } = await supabaseClient
+        .from('boq_items')
+        .select('*')
+        .in('signage_item_id', signageItemIds);
+      boqs = boqsData;
+    }
+    // Fetch order and customer
+    const { data: orderArr = [] } = await supabaseClient
+      .from('orders')
+      .select('*')
+      .eq('id', inv.order_id);
+    const order = orderArr[0] || {};
+    let customer = {};
+    if (order.customer_id) {
+      const { data: custArr = [] } = await supabaseClient
+        .from('customers')
+        .select('*')
+        .eq('id', order.customer_id);
+      customer = custArr[0] || {};
+    }
+    // Calculate scaling for GST billable percent/amount
+    let scaling = 1;
+    if (order.gst_billable_percent !== undefined && order.gst_billable_percent !== null && order.gst_billable_percent !== '' && Number(order.gst_billable_percent) !== 100) {
+      scaling = Number(order.gst_billable_percent) / 100;
+    } else if (order.gst_billable_amount && signageItems.length) {
       const originalTotal = signageItems.reduce((sum, item) => sum + Number(item.cost || 0), 0);
-      if (!originalTotal || billable === originalTotal) return 1;
-      return billable / originalTotal;
-    })();
+      if (originalTotal && Number(order.gst_billable_amount) !== originalTotal) {
+        scaling = Number(order.gst_billable_amount) / originalTotal;
+      }
+    }
+    // Prepare items for InvoicePdf (match order page logic)
     const items = signageItems.filter(i => i.name || i.description).map(item => {
-      const itemBoqs = (boqs[item.id] || []);
+      const itemBoqs = boqs.filter(b => b.signage_item_id === item.id);
       const totalCost = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0) * scaling;
       const qty = Number(item.quantity) || 1;
       const rate = totalCost / qty;
@@ -267,9 +340,9 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
     const amountInWords = numberToWords(grandTotal);
     const invoice = {
       number: inv.invoice_number || 'DRAFT',
-      version: 1,
+      version: order.version || 1,
       status: inv.status,
-      date: inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+      date: inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString('en-GB') : (order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')),
       place_of_supply: order.place_of_supply || 'Bangalore',
       sgst: (gst / 2).toFixed(2),
       cgst: (gst / 2).toFixed(2),
@@ -359,48 +432,56 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
                       <td colSpan={9} style={{ textAlign: 'center' }}>No draft invoices found.</td>
                     </tr>
                   ) : (
-                    sortedDraftInvoices.map((inv, idx) => {
-                      const order = orderMap[inv.order_id];
-                      const customer = order ? customerMap[order.customer_id] : null;
-                      return (
-                        <Draggable key={inv.id} draggableId={String(inv.id)} index={idx}>
-                          {(provided, snapshot) => (
-                            <tr ref={provided.innerRef} {...provided.draggableProps} style={{ ...provided.draggableProps.style, background: snapshot.isDragging ? '#ffe066' : undefined }}>
-                              <td {...provided.dragHandleProps} style={{ cursor: 'grab', width: 24, textAlign: 'center' }}>☰</td>
-                              <td>{inv.status === 'Draft' ? `draft${idx + 1}` : inv.invoice_number || '-'}</td>
-                              <td>
-                                {inv.status === 'Draft' ? (
-                                  <input
-                                    type="date"
-                                    value={inv.invoice_date ? inv.invoice_date.slice(0, 10) : ''}
-                                    onChange={e => handleDateChange(inv, e.target.value)}
-                                    style={{ minWidth: 110 }}
-                                  />
-                                ) : (
-                                  inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'
-                                )}
-                              </td>
-                              <td>{customer ? customer.name : '-'}</td>
-                              <td>{customer ? customer.gstin : '-'}</td>
-                              <td>{order ? (order.name || order.id) : '-'}</td>
-                              <td>{inv.status}</td>
-                              <td>{getTotal(inv)}</td>
-                              <td className="actions">
-                                <button onClick={() => handleDelete(inv.id)} title="Delete"><FaTrash style={{color:'#d32f2f'}} /> Delete</button>
-                                <button title="Edit"><FaEdit /> Edit</button>
-                                {inv.status === 'Draft' && (
-                                  <button title="Confirm" onClick={() => handleConfirm(inv)}><FaCheckCircle style={{color:'#388e3c'}} /> Confirm</button>
-                                )}
-                                {inv.status === 'Confirmed' && (
-                                  <button title="Revert to Draft" onClick={() => handleRevert(inv)}><FaTimesCircle style={{color:'#d32f2f'}} /> Revert</button>
-                                )}
-                                <button title="Download Invoice" onClick={() => handlePreviewInvoicePdf(inv)}><FaFilePdf style={{color:'#1976d2'}} /> PDF</button>
-                              </td>
-                            </tr>
-                          )}
-                        </Draggable>
-                      );
-                    })
+                    // Compute draft labels before mapping
+                    (() => {
+                      const draftLabels = getDraftLabelsForDrafts(sortedDraftInvoices, confirmedNumbers);
+                      return sortedDraftInvoices.map((inv, idx) => {
+                        const order = orderMap[inv.order_id];
+                        const customer = order ? customerMap[order.customer_id] : null;
+                        return (
+                          <Draggable key={inv.id} draggableId={String(inv.id)} index={idx}>
+                            {(provided, snapshot) => (
+                              <tr ref={provided.innerRef} {...provided.draggableProps} style={{ ...provided.draggableProps.style, background: snapshot.isDragging ? '#ffe066' : undefined }}>
+                                <td {...provided.dragHandleProps} style={{ cursor: 'grab', width: 24, textAlign: 'center' }}>☰</td>
+                                <td>{inv.status === 'Draft' ? `draft${draftLabels[idx]}` : inv.invoice_number || '-'}</td>
+                                <td>
+                                  {inv.status === 'Draft' ? (
+                                    <input
+                                      type="date"
+                                      value={inv.invoice_date ? inv.invoice_date.slice(0, 10) : ''}
+                                      onChange={e => handleDateChange(inv, e.target.value)}
+                                      style={{ minWidth: 110 }}
+                                    />
+                                  ) : (
+                                    inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'
+                                  )}
+                                </td>
+                                <td>{customer ? (
+                                  <a href={`/customers?selected=${customer.id}`} style={{ color: '#1976d2', textDecoration: 'underline', cursor: 'pointer' }} target="_blank" rel="noopener noreferrer">{customer.name}</a>
+                                ) : '-'}</td>
+                                <td>{customer ? customer.gstin : '-'}</td>
+                                <td>{order ? (
+                                  <a href={`/orders-v2/${order.id}`} style={{ color: '#1976d2', textDecoration: 'underline', cursor: 'pointer' }} target="_blank" rel="noopener noreferrer">{order.name || order.id}</a>
+                                ) : '-'}</td>
+                                <td>{inv.status}</td>
+                                <td>{getTotal(inv)}</td>
+                                <td className="actions">
+                                  <button onClick={() => handleDelete(inv.id)} title="Delete"><FaTrash style={{color:'#d32f2f'}} /> Delete</button>
+                                  <button title="Edit"><FaEdit /> Edit</button>
+                                  {inv.status === 'Draft' && (
+                                    <button title="Confirm" onClick={() => handleConfirm(inv)}><FaCheckCircle style={{color:'#388e3c'}} /> Confirm</button>
+                                  )}
+                                  {inv.status === 'Confirmed' && (
+                                    <button title="Revert to Draft" onClick={() => handleRevert(inv)}><FaTimesCircle style={{color:'#d32f2f'}} /> Revert</button>
+                                  )}
+                                  <button title="Download Invoice" onClick={() => handlePreviewInvoicePdf(inv)}><FaFilePdf style={{color:'#1976d2'}} /> PDF</button>
+                                </td>
+                              </tr>
+                            )}
+                          </Draggable>
+                        );
+                      });
+                    })()
                   )}
                   {provided.placeholder}
                 </tbody>
@@ -437,9 +518,13 @@ export default function InvoiceList({ invoices, onDelete, onReorder }) {
                   <tr key={inv.id}>
                     <td>{inv.invoice_number || '-'}</td>
                     <td>{inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString() : '-'}</td>
-                    <td>{customer ? customer.name : '-'}</td>
+                    <td>{customer ? (
+                      <a href={`/customers?selected=${customer.id}`} style={{ color: '#1976d2', textDecoration: 'underline', cursor: 'pointer' }} target="_blank" rel="noopener noreferrer">{customer.name}</a>
+                    ) : '-'}</td>
                     <td>{customer ? customer.gstin : '-'}</td>
-                    <td>{order ? (order.name || order.id) : '-'}</td>
+                    <td>{order ? (
+                      <a href={`/orders-v2/${order.id}`} style={{ color: '#1976d2', textDecoration: 'underline', cursor: 'pointer' }} target="_blank" rel="noopener noreferrer">{order.name || order.id}</a>
+                    ) : '-'}</td>
                     <td>{inv.status}</td>
                     <td>{getTotal(inv)}</td>
                     <td className="actions">

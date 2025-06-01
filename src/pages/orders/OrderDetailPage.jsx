@@ -52,15 +52,24 @@ export default function OrderDetailPage() {
     if (!orderId) return;
     async function ensureDraftInvoice() {
       const supabase = (await import("../../supabaseClient")).default;
+      // Fetch order to get customer_id
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('id, customer_id')
+        .eq('id', orderId)
+        .single();
+      if (orderError || !order) return;
+      // Only check for existing draft invoice for this order
       const { data: invoices, error: fetchError } = await supabase
         .from('invoices')
         .select('id, order_id, status')
-        .eq('order_id', orderId);
+        .eq('order_id', orderId)
+        .eq('status', 'Draft');
       if (fetchError) return;
       if (!invoices || invoices.length === 0) {
         await supabase
           .from('invoices')
-          .insert([{ order_id: orderId, status: 'Draft', created_at: new Date().toISOString() }]);
+          .insert([{ order_id: orderId, customer_id: order.customer_id, status: 'Draft', created_at: new Date().toISOString() }]);
       }
     }
     ensureDraftInvoice();

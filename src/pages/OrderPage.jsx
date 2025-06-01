@@ -139,6 +139,13 @@ export default function OrderPage() {
     async function ensureDraftInvoice() {
       try {
         const supabaseClient = await import('../supabaseClient').then(m => m.default);
+        // Fetch order to get customer_id
+        const { data: orderData, error: orderError } = await supabaseClient
+          .from('orders')
+          .select('id, customer_id')
+          .eq('id', order.id)
+          .single();
+        if (orderError || !orderData) return;
         const { data: invoices, error: fetchError } = await supabaseClient
           .from('invoices')
           .select('id, order_id, status')
@@ -147,7 +154,7 @@ export default function OrderPage() {
         if (!invoices || invoices.length === 0) {
           const { error: insertError } = await supabaseClient
             .from('invoices')
-            .insert([{ order_id: order.id, status: 'Draft', created_at: new Date().toISOString() }]);
+            .insert([{ order_id: order.id, customer_id: orderData.customer_id, status: 'Draft', created_at: new Date().toISOString() }]);
           if (insertError) return; // fail silently
         }
       } catch (err) {

@@ -6,6 +6,7 @@ import './InvoicesPage.css';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
+  const [confirmedNumbers, setConfirmedNumbers] = useState([]); // <-- new
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -29,6 +30,20 @@ export default function InvoicesPage() {
       return;
     }
     setInvoices(data || []);
+    // If Drafts tab, also fetch confirmed invoice numbers
+    if (activeTab === 'drafts') {
+      const { data: confirmed, error: confErr } = await supabase
+        .from('invoices')
+        .select('invoice_number')
+        .eq('status', 'Confirmed');
+      if (!confErr && confirmed) {
+        setConfirmedNumbers(confirmed.map(inv => inv.invoice_number).filter(n => /^\d+$/.test(n)).map(n => parseInt(n, 10)));
+      } else {
+        setConfirmedNumbers([]);
+      }
+    } else {
+      setConfirmedNumbers([]);
+    }
     setLoading(false);
   };
 
@@ -97,7 +112,7 @@ export default function InvoicesPage() {
       ) : error ? (
         <p style={{ color: 'red' }}>{error}</p>
       ) : (
-        <InvoiceList invoices={invoices} onDelete={handleDeleteInvoice} onReorder={fetchInvoices} />
+        <InvoiceList invoices={invoices} confirmedNumbers={confirmedNumbers} onDelete={handleDeleteInvoice} onReorder={fetchInvoices} />
       )}
     </div>
   );
