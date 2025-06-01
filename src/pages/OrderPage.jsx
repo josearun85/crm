@@ -146,10 +146,12 @@ export default function OrderPage() {
           .eq('id', order.id)
           .single();
         if (orderError || !orderData) return;
+        // Only check for existing draft invoice for this order
         const { data: invoices, error: fetchError } = await supabaseClient
           .from('invoices')
           .select('id, order_id, status')
-          .eq('order_id', order.id);
+          .eq('order_id', order.id)
+          .eq('status', 'Draft');
         if (fetchError) return; // fail silently
         if (!invoices || invoices.length === 0) {
           const { error: insertError } = await supabaseClient

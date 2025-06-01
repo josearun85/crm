@@ -4,7 +4,7 @@ import SignageItemsPdf from "./SignageItemsPdf";
 import InvoicePdf from "./InvoicePdf";
 import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem, fetchProcurementTasks, ensureFabricationStepsForSignageItems, fetchInventory, addFeedNote, fetchOrderOverview, updateOrderDetails } from "../services/orderDetailsService";
 import { createRoot } from "react-dom/client";
-import Select from 'react-select';
+import UnitInput from "../../../components/UnitInput";
 
 const unitOptions = [
   { value: 'nos', label: 'nos' },
@@ -685,8 +685,26 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
   };
 
   return (
-    <div className="space-y-4 flex justify-center">
-      <div className="w-full max-w-[1200px]">
+    <div className="space-y-4 flex justify-center relative">
+      {/* Watermark logo */}
+      <img
+        src="/logo.png"
+        alt="Logo watermark"
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '400px',
+          height: 'auto',
+          opacity: 0.08,
+          filter: 'grayscale(1) brightness(1.2)',
+          transform: 'translate(-50%, -50%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+      <div className="w-full max-w-[1200px]" style={{ position: 'relative', zIndex: 1 }}>
         {/* Hidden PDF render target */}
         {showPdf && (
           <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', zIndex: -1, opacity: 0, pointerEvents: 'none' }} ref={pdfDivRef}>
@@ -975,39 +993,40 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                                         />
                                       </td>
                                       <td className="p-2 border w-16 text-center">
-                                        {editingUnitIdx === bidx ? (
-                                          <Select
-                                            classNamePrefix="unit-select"
-                                            options={unitOptions}
-                                            value={unitOptions.find(opt => opt.value === boq.unit) || (boq.unit ? { value: boq.unit, label: boq.unit } : null)}
-                                            onChange={selected => {
-                                              const value = selected ? selected.value : '';
-                                              if (boq.id) {
-                                                setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
+                                        <UnitInput
+                                          className="text-xs"
+                                          value={boq.unit || ''}
+                                          onChange={e => {
+                                            const value = e.target.value;
+                                            if (boq.id) {
+                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
+                                            }
+                                          }}
+                                          onBlur={async (e) => {
+                                            if (boq.id) {
+                                              // Use the current input value directly instead of relying on state lookup
+                                              const unitValue = e.target.value;
+                                              if (unitValue !== boq.unit) {
+                                                await updateBoqItem(boq.id, { unit: unitValue });
+                                                // Update both local and global BOQ states
+                                                setBoqs(boqs => boqs.map(b => b.id === boq.id ? { ...b, unit: unitValue } : b));
+                                                setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, unit: unitValue } : b));
+                                                const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                                await addFeedNote({
+                                                  type: 'feed',
+                                                  content: `BOQ unit updated to "${unitValue}" by ${user?.data?.user?.email || 'Unknown'}`,
+                                                  boq_item_id: boq.id,
+                                                  signage_item_id: boq.signage_item_id,
+                                                  orderId,
+                                                  created_by: user?.data?.user?.id,
+                                                  created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                  created_by_email: user?.data?.user?.email || ''
+                                                });
                                               }
-                                              setEditingUnitIdx(null);
-                                            }}
-                                            onInputChange={inputValue => {
-                                              if (boq.id && inputValue !== boq.unit) {
-                                                setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: inputValue } : b));
-                                              }
-                                            }}
-                                            onBlur={() => setEditingUnitIdx(null)}
-                                            autoFocus
-                                            isClearable
-                                            isSearchable
-                                            placeholder="Unit"
-                                            menuPlacement="auto"
-                                          />
-                                        ) : (
-                                          <span
-                                            style={{ cursor: 'pointer', minWidth: 32, display: 'inline-block' }}
-                                            onClick={() => setEditingUnitIdx(bidx)}
-                                            title="Click to edit unit"
-                                          >
-                                            {boq.unit || <span className="text-gray-400 italic">(unit)</span>}
-                                          </span>
-                                        )}
+                                            }
+                                          }}
+                                          placeholder="Unit"
+                                        />
                                       </td>
                                       <td className="p-2 border w-16 text-center">
                                         <input

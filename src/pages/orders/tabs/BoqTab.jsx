@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchSignageItems, fetchBoqItems, updateBoqItem, fetchVendors, addVendor, fetchInventory, addInventoryEntry, ensureProcurementStepsForOrder, fetchProcurementTasks, createProcurementTaskAndLinkBoq, addFeedNote } from "../services/orderDetailsService";
 import supabase from "../../../supabaseClient";
-import Select from 'react-select';
+import UnitInput from "../../../components/UnitInput";
 
 export default function BoqTab({ orderId }) {
   const [materials, setMaterials] = useState([]);
@@ -346,25 +346,35 @@ export default function BoqTab({ orderId }) {
               )}
               <td className="p-2 border font-medium">{row.material}</td>
               <td className="p-2 border w-16 text-center">
-                <Select
-                  classNamePrefix="unit-select"
-                  options={unitOptions}
-                  value={unitOptions.find(opt => opt.value === row.unit) || { value: row.unit, label: row.unit }}
-                  onChange={selected => {
-                    const value = selected ? selected.value : '';
+                <UnitInput
+                  value={row.unit}
+                  onChange={e => {
+                    const value = e.target.value;
                     if (row.id) {
                       setRawBoqs(boqs => boqs.map(b => b.id === row.id ? { ...b, unit: value } : b));
                     }
                   }}
-                  onInputChange={inputValue => {
-                    if (row.id && inputValue !== row.unit) {
-                      setRawBoqs(boqs => boqs.map(b => b.id === row.id ? { ...b, unit: inputValue } : b));
+                  onBlur={async () => {
+                    if (row.id) {
+                      // Get the updated unit value from rawBoqs state
+                      const updatedBoq = rawBoqs.find(b => b.id === row.id);
+                      if (updatedBoq) {
+                        await updateBoqItem(row.id, { unit: updatedBoq.unit });
+                        // Add feed note for the update
+                        const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                        await addFeedNote({
+                          type: 'feed',
+                          content: `BOQ unit updated to "${updatedBoq.unit}" by ${user?.data?.user?.email || 'Unknown'}`,
+                          boq_item_id: row.id,
+                          signage_item_id: updatedBoq.signage_item_id,
+                          orderId,
+                          created_by: user?.data?.user?.id,
+                          created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                          created_by_email: user?.data?.user?.email || ''
+                        });
+                      }
                     }
                   }}
-                  isClearable
-                  isSearchable
-                  placeholder="Unit"
-                  menuPlacement="auto"
                 />
               </td>
               <td className="p-2 border">{row.quantity}</td>
@@ -467,23 +477,12 @@ export default function BoqTab({ orderId }) {
                   <tr key={row.material}>
                     <td className="p-2 border font-medium">{row.material}</td>
                     <td className="p-2 border">
-                      <Select
-                        classNamePrefix="unit-select"
-                        options={unitOptions}
-                        value={unitOptions.find(opt => opt.value === row.unit) || { value: row.unit, label: row.unit }}
-                        onChange={selected => {
-                          const value = selected ? selected.value : '';
+                      <UnitInput
+                        value={row.unit}
+                        onChange={e => {
+                          const value = e.target.value;
                           setProcPlan(plan => plan.map((p, i) => i === idx ? { ...p, unit: value } : p));
                         }}
-                        onInputChange={inputValue => {
-                          if (row.id && inputValue !== row.unit) {
-                            setProcPlan(plan => plan.map((p, i) => i === idx ? { ...p, unit: inputValue } : p));
-                          }
-                        }}
-                        isClearable
-                        isSearchable
-                        placeholder="Unit"
-                        menuPlacement="auto"
                       />
                     </td>
                     <td className="p-2 border">{row.required}</td>

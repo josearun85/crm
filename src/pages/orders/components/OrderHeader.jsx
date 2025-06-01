@@ -82,7 +82,7 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
 
   return (
     <>
-      <div className="mb-4 w-full max-w-[900px] mx-auto bg-white rounded-xl shadow border border-gray-200 flex flex-row items-start justify-between px-6 py-3" style={{ minHeight: 0 }}>
+      <div className="mb-4 w-full max-w-[1100px] mx-auto bg-white rounded-xl shadow border border-gray-200 flex flex-row items-start justify-between px-6 py-3" style={{ minHeight: 0 }}>
         {/* Left: Title and client/job info */}
         <div className="flex flex-col min-w-0 flex-1">
           <span className="text-3xl md:text-4xl font-extrabold text-gray-400 tracking-tight mb-4" style={{ letterSpacing: 2, alignSelf: 'flex-start' }}>ESTIMATE</span>
@@ -210,139 +210,60 @@ export default function OrderHeader({ orderId, customerGstin, setCustomerGstin, 
             )}
           </div>
         </div>
-        {/* Center: Prominent Logo */}
-        <div className="flex flex-col items-center justify-center min-w-[180px] mx-4 h-full" style={{ justifyContent: 'center' }}>
-          <img src="/logo.png" alt="Company Logo" className="w-36 h-36 object-contain rounded-full border-4 border-yellow-400 shadow-lg" style={{ display: 'block', margin: 'auto' }} />
-        </div>
         {/* Right: Editable fields and meta */}
-        <div className="flex flex-col gap-1 min-w-[220px] items-end">
-          <div className="grid grid-cols-4 gap-x-2 gap-y-1 text-xs w-full text-right items-end justify-end">
-            {/* Each label/input pair now takes two columns */}
-            <div className="font-medium col-span-1">Version</div>
-            <div className="pr-4 col-span-1">
-              <input
-                type="number"
-                min={1}
-                className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right"
-                value={editBuffer.version !== undefined ? editBuffer.version : order?.version || 1}
-                onChange={e => handleFieldChange("version", e.target.value)}
-                onBlur={() => handleFieldBlur("version", "Version")}
-                placeholder="Version"
-              />
+        <div className="flex flex-col w-[500px] items-end flex-shrink-0">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 w-full">
+            {/* Each meta field: label and input/select, two per row, label and field side by side */}
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">Version</label>
+              <input type="number" min={1} className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right" value={editBuffer.version !== undefined ? editBuffer.version : order?.version || 1} onChange={e => handleFieldChange("version", e.target.value)} onBlur={() => handleFieldBlur("version", "Version")} placeholder="Version" />
             </div>
-            <div className="font-medium col-span-1">EST NO</div>
-            <div className="pr-4 col-span-1">{order ? `${order.id}.${order.version || 1}.${new Date(order?.due_date || Date.now()).getFullYear()}` : '-'}</div>
-            <div className="font-medium col-span-1">Date</div>
-            <div className="pr-4 col-span-1">
-              <input
-                type="date"
-                className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right"
-                value={editBuffer.created_at !== undefined ? editBuffer.created_at : (order?.created_at ? order.created_at.split('T')[0] : "")}
-                onChange={e => handleFieldChange("created_at", e.target.value)}
-                onBlur={() => handleFieldBlur("created_at", "Date")}
-              />
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">EST NO</label>
+              <div className="w-full text-left border rounded p-1 bg-gray-50 text-xs">{order ? `${order.id}.${order.version || 1}.${new Date(order?.due_date || Date.now()).getFullYear()}` : '-'}</div>
             </div>
-            <div className="font-medium col-span-1">Status</div>
-            <div className="pr-4 col-span-1">
-              <select
-                className={`p-1 rounded border font-semibold appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-400 transition text-xs w-full text-right ${statusColor[editBuffer.status !== undefined ? editBuffer.status : order?.status || "new"]}`}
-                style={{ fontFamily: 'inherit', minWidth: 90 }}
-                value={editBuffer.status !== undefined ? editBuffer.status : order?.status || "new"}
-                onChange={e => handleFieldChange("status", e.target.value)}
-                onBlur={() => handleFieldBlur("status", "Status")}
-              >
-                <option value="new">New</option>
-                <option value="in_progress">In Progress</option>
-                <option value="hold">On Hold</option>
-                <option value="delayed">Delayed</option>
-                <option value="closed">Closed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">Date</label>
+              <input type="date" className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right" value={editBuffer.created_at !== undefined ? editBuffer.created_at : (order?.created_at ? order.created_at.split('T')[0] : "")} onChange={e => handleFieldChange("created_at", e.target.value)} onBlur={() => handleFieldBlur("created_at", "Date")} />
             </div>
-            <div className="font-medium col-span-1">Due Date</div>
-            <div className="pr-4 col-span-1">
-              <input
-                type="date"
-                className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right"
-                value={editBuffer.due_date !== undefined ? editBuffer.due_date : order?.due_date?.split("T")[0] || ""}
-                onChange={e => handleFieldChange("due_date", e.target.value)}
-                onBlur={() => handleFieldBlur("due_date", "Due Date")}
-              />
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">Status</label>
+              <select className={`p-1 rounded border font-semibold appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-400 transition text-xs w-full text-right ${statusColor[editBuffer.status !== undefined ? editBuffer.status : order?.status || "new"]}`} style={{ fontFamily: 'inherit' }} value={editBuffer.status !== undefined ? editBuffer.status : order?.status || "new"} onChange={e => handleFieldChange("status", e.target.value)} onBlur={() => handleFieldBlur("status", "Status")}> <option value="new">New</option> <option value="in_progress">In Progress</option> <option value="hold">On Hold</option> <option value="delayed">Delayed</option> <option value="closed">Closed</option> <option value="cancelled">Cancelled</option> </select>
             </div>
-            <div className="font-medium col-span-1">Fab Type</div>
-            <div className="pr-4 col-span-1">
-              <input
-                className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
-                value={editBuffer.fab_type !== undefined ? editBuffer.fab_type : order?.fab_type || ""}
-                onChange={e => handleFieldChange("fab_type", e.target.value)}
-                onBlur={() => handleFieldBlur("fab_type", "Fab Type")}
-                placeholder="Fab Type"
-              />
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">Due Date</label>
+              <input type="date" className="border rounded p-1 bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs w-full text-right" value={editBuffer.due_date !== undefined ? editBuffer.due_date : order?.due_date?.split("T")[0] || ""} onChange={e => handleFieldChange("due_date", e.target.value)} onBlur={() => handleFieldBlur("due_date", "Due Date")} />
             </div>
-            <div className="font-medium col-span-1">GSTIN</div>
-            <div className="pr-4 col-span-1">
-              <input
-                className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
-                value={customerGstin.toUpperCase()}
-                onChange={e => setCustomerGstin(e.target.value.toUpperCase())}
-                onBlur={async (e) => {
-                  const newValue = e.target.value.trim().toUpperCase();
-                  if (order?.customer?.id && newValue !== (order?.customer?.gstin || '').toUpperCase()) {
-                    await import("../services/orderDetailsService").then(m => m.updateCustomerDetails(order.customer.id, { gstin: newValue }));
-                  }
-                }}
-                placeholder="GSTIN"
-              />
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">Fab Type</label>
+              <input className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right" value={editBuffer.fab_type !== undefined ? editBuffer.fab_type : order?.fab_type || ""} onChange={e => handleFieldChange("fab_type", e.target.value)} onBlur={() => handleFieldBlur("fab_type", "Fab Type")} placeholder="Fab Type" />
             </div>
-            <div className="font-medium col-span-1">PAN</div>
-            <div className="pr-4 col-span-1">
-              <input
-                className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
-                value={customerPan.toUpperCase()}
-                onChange={e => setCustomerPan(e.target.value.toUpperCase())}
-                onBlur={async (e) => {
-                  const newValue = e.target.value.trim().toUpperCase();
-                  if (order?.customer?.id && newValue !== (order?.customer?.pan || '').toUpperCase()) {
-                    await import("../services/orderDetailsService").then(m => m.updateCustomerDetails(order.customer.id, { pan: newValue }));
-                  }
-                }}
-                placeholder="PAN"
-              />
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">GSTIN</label>
+              <input className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right" value={customerGstin.toUpperCase()} onChange={e => setCustomerGstin(e.target.value.toUpperCase())} onBlur={async (e) => { const newValue = e.target.value.trim().toUpperCase(); if (order?.customer?.id && newValue !== (order?.customer?.gstin || '').toUpperCase()) { await import("../services/orderDetailsService").then(m => m.updateCustomerDetails(order.customer.id, { gstin: newValue })); } }} placeholder="GSTIN" />
             </div>
-            <div className="font-medium col-span-1">PO Number</div>
-            <div className="pr-4 col-span-1">
-              <input
-                className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
-                value={editBuffer.po_number !== undefined ? editBuffer.po_number : order?.po_number || ""}
-                onChange={e => handleFieldChange("po_number", e.target.value)}
-                onBlur={() => handleFieldBlur("po_number", "PO Number")}
-                placeholder="PO Number"
-              />
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">PAN</label>
+              <input className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right" value={customerPan.toUpperCase()} onChange={e => setCustomerPan(e.target.value.toUpperCase())} onBlur={async (e) => { const newValue = e.target.value.trim().toUpperCase(); if (order?.customer?.id && newValue !== (order?.customer?.pan || '').toUpperCase()) { await import("../services/orderDetailsService").then(m => m.updateCustomerDetails(order.customer.id, { pan: newValue })); } }} placeholder="PAN" />
             </div>
-            <div className="font-medium col-span-1">PO Date</div>
-            <div className="pr-4 col-span-1">
-              <input
-                type="date"
-                className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right"
-                value={editBuffer.po_date !== undefined ? editBuffer.po_date : order?.po_date?.split("T")[0] || ""}
-                onChange={e => handleFieldChange("po_date", e.target.value)}
-                onBlur={() => handleFieldBlur("po_date", "PO Date")}
-                placeholder="PO Date"
-              />
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">PO Number</label>
+              <input className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right" value={editBuffer.po_number !== undefined ? editBuffer.po_number : order?.po_number || ""} onChange={e => handleFieldChange("po_number", e.target.value)} onBlur={() => handleFieldBlur("po_number", "PO Number")} placeholder="PO Number" />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="font-medium text-xs text-right w-20 flex-shrink-0">PO Date</label>
+              <input type="date" className="border rounded p-1 w-full bg-gray-50 focus:bg-white focus:border-yellow-400 transition text-xs text-right" value={editBuffer.po_date !== undefined ? editBuffer.po_date : order?.po_date?.split("T")[0] || ""} onChange={e => handleFieldChange("po_date", e.target.value)} onBlur={() => handleFieldBlur("po_date", "PO Date")} placeholder="PO Date" />
             </div>
           </div>
+          <textarea
+            className="w-full border rounded p-2 text-xs resize-none overflow-hidden bg-gray-50 focus:bg-white focus:border-yellow-400 transition mt-3"
+            value={editBuffer.description !== undefined ? editBuffer.description : order?.description || ""}
+            onChange={e => handleFieldChange("description", e.target.value)}
+            onBlur={() => handleFieldBlur("description", "Description")}
+            placeholder="Order Description"
+          />
+          {error && <div className="text-red-600 text-xs mt-1">{error}</div>}
         </div>
-      </div>
-      <div className="w-full max-w-[900px] mx-auto">
-        <textarea
-          className="w-full border rounded p-2 text-xs resize-none overflow-hidden bg-gray-50 focus:bg-white focus:border-yellow-400 transition mb-2"
-          value={editBuffer.description !== undefined ? editBuffer.description : order?.description || ""}
-          onChange={e => handleFieldChange("description", e.target.value)}
-          onBlur={() => handleFieldBlur("description", "Description")}
-          placeholder="Order Description"
-          style={{ minHeight: 28, height: 'auto' }}
-        />
-        {error && <div className="text-red-600 text-xs mt-1">{error}</div>}
       </div>
     </>
   );

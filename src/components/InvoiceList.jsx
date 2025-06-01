@@ -372,8 +372,24 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
         </head>
         <body>
           <div id="pdf-root"></div>
-          <button class="download-btn" onclick="window.downloadInvoicePdf && window.downloadInvoicePdf()">⬇️ Download Invoice</button>
+          <button class="download-btn" onclick="downloadInvoicePdf()">⬇️ Download Invoice</button>
           <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+          <script>
+            function downloadInvoicePdf() {
+              var root = document.getElementById('pdf-root');
+              if (window.html2pdf) {
+                html2pdf().set({
+                  margin: 0.2,
+                  filename: 'Invoice_${invoice.number || ''}.pdf',
+                  image: { type: 'jpeg', quality: 0.98 },
+                  html2canvas: { scale: 2 },
+                  jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                }).from(root).save();
+              } else {
+                setTimeout(downloadInvoicePdf, 200);
+              }
+            }
+          <\/script>
         </body>
       </html>
     `);
@@ -390,16 +406,6 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
       root.render(
         React.createElement(InvoicePdf, { invoice, customer, items })
       );
-      // Attach download handler
-      previewWindow.downloadInvoicePdf = () => {
-        window.html2pdf().set({
-          margin: 0.2,
-          filename: `Invoice_${invoice.number || ''}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        }).from(pdfRoot).save();
-      };
     };
     setTimeout(renderReact, 200);
   };
