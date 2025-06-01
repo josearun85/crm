@@ -754,19 +754,19 @@ export async function addPayment(orderId, paymentData) {
   return data;
 }
 
-export async function updatePayment(paymentId, updates) {
-  const { data, error } = await supabase
-    .from("payments")
-    .update(updates)
-    .eq("id", paymentId)
-    .select()
-    .single();
-  if (error) {
-    console.error(error);
-    throw error;
+  export async function updatePayment(paymentId, updates) {
+    const { data, error } = await supabase
+      .from("payments")
+      .update(updates)
+      .eq("id", paymentId)
+      .select()
+      .single();
+    if (error) {
+      console.error(error);
+      throw error;
+    }
+    return data;
   }
-  return data;
-}
 
 // Delete payment
 export async function deletePayment(paymentId) {

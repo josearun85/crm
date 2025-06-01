@@ -85,32 +85,41 @@
   padding: 12px 16px;
   margin-bottom: 4px;
   background-color: white;
-  border: 1px solid #f9a825;
+  border: 1px solid #e0e0e0; /* Muted border for non-selected items */
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .customer-list-item:hover {
-  background-color: #fffde7;
-  border-color: #fbc02d;
+  background-color: #f5f5f5; /* Slightly darker hover for non-selected */
+  border-color: #bdbdbd; /* Slightly darker border on hover for non-selected */
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .customer-list-item.selected {
-  background-color: #fff8e1; /* Lighter yellow for background */
+  background-color: #fffde7; /* Light yellow for selected item background */
   color: #212121; /* Dark text for contrast */
-  border-left: 4px solid #fbc02d; /* Yellow border on the left */
-  border-top: 1px solid #fbc02d;
-  border-right: 1px solid #fbc02d;
-  border-bottom: 1px solid #fbc02d;
-  padding-left: 12px; /* Adjust padding to keep content aligned */
+  border: 1px solid #fbc02d; /* Yellow border for selected item */
+  border-left-width: 4px; /* Emphasize left border for selected */
+  /* Ensure padding is adjusted if border-box is not used or to maintain visual alignment */
+  padding-left: 13px; /* Adjusted padding for the thicker left border */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* Add a bit more shadow to selected */
 }
 
+/* Ensure other selected styles are compatible */
 .customer-list-item.selected .sales-stage {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #f9a825; /* Keep sales stage distinct on selected items */
   color: white;
+}
+
+.customer-list-item.selected .customer-info {
+  color: #424242; /* Slightly darker text for info on selected, if needed */
+}
+
+.customer-list-item.selected .order-count {
+  color: #424242; /* Slightly darker text for order count on selected, if needed */
 }
 
 .customer-name {

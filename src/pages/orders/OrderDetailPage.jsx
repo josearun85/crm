@@ -1,5 +1,5 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { fetchOrderOverview } from "./services/orderDetailsService";
 import OrderHeader from "./components/OrderHeader";
 import TabNav from "./components/TabNav";
@@ -11,6 +11,7 @@ import FilesTab from "./tabs/FilesTab";
 import NotesTab from "./tabs/NotesTab";
 import PaymentsTab from "./tabs/PaymentsTab";
 import MiscellaneousTab from "./tabs/MiscellaneousTab";
+import './OrderDetailPage.css';
 
 const tabMap = {
   items: SignageItemsTab,
@@ -106,14 +107,55 @@ export default function OrderDetailPage() {
     }
   };
 
+  const overviewRef = useRef(null);
+  const [isTabsSticky, setIsTabsSticky] = useState(false);
+  const [tabsHeight, setTabsHeight] = useState(0);
+  const tabsContainerRef = useRef(null);
+
+  // Scroll logic to hide overview and make tabs sticky
+  useEffect(() => {
+    const handleScroll = () => {
+      if (overviewRef.current && tabsContainerRef.current) {
+        const overviewRect = overviewRef.current.getBoundingClientRect();
+        // Only set sticky if the bottom of the overview is above the top of the viewport
+        if (overviewRect.bottom <= 0) {
+          if (!isTabsSticky) {
+            setTabsHeight(tabsContainerRef.current.offsetHeight);
+            setIsTabsSticky(true);
+          }
+        } else {
+          if (isTabsSticky) {
+            setIsTabsSticky(false);
+          }
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isTabsSticky]);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-[#fffbe6]">
       <div className="w-full flex-1 flex flex-col items-center">
         <div className="w-full max-w-[1000px] mx-auto px-4 py-6 bg-white">
-          <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#fffbe6' }}>
+          <div
+            ref={overviewRef}
+            className={isTabsSticky ? 'overview-hidden' : ''}
+            style={isTabsSticky ? { display: 'none' } : {}}
+          >
             <OrderHeader orderId={orderId} customerGstin={customerGstin} setCustomerGstin={setCustomerGstin} customerPan={customerPan} setCustomerPan={setCustomerPan} />
+          </div>
+          {/* TabNav should always be visible, only sticky when isTabsSticky */}
+          <div
+            ref={tabsContainerRef}
+            className={`tabnav-wrapper${isTabsSticky ? ' sticky-tabs-styling' : ''}`}
+            style={isTabsSticky ? { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 20, background: '#fffbe6', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' } : {}}
+          >
             <TabNav currentTab={tab} onTabChange={(t) => navigate(`?tab=${t}`)} />
           </div>
+          {/* Spacer to prevent content jump when sticky */}
+          {isTabsSticky && <div style={{ height: tabsHeight }} />}
           <div className="mt-6">
             <TabComponent
               orderId={orderId}

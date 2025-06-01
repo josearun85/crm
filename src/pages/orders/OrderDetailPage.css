@@ -1,0 +1,18 @@
+/*
+  OrderDetailPage.css
+  Styles for sticky tab navigation and hiding the overview on scroll
+*/
+
+.overview-hidden {
+  display: none !important;
+}
+
+.sticky-tabs-styling {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: #fffbe6;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}

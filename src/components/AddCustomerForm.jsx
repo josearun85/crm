@@ -27,6 +27,34 @@ export default function AddCustomerForm({ isOpen, onClose, onCustomerAdded }) {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
+  const handleGstinFetch = async () => {
+    if (!form.gstin) {
+      alert("Please enter a GSTIN number.");
+      return;
+    }
+    // Placeholder for API call to fetch customer details by GSTIN
+    // Replace with your actual API call
+    console.log("Fetching details for GSTIN:", form.gstin);
+    // Example:
+    // try {
+    //   const response = await fetch(`/api/gstin-lookup?gstin=${form.gstin}`);
+    //   const data = await response.json();
+    //   if (data) {
+    //     setForm(prevForm => ({
+    //       ...prevForm,
+    //       name: data.name || prevForm.name,
+    //       address: data.address || prevForm.address,
+    //       // ... populate other fields as needed
+    //     }));
+    //   } else {
+    //     alert("No details found for this GSTIN.");
+    //   }
+    // } catch (error) {
+    //   console.error("Error fetching GSTIN details:", error);
+    //   alert("Failed to fetch GSTIN details.");
+    // }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -79,7 +107,10 @@ export default function AddCustomerForm({ isOpen, onClose, onCustomerAdded }) {
           <input name="secondary_phone" placeholder="Secondary Phone" onChange={handleChange} value={form.secondary_phone} style={{ width: '100%', padding: '0.5rem' }} />
           <input name="secondary_email" placeholder="Secondary Email" onChange={handleChange} value={form.secondary_email} style={{ width: '100%', padding: '0.5rem' }} />
           <input name="follow_up_on" type="date" placeholder="Follow Up On" onChange={handleChange} value={form.follow_up_on} style={{ width: '100%', padding: '0.5rem' }} />
-          <input name="gstin" placeholder="GSTIN" onChange={handleChange} value={form.gstin} style={{ width: '100%', padding: '0.5rem' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <input name="gstin" placeholder="GSTIN" onChange={handleChange} value={form.gstin} style={{ flexGrow: 1, padding: '0.5rem' }} />
+            <button type="button" onClick={handleGstinFetch} style={{ padding: '0.5rem' }}>Fetch Details</button>
+          </div>
           <input name="pan" placeholder="PAN" onChange={handleChange} value={form.pan} style={{ width: '100%', padding: '0.5rem' }} />
           <input name="referral_source" placeholder="Referral Source" onChange={handleChange} value={form.referral_source} style={{ width: '100%', padding: '0.5rem' }} />
           <div style={{ marginTop: '1rem' }}>
