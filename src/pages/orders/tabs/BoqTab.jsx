@@ -15,6 +15,7 @@ export default function BoqTab({ orderId }) {
   const [procuredBoqIds, setProcuredBoqIds] = useState(new Set());
   const [procurementTasksByBoqId, setProcurementTasksByBoqId] = useState({});
   const [selectedProcurement, setSelectedProcurement] = useState(null);
+  const [marginEdit, setMarginEdit] = useState({}); // { [signageItemId]: { marginPercent, totalWithMargin, lastEdited } }
 
   const unitOptions = [
     { value: 'nos', label: 'nos' },
@@ -261,6 +262,54 @@ export default function BoqTab({ orderId }) {
     rowData[itemStart].itemRowSpan = rowData.length - itemStart;
   }
 
+  // Helper: get total BOQ cost for a signage item
+  function getSignageBoqTotal(signageItemId) {
+    return rawBoqs.filter(b => b.signage_item_id === signageItemId)
+      .reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
+  }
+
+  // Handler for margin % change
+  const handleMarginPercentChange = (signageItem, val) => {
+    const boqTotal = getSignageBoqTotal(signageItem.id);
+    const marginPercent = parseFloat(val) || 0;
+    const totalWithMargin = boqTotal * (1 + marginPercent / 100);
+    setMarginEdit(edit => ({
+      ...edit,
+      [signageItem.id]: {
+        marginPercent: val,
+        totalWithMargin: totalWithMargin.toFixed(2),
+        lastEdited: 'margin',
+      },
+    }));
+  };
+
+  // Handler for total change
+  const handleTotalWithMarginChange = (signageItem, val) => {
+    const boqTotal = getSignageBoqTotal(signageItem.id);
+    const totalWithMargin = parseFloat(val) || 0;
+    const marginPercent = boqTotal === 0 ? 0 : ((totalWithMargin / boqTotal - 1) * 100);
+    setMarginEdit(edit => ({
+      ...edit,
+      [signageItem.id]: {
+        marginPercent: marginPercent.toFixed(2),
+        totalWithMargin: val,
+        lastEdited: 'total',
+      },
+    }));
+  };
+
+  // Handler to persist margin/total to backend
+  const handleMarginBlur = async (signageItem) => {
+    const edit = marginEdit[signageItem.id];
+    if (!edit) return;
+    const updates = {
+      margin_percent: parseFloat(edit.marginPercent) || 0,
+      total_with_margin: parseFloat(edit.totalWithMargin) || 0,
+    };
+    await updateSignageItem(signageItem.id, updates);
+    // Optionally: refresh signageItems from backend
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">BOQ Summary Across All Signage Items</h2>
@@ -348,6 +397,47 @@ export default function BoqTab({ orderId }) {
       <div className="text-right font-semibold mt-2 text-base">
         Total BOQ Cost: ₹{totalBoqCost.toFixed(2)}
       </div>
+
+      {/* Margin/Total form for each signage item */}
+      {signageItems.map(signageItem => {
+        // Only show for signage items that have BOQs
+        const boqTotal = getSignageBoqTotal(signageItem.id);
+        if (boqTotal === 0) return null;
+        // Use local edit state if present, else signageItem fields
+        const edit = marginEdit[signageItem.id] || {};
+        const marginPercent = edit.lastEdited ? edit.marginPercent : (signageItem.margin_percent ?? '');
+        const totalWithMargin = edit.lastEdited ? edit.totalWithMargin : (signageItem.total_with_margin ?? (boqTotal ? boqTotal.toFixed(2) : ''));
+        return (
+          <div key={signageItem.id} className="flex flex-wrap gap-4 items-center justify-end border p-2 rounded bg-gray-50 mt-2">
+            <span className="font-medium mr-2">{signageItem.name || 'Signage Item'}:</span>
+            <label className="flex items-center gap-1">
+              <span>Margin %</span>
+              <input
+                type="number"
+                className="border px-2 py-1 rounded w-20 text-right"
+                value={marginPercent}
+                onChange={e => handleMarginPercentChange(signageItem, e.target.value)}
+                onBlur={() => handleMarginBlur(signageItem)}
+                min={0}
+                step={0.01}
+              />
+            </label>
+            <label className="flex items-center gap-1">
+              <span>Total (with margin)</span>
+              <input
+                type="number"
+                className="border px-2 py-1 rounded w-28 text-right"
+                value={totalWithMargin}
+                onChange={e => handleTotalWithMarginChange(signageItem, e.target.value)}
+                onBlur={() => handleMarginBlur(signageItem)}
+                min={0}
+                step={0.01}
+              />
+            </label>
+            <span className="text-gray-500 text-xs">BOQ: ₹{boqTotal.toFixed(2)}</span>
+          </div>
+        );
+      })}
 
       <button
         className="mt-2 px-4 py-2 bg-blue-600 text-white rounded"

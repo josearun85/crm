@@ -117,8 +117,8 @@ export default function OrderDetailPage() {
     const handleScroll = () => {
       if (overviewRef.current && tabsContainerRef.current) {
         const overviewRect = overviewRef.current.getBoundingClientRect();
-        // Only set sticky if the bottom of the overview is above the top of the viewport
-        if (overviewRect.bottom <= 0) {
+        // Add a threshold (e.g. 8px) to prevent flicker at the boundary
+        if (overviewRect.bottom < 8) {
           if (!isTabsSticky) {
             setTabsHeight(tabsContainerRef.current.offsetHeight);
             setIsTabsSticky(true);
@@ -146,7 +146,6 @@ export default function OrderDetailPage() {
           >
             <OrderHeader orderId={orderId} customerGstin={customerGstin} setCustomerGstin={setCustomerGstin} customerPan={customerPan} setCustomerPan={setCustomerPan} />
           </div>
-          {/* TabNav should always be visible, only sticky when isTabsSticky */}
           <div
             ref={tabsContainerRef}
             className={`tabnav-wrapper${isTabsSticky ? ' sticky-tabs-styling' : ''}`}
@@ -154,7 +153,6 @@ export default function OrderDetailPage() {
           >
             <TabNav currentTab={tab} onTabChange={(t) => navigate(`?tab=${t}`)} />
           </div>
-          {/* Spacer to prevent content jump when sticky */}
           {isTabsSticky && <div style={{ height: tabsHeight }} />}
           <div className="mt-6">
             <TabComponent
