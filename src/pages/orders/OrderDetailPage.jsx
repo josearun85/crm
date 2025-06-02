@@ -1,5 +1,5 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { fetchOrderOverview } from "./services/orderDetailsService";
 import OrderHeader from "./components/OrderHeader";
 import TabNav from "./components/TabNav";
@@ -116,53 +116,17 @@ export default function OrderDetailPage() {
     }
   };
 
-  const overviewRef = useRef(null);
-  const [isTabsSticky, setIsTabsSticky] = useState(false);
-  const [tabsHeight, setTabsHeight] = useState(0);
-  const tabsContainerRef = useRef(null);
-
-  // Scroll logic to hide overview and make tabs sticky
-  useEffect(() => {
-    const handleScroll = () => {
-      if (overviewRef.current && tabsContainerRef.current) {
-        const overviewRect = overviewRef.current.getBoundingClientRect();
-        // Add a threshold (e.g. 8px) to prevent flicker at the boundary
-        if (overviewRect.bottom < 8) {
-          if (!isTabsSticky) {
-            setTabsHeight(tabsContainerRef.current.offsetHeight);
-            setIsTabsSticky(true);
-          }
-        } else {
-          if (isTabsSticky) {
-            setIsTabsSticky(false);
-          }
-        }
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isTabsSticky]);
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-[#fffbe6]">
       <div className="w-full flex-1 flex flex-col items-center">
         <div className="w-full max-w-[1000px] mx-auto px-4 py-6 bg-white">
-          <div
-            ref={overviewRef}
-            className={isTabsSticky ? 'overview-hidden' : ''}
-            style={isTabsSticky ? { display: 'none' } : {}}
-          >
+          {/* Always show overview, never hide on scroll */}
+          <div>
             <OrderHeader orderId={orderId} customerGstin={customerGstin} setCustomerGstin={setCustomerGstin} customerPan={customerPan} setCustomerPan={setCustomerPan} />
           </div>
-          <div
-            ref={tabsContainerRef}
-            className={`tabnav-wrapper${isTabsSticky ? ' sticky-tabs-styling' : ''}`}
-            style={isTabsSticky ? { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 20, background: '#fffbe6', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' } : {}}
-          >
+          <div className="tabnav-wrapper">
             <TabNav currentTab={tab} onTabChange={(t) => navigate(`?tab=${t}`)} />
           </div>
-          {isTabsSticky && <div style={{ height: tabsHeight }} />}
           <div className="mt-6">
             <TabComponent
               orderId={orderId}
@@ -171,7 +135,7 @@ export default function OrderDetailPage() {
               customerPan={customerPan}
               setCustomerPan={setCustomerPan}
               gstBillablePercent={gstBillablePercent}
-              setGstBillablePercent={percent => handleGstBillableChange(null, percent)}
+              setGstBillablePercent={percent => setGstBillablePercent(percent)}
             />
           </div>
         </div>

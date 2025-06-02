@@ -3,9 +3,9 @@
   Styles for sticky tab navigation and hiding the overview on scroll
 */
 
-.overview-hidden {
+/* .overview-hidden {
   display: none !important;
-}
+} */
 
 .sticky-tabs-styling {
   position: fixed !important;
