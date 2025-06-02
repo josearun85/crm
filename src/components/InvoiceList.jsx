@@ -365,8 +365,8 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
         <head>
           <title>Invoice Preview</title>
           <style>
-            body { font-family: Inter, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; background: #f8fafc; }
-            #pdf-root { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #0001; padding: 0; }
+            html, body { width: 794px !important; min-width: 794px !important; max-width: 794px !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+            #pdf-root { width: 794px !important; min-width: 794px !important; max-width: 794px !important; margin: 0 !important; padding: 0 !important; background: #fff !important; border-radius: 0 !important; box-shadow: none !important; }
             .download-btn { margin: 18px 0 0 0; padding: 8px 24px; background: #1976d2; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
           </style>
         </head>
@@ -379,11 +379,12 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
               var root = document.getElementById('pdf-root');
               if (window.html2pdf) {
                 html2pdf().set({
-                  margin: 0.2,
+                  margin: 0,
                   filename: 'Invoice_${invoice.number || ''}.pdf',
                   image: { type: 'jpeg', quality: 0.98 },
                   html2canvas: { scale: 2 },
-                  jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                  jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
+                  pagebreak: { mode: ['avoid-all'] }
                 }).from(root).save();
               } else {
                 setTimeout(downloadInvoicePdf, 200);
@@ -404,8 +405,9 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
       // Render InvoicePdf into the new tab
       const root = createRoot(pdfRoot);
       root.render(
-        React.createElement(InvoicePdf, { invoice, customer, items })
+        React.createElement(InvoicePdf, { invoice, customer, items, isPdfMode: true })
       );
+      // No automatic download trigger; user must click the button in the new tab
     };
     setTimeout(renderReact, 200);
   };
