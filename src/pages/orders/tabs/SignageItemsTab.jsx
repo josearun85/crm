@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useLayoutEffect } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import html2pdf from "html2pdf.js";
 import SignageItemsPdf from "./SignageItemsPdf";
 import InvoicePdf from "./InvoicePdf";
@@ -684,6 +684,75 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     });
   };
 
+  // --- Keyboard navigation for BOQ table ---
+  const boqCellRefs = useRef({}); // { [rowIdx_colIdx]: ref }
+  const BOQ_COLUMNS = ['item', 'material', 'unit', 'quantity', 'cost_per_unit'];
+
+  function focusBoqCell(row, col) {
+    const key = `${row}_${col}`;
+    if (boqCellRefs.current[key] && boqCellRefs.current[key].current) {
+      boqCellRefs.current[key].current.focus();
+    }
+  }
+
+  function handleBoqKeyDown(e, rowIdx, colIdx, boqsWithBlank, selectedItemId) {
+    // Only block navigation if UnitInput dropdown is open and the key is up/down/enter/escape
+    const isUnitInput = e.target.classList.contains('unit-input');
+    const isDropdownOpen = e.target.getAttribute('aria-expanded') === 'true';
+    const navBlockKeys = ['ArrowDown', 'ArrowUp', 'Enter', 'Escape'];
+    if (isUnitInput && isDropdownOpen && navBlockKeys.includes(e.key)) {
+      // Dropdown is open, block navigation for these keys
+      return;
+    }
+    // Otherwise, allow navigation as normal
+    const lastRow = boqsWithBlank.length - 1;
+    const lastCol = BOQ_COLUMNS.length - 1;
+    let nextRow = rowIdx, nextCol = colIdx;
+    if (e.key === 'Tab' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (colIdx < lastCol) {
+        nextCol = colIdx + 1;
+      } else if (rowIdx < lastRow) {
+        nextRow = rowIdx + 1; nextCol = 0;
+      } else {
+        // Add new row and focus first cell
+        addBoqItem(selectedItemId, { material: '', quantity: 1, unit: '', cost_per_unit: 0 }).then(newBoq => {
+          setBoqs([...boqsWithBlank, newBoq]);
+          setTimeout(() => focusBoqCell(rowIdx + 1, 0), 0);
+        });
+        return;
+      }
+      focusBoqCell(nextRow, nextCol);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (colIdx > 0) {
+        nextCol = colIdx - 1;
+      } else if (rowIdx > 0) {
+        nextRow = rowIdx - 1; nextCol = lastCol;
+      }
+      focusBoqCell(nextRow, nextCol);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (rowIdx < lastRow) {
+        nextRow = rowIdx + 1;
+      } else {
+        // Add new row and focus first cell
+        addBoqItem(selectedItemId, { material: '', quantity: 1, unit: '', cost_per_unit: 0 }).then(newBoq => {
+          setBoqs([...boqsWithBlank, newBoq]);
+          setTimeout(() => focusBoqCell(rowIdx + 1, 0), 0);
+        });
+        return;
+      }
+      focusBoqCell(nextRow, colIdx);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (rowIdx > 0) {
+        nextRow = rowIdx - 1;
+        focusBoqCell(nextRow, colIdx);
+      }
+    }
+  }
+
   return (
     <div className="space-y-4 flex justify-center relative">
       {/* Watermark logo */}
@@ -931,200 +1000,253 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {boqsWithBlank.map((boq, bidx) => (
-                                    <tr key={boq.id}>
-                                      <td className="p-2 border w-8 text-center">{bidx + 1}</td>
-                                      <td className="p-2 border w-32">
-                                        <input
-                                          className="w-full border px-1 py-0.5 text-xs"
-                                          value={boq.item || ''}
-                                          onChange={e => {
-                                            const value = e.target.value;
-                                            if (boq.id) {
-                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, item: value } : b));
-                                            }
-                                          }}
-                                          onBlur={async (e) => {
-                                            const value = e.target.value.trim();
-                                            if (boq.id) {
-                                              await updateBoqItem(boq.id, { ...boq, item: value });
-                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                              await addFeedNote({
-                                                type: 'feed',
-                                                content: `BOQ item field updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                                boq_item_id: boq.id,
-                                                signage_item_id: boq.signage_item_id,
-                                                orderId,
-                                                created_by: user?.data?.user?.id,
-                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                                created_by_email: user?.data?.user?.email || ''
-                                              });
-                                            }
-                                          }}
-                                        />
-                                      </td>
-                                      <td className="p-2 border">
-                                        <input
-                                          className="w-full border px-1 py-0.5 text-xs"
-                                          value={boq.material}
-                                          onChange={e => {
-                                            const value = e.target.value;
-                                            if (boq.id) {
-                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, material: value } : b));
-                                            }
-                                          }}
-                                          onBlur={async (e) => {
-                                            const value = e.target.value.trim();
-                                            if (boq.id) {
-                                              await updateBoqItem(boq.id, boq);
-                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                              await addFeedNote({
-                                                type: 'feed',
-                                                content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                                boq_item_id: boq.id,
-                                                signage_item_id: boq.signage_item_id,
-                                                orderId,
-                                                created_by: user?.data?.user?.id,
-                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                                created_by_email: user?.data?.user?.email || ''
-                                              });
-                                            }
-                                          }}
-                                        />
-                                      </td>
-                                      <td className="p-2 border w-16 text-center">
-                                        <UnitInput
-                                          className="text-xs"
-                                          value={boq.unit || ''}
-                                          onChange={e => {
-                                            const value = e.target.value;
-                                            if (boq.id) {
-                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
-                                            }
-                                          }}
-                                          onBlur={async (e) => {
-                                            if (boq.id) {
-                                              // Use the current input value directly instead of relying on state lookup
-                                              const unitValue = e.target.value;
-                                              if (unitValue !== boq.unit) {
-                                                await updateBoqItem(boq.id, { unit: unitValue });
-                                                // Update both local and global BOQ states
-                                                setBoqs(boqs => boqs.map(b => b.id === boq.id ? { ...b, unit: unitValue } : b));
-                                                setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, unit: unitValue } : b));
-                                                const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                                await addFeedNote({
-                                                  type: 'feed',
-                                                  content: `BOQ unit updated to "${unitValue}" by ${user?.data?.user?.email || 'Unknown'}`,
-                                                  boq_item_id: boq.id,
-                                                  signage_item_id: boq.signage_item_id,
-                                                  orderId,
-                                                  created_by: user?.data?.user?.id,
-                                                  created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                                  created_by_email: user?.data?.user?.email || ''
-                                                });
+                                  {boqsWithBlank.map((boq, bidx) => {
+                                    // Setup refs for each cell
+                                    return (
+                                      <tr key={boq.id}>
+                                        <td className="p-2 border w-8 text-center">{bidx + 1}</td>
+                                        {/* Item cell */}
+                                        {(() => {
+                                          const colIdx = 0;
+                                          const refKey = `${bidx}_${colIdx}`;
+                                          if (!boqCellRefs.current[refKey]) boqCellRefs.current[refKey] = React.createRef();
+                                          return (
+                                            <td className="p-2 border w-32">
+                                              <input
+                                                ref={boqCellRefs.current[refKey]}
+                                                className="w-full border px-1 py-0.5 text-xs"
+                                                value={boq.item || ''}
+                                                onChange={e => {
+                                                  const value = e.target.value;
+                                                  if (boq.id) {
+                                                    setBoqs(boqs.map(b => b.id === boq.id ? { ...b, item: value } : b));
+                                                  }
+                                                }}
+                                                onBlur={async (e) => {
+                                                  const value = e.target.value.trim();
+                                                  if (boq.id) {
+                                                    await updateBoqItem(boq.id, { ...boq, item: value });
+                                                    const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                                    await addFeedNote({
+                                                      type: 'feed',
+                                                      content: `BOQ item field updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                                      boq_item_id: boq.id,
+                                                      signage_item_id: boq.signage_item_id,
+                                                      orderId,
+                                                      created_by: user?.data?.user?.id,
+                                                      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                      created_by_email: user?.data?.user?.email || ''
+                                                    });
+                                                  }
+                                                }}
+                                                onKeyDown={e => handleBoqKeyDown(e, bidx, colIdx, boqsWithBlank, selectedItemId)}
+                                              />
+                                            </td>
+                                          );
+                                        })()}
+                                        {/* Material cell */}
+                                        {(() => {
+                                          const colIdx = 1;
+                                          const refKey = `${bidx}_${colIdx}`;
+                                          if (!boqCellRefs.current[refKey]) boqCellRefs.current[refKey] = React.createRef();
+                                          return (
+                                            <td className="p-2 border">
+                                              <input
+                                                ref={boqCellRefs.current[refKey]}
+                                                className="w-full border px-1 py-0.5 text-xs"
+                                                value={boq.material}
+                                                onChange={e => {
+                                                  const value = e.target.value;
+                                                  if (boq.id) {
+                                                    setBoqs(boqs.map(b => b.id === boq.id ? { ...b, material: value } : b));
+                                                  }
+                                                }}
+                                                onBlur={async (e) => {
+                                                  const value = e.target.value.trim();
+                                                  if (boq.id) {
+                                                    await updateBoqItem(boq.id, boq);
+                                                    const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                                    await addFeedNote({
+                                                      type: 'feed',
+                                                      content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                                      boq_item_id: boq.id,
+                                                      signage_item_id: boq.signage_item_id,
+                                                      orderId,
+                                                      created_by: user?.data?.user?.id,
+                                                      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                      created_by_email: user?.data?.user?.email || ''
+                                                    });
+                                                  }
+                                                }}
+                                                onKeyDown={e => handleBoqKeyDown(e, bidx, colIdx, boqsWithBlank, selectedItemId)}
+                                              />
+                                            </td>
+                                          );
+                                        })()}
+                                        {/* Unit cell */}
+                                        {(() => {
+                                          const colIdx = 2;
+                                          const refKey = `${bidx}_${colIdx}`;
+                                          if (!boqCellRefs.current[refKey]) boqCellRefs.current[refKey] = React.createRef();
+                                          return (
+                                            <td className="p-2 border w-16 text-center">
+                                              <UnitInput
+                                                ref={boqCellRefs.current[refKey]}
+                                                className="text-xs unit-input"
+                                                value={boq.unit || ''}
+                                                onChange={e => {
+                                                  const value = e.target.value;
+                                                  if (boq.id) {
+                                                    setBoqs(boqs.map(b => b.id === boq.id ? { ...b, unit: value } : b));
+                                                  }
+                                                }}
+                                                onBlur={async (e) => {
+                                                  if (boq.id) {
+                                                    const unitValue = e.target.value;
+                                                    if (unitValue !== boq.unit) {
+                                                      await updateBoqItem(boq.id, { unit: unitValue });
+                                                      setBoqs(boqs => boqs.map(b => b.id === boq.id ? { ...b, unit: unitValue } : b));
+                                                      setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, unit: unitValue } : b));
+                                                      const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                                      await addFeedNote({
+                                                        type: 'feed',
+                                                        content: `BOQ unit updated to "${unitValue}" by ${user?.data?.user?.email || 'Unknown'}`,
+                                                        boq_item_id: boq.id,
+                                                        signage_item_id: boq.signage_item_id,
+                                                        orderId,
+                                                        created_by: user?.data?.user?.id,
+                                                        created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                        created_by_email: user?.data?.user?.email || ''
+                                                      });
+                                                    }
+                                                  }
+                                                }}
+                                                placeholder="Unit"
+                                                onKeyDown={e => handleBoqKeyDown(e, bidx, colIdx, boqsWithBlank, selectedItemId)}
+                                                onSelectAndMoveRight={() => focusBoqCell(bidx, colIdx + 1)}
+                                              />
+                                            </td>
+                                          );
+                                        })()}
+                                        {/* Quantity cell */}
+                                        {(() => {
+                                          const colIdx = 3;
+                                          const refKey = `${bidx}_${colIdx}`;
+                                          if (!boqCellRefs.current[refKey]) boqCellRefs.current[refKey] = React.createRef();
+                                          return (
+                                            <td className="p-2 border w-16 text-center">
+                                              <input
+                                                ref={boqCellRefs.current[refKey]}
+                                                className="w-full border px-1 py-0.5 text-xs text-right"
+                                                type="number"
+                                                value={boq.quantity}
+                                                onChange={e => {
+                                                  const value = e.target.value;
+                                                  if (boq.id) {
+                                                    setBoqs(boqs.map(b => b.id === boq.id ? { ...b, quantity: value } : b));
+                                                  }
+                                                }}
+                                                onBlur={async () => {
+                                                  if (boq.id) {
+                                                    await updateBoqItem(boq.id, boq);
+                                                    const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                                    await addFeedNote({
+                                                      type: 'feed',
+                                                      content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                                      boq_item_id: boq.id,
+                                                      signage_item_id: boq.signage_item_id,
+                                                      orderId,
+                                                      created_by: user?.data?.user?.id,
+                                                      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                      created_by_email: user?.data?.user?.email || ''
+                                                    });
+                                                  }
+                                                }}
+                                                onKeyDown={e => handleBoqKeyDown(e, bidx, colIdx, boqsWithBlank, selectedItemId)}
+                                              />
+                                            </td>
+                                          );
+                                        })()}
+                                        {/* Cost/Unit cell */}
+                                        {(() => {
+                                          const colIdx = 4;
+                                          const refKey = `${bidx}_${colIdx}`;
+                                          if (!boqCellRefs.current[refKey]) boqCellRefs.current[refKey] = React.createRef();
+                                          return (
+                                            <td className="p-2 border w-20 text-center">
+                                              <input
+                                                ref={boqCellRefs.current[refKey]}
+                                                className="w-full border px-1 py-0.5 text-xs text-right"
+                                                type="number"
+                                                value={boq.cost_per_unit}
+                                                onChange={e => {
+                                                  const value = e.target.value;
+                                                  if (boq.id) {
+                                                    setBoqs(boqs.map(b => b.id === boq.id ? { ...b, cost_per_unit: value } : b));
+                                                  }
+                                                }}
+                                                onBlur={async () => {
+                                                  if (boq.id) {
+                                                    await updateBoqItem(boq.id, boq);
+                                                    const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
+                                                    await addFeedNote({
+                                                      type: 'feed',
+                                                      content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
+                                                      boq_item_id: boq.id,
+                                                      signage_item_id: boq.signage_item_id,
+                                                      orderId,
+                                                      created_by: user?.data?.user?.id,
+                                                      created_by_name: user?.data?.user?.user_metadata?.full_name || '',
+                                                      created_by_email: user?.data?.user?.email || ''
+                                                    });
+                                                  }
+                                                }}
+                                                onKeyDown={e => handleBoqKeyDown(e, bidx, colIdx, boqsWithBlank, selectedItemId)}
+                                              />
+                                            </td>
+                                          );
+                                        })()}
+                                        {/* Total and Actions (unchanged) */}
+                                        <td className="p-2 border w-20 text-center">
+                                          <input
+                                            className="w-full border px-1 py-0.5 text-xs text-right"
+                                            type="number"
+                                            value={Number(boq.quantity) * Number(boq.cost_per_unit) || 0}
+                                            readOnly
+                                          />
+                                        </td>
+                                        <td className="p-2 border text-right">
+                                          {boq.id && (
+                                            <span
+                                              onClick={async () => {
+                                                const confirmed = confirm("Delete this BOQ entry?");
+                                                if (confirmed) {
+                                                  await deleteBoqItem(boq.id);
+                                                  setBoqs(boqs.filter(b => b.id !== boq.id));
+                                                }
+                                              }}
+                                              className="ml-2 text-red-500 cursor-pointer"
+                                            >
+                                              🗑
+                                            </span>
+                                          )}
+                                          {boq.id && procurementTasksByBoqId[boq.id]?.length > 0 && (
+                                            <span
+                                              title={
+                                                procurementTasksByBoqId[boq.id][0].status === 'received'
+                                                  ? 'Procurement received, material available'
+                                                  : 'Procurement created'
                                               }
-                                            }
-                                          }}
-                                          placeholder="Unit"
-                                        />
-                                      </td>
-                                      <td className="p-2 border w-16 text-center">
-                                        <input
-                                          className="w-full border px-1 py-0.5 text-xs text-right"
-                                          type="number"
-                                          value={boq.quantity}
-                                          onChange={e => {
-                                            const value = e.target.value;
-                                            if (boq.id) {
-                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, quantity: value } : b));
-                                            }
-                                          }}
-                                          onBlur={async () => {
-                                            if (boq.id) {
-                                              await updateBoqItem(boq.id, boq);
-                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                              await addFeedNote({
-                                                type: 'feed',
-                                                content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                                boq_item_id: boq.id,
-                                                signage_item_id: boq.signage_item_id,
-                                                orderId,
-                                                created_by: user?.data?.user?.id,
-                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                                created_by_email: user?.data?.user?.email || ''
-                                              });
-                                            }
-                                          }}
-                                        />
-                                      </td>
-                                      <td className="p-2 border w-20 text-center">
-                                        <input
-                                          className="w-full border px-1 py-0.5 text-xs text-right"
-                                          type="number"
-                                          value={boq.cost_per_unit}
-                                          onChange={e => {
-                                            const value = e.target.value;
-                                            if (boq.id) {
-                                              setBoqs(boqs.map(b => b.id === boq.id ? { ...b, cost_per_unit: value } : b));
-                                            }
-                                          }}
-                                          onBlur={async () => {
-                                            if (boq.id) {
-                                              await updateBoqItem(boq.id, boq);
-                                              const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-                                              await addFeedNote({
-                                                type: 'feed',
-                                                content: `BOQ item updated by ${user?.data?.user?.email || 'Unknown'}`,
-                                                boq_item_id: boq.id,
-                                                signage_item_id: boq.signage_item_id,
-                                                orderId,
-                                                created_by: user?.data?.user?.id,
-                                                created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-                                                created_by_email: user?.data?.user?.email || ''
-                                              });
-                                            }
-                                          }}
-                                        />
-                                      </td>
-                                      <td className="p-2 border w-20 text-center">
-                                        <input
-                                          className="w-full border px-1 py-0.5 text-xs text-right"
-                                          type="number"
-                                          value={Number(boq.quantity) * Number(boq.cost_per_unit) || 0}
-                                          readOnly
-                                        />
-                                      </td>
-                                      <td className="p-2 border text-right">
-                                        {boq.id && (
-                                          <span
-                                            onClick={async () => {
-                                              const confirmed = confirm("Delete this BOQ entry?");
-                                              if (confirmed) {
-                                                await deleteBoqItem(boq.id);
-                                                setBoqs(boqs.filter(b => b.id !== boq.id));
-                                              }
-                                            }}
-                                            className="ml-2 text-red-500 cursor-pointer"
-                                          >
-                                            🗑
-                                          </span>
-                                        )}
-                                        {boq.id && procurementTasksByBoqId[boq.id]?.length > 0 && (
-                                          <span
-                                            title={
-                                              procurementTasksByBoqId[boq.id][0].status === 'received'
-                                                ? 'Procurement received, material available'
-                                                : 'Procurement created'
-                                            }
-                                            style={{ cursor: 'pointer', marginLeft: 8 }}
-                                            onClick={() => setSelectedProcurement(procurementTasksByBoqId[boq.id][0])}
-                                          >
-                                            {procurementTasksByBoqId[boq.id][0].status === 'received' ? '✅' : '🛒'}
-                                          </span>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  ))}
+                                              style={{ cursor: 'pointer', marginLeft: 8 }}
+                                              onClick={() => setSelectedProcurement(procurementTasksByBoqId[boq.id][0])}
+                                            >
+                                              {procurementTasksByBoqId[boq.id][0].status === 'received' ? '✅' : '🛒'}
+                                            </span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
                                 </tbody>
                               </table>
                               <button
