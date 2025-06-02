@@ -23,7 +23,8 @@ export default function InvoicesPage() {
     } else if (activeTab === 'past') {
       query = query.neq('status', 'Draft');
     }
-    const { data, error } = await query.order('created_at', { ascending: false });
+    // Change ordering to invoice_number descending for all tabs
+    const { data, error } = await query.order('invoice_number', { ascending: false });
     if (error) {
       setError(error.message);
       setLoading(false);
