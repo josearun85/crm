@@ -81,7 +81,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
                 <div style={{ fontWeight: 600 }}>{item.name}</div>
                 {item.image_path && (
                   <div style={{ margin: '6px 0' }}>
-                    <img src={getImageUrl(item.image_path)} alt="" style={{ maxWidth: 48, maxHeight: 48, borderRadius: 4, border: '1px solid #eee' }} />
+                    <img src={getImageUrl(item.image_path)} alt="" style={{ maxWidth: 64, maxHeight: 48, borderRadius: 4, border: '1px solid #eee', display: 'block' }} />
                   </div>
                 )}
                 {item.description && (
@@ -97,8 +97,9 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
           ))}
         </tbody>
       </table>
+      {/* Totals Table - right aligned and visually separated */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 32 }}>
-        <table style={{ fontSize: 15, fontWeight: 600 }}>
+        <table style={{ fontSize: 15, fontWeight: 600, minWidth: 320, boxShadow: '0 2px 8px #eee', borderRadius: 8, background: '#fafbfc' }}>
           <tbody>
             <tr>
               <td style={{ textAlign: 'right', padding: '4px 16px' }}>TOTAL</td>
@@ -123,26 +124,28 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
           </tbody>
         </table>
       </div>
-      <div style={{ fontSize: 15, marginTop: 32, marginBottom: 16 }}>
-        <span style={{ fontWeight: 'bold', fontStyle: 'italic', textDecoration: 'underline' }}>Terms & Conditions</span>
-        <ul style={{ color: 'red', marginTop: 8, marginBottom: 16, paddingLeft: 24 }}>
-          <li>* If any unforeseen requirements come up, costs might change.</li>
-          <li>* Scaffolding / Crain to be provided by client, else it will be charged extra if required.</li>
-          <li>* 80% Advance (Grand Total) to confirm the order and balance before dispatch of material from our factory.</li>
-          <li>* Formal P.O. to be given at the time of confirming the order.</li>
-          <li>* Power supply upto signage site has to be provided by the client.</li>
-          <li>* 15 working days required to complete the job from reciept of advance and P.O. subject to favourable weather conditions.</li>
-          <li>* 1 year warranty only for material defects, physical damage & incoming electrical problems will not be covered.</li>
-          <li>* Working Hours- 9.30 AM-7.30 PM. Any Installation before or after working hours will be charged at 10% extra.</li>
-          <li>* All permissions to be obtained by client from authorities / land owners.</li>
-          <li>* We are not responsible for any theft/damage to material at the site.</li>
-          <li>* All prices are subject to change without notice, Please reconfirm at the time of order.</li>
-          <li>* 300w Dimmer control unit will be charged extra at Rs.1750/- per piece if required for any signage.</li>
-        </ul>
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ flex: 1 }}>
+      {/* Rest of the content stacked below */}
+      <div style={{ marginTop: 24 }}>
+        <div style={{ fontSize: 15, marginBottom: 16 }}>
+          <span style={{ fontWeight: 'bold', fontStyle: 'italic', textDecoration: 'underline' }}>Terms & Conditions</span>
+          <ul style={{ color: 'red', marginTop: 8, marginBottom: 16, paddingLeft: 24 }}>
+            <li>* If any unforeseen requirements come up, costs might change.</li>
+            <li>* Scaffolding / Crain to be provided by client, else it will be charged extra if required.</li>
+            <li>* 80% Advance (Grand Total) to confirm the order and balance before dispatch of material from our factory.</li>
+            <li>* Formal P.O. to be given at the time of confirming the order.</li>
+            <li>* Power supply upto signage site has to be provided by the client.</li>
+            <li>* 15 working days required to complete the job from reciept of advance and P.O. subject to favourable weather conditions.</li>
+            <li>* 1 year warranty only for material defects, physical damage & incoming electrical problems will not be covered.</li>
+            <li>* Working Hours- 9.30 AM-7.30 PM. Any Installation before or after working hours will be charged at 10% extra.</li>
+            <li>* All permissions to be obtained by client from authorities / land owners.</li>
+            <li>* We are not responsible for any theft/damage to material at the site.</li>
+            <li>* All prices are subject to change without notice, Please reconfirm at the time of order.</li>
+            <li>* 300w Dimmer control unit will be charged extra at Rs.1750/- per piece if required for any signage.</li>
+          </ul>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 32, marginBottom: 16 }}>
+          <div style={{ flex: 2 }}>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Bank & Payment Details</div>
             <div>Company name: Sign Company</div>
             <div>Account number: 59986534909</div>
             <div>IFSC: IDFB0080184</div>
@@ -150,20 +153,23 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
             <div>Bank name: IDFC FIRST</div>
             <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
             <div>UPI ID: signcompany@idfcbank</div>
+            <div style={{ marginTop: 10 }}>GSTN: 29BPYPK6641B2Z6</div>
+            <div>PAN: BPYPK6641B</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', height: 120 }}>
-            <img src="/qr.png" alt="UPI QR" style={{ height: 120, width: 120, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }} />
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>SCAN & PAY</div>
+            <img src="/qr.png" alt="UPI QR" style={{ height: 120, width: 120, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff', marginBottom: 8 }} />
+            <div style={{ fontSize: 12, color: '#888', marginBottom: 8, fontWeight: 500 }}>UPI ID: signcompany@idfcbank</div>
           </div>
         </div>
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <div>GSTN: {("29BPYPK6641B2Z6").toUpperCase()}</div>
-        <div>PAN: {("BPYPK6641B").toUpperCase()}</div>
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <div>Looking forward to a positive response from your side at the earliest.<br/>Thanking You,</div>
-        <div style={{ fontWeight: 'bold', fontStyle: 'italic', marginTop: 8 }}>For Sign Company</div>
-        <div style={{ fontWeight: 'bold', marginTop: 16 }}>Authorized Signatory</div>
+        <div style={{ marginBottom: 16 }}>
+          <div>Looking forward to a positive response from your side at the earliest.<br/>Thanking You,</div>
+          <div style={{ fontWeight: 'bold', fontStyle: 'italic', marginTop: 8 }}>For Sign Company</div>
+          <div style={{ fontWeight: 'bold', marginTop: 16 }}>Authorized Signatory</div>
+        </div>
+        <div style={{ fontSize: 11, color: '#888', textAlign: 'right', borderTop: '1px solid #eee', paddingTop: 8 }}>
+          Generated on 4 June 2025
+        </div>
       </div>
     </div>
   );
