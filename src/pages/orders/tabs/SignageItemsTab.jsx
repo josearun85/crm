@@ -335,6 +335,13 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     const pdfGst = scaledLineItems.reduce((sum, l) => sum + l.gstAmount, 0);
     const pdfGrandTotal = pdfNetTotal + pdfGst;
 
+    // Helper for image URL (public)
+    function getImageUrl(imagePath) {
+      if (!imagePath) return '';
+      const base = window.location.origin || '';
+      return base + '/storage/v1/object/public/crm/' + imagePath.replace(/^\/+/, '');
+    }
+
     return `
       <div style='font-family: "Segoe UI", Arial, sans-serif; max-width: 730px; margin: 0 auto; color: #222; font-size: 13px; padding: 0 18px; box-sizing: border-box;'>
         <div style='display: flex; align-items: center; border-bottom: 2px solid #0a3d62; padding-bottom: 12px; margin-bottom: 18px;'>
@@ -371,6 +378,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                   <td style='border: 1px solid #d1d8e0; padding: 8px; text-align: center;'>${l.idx + 1}</td>
                   <td style='border: 1px solid #d1d8e0; padding: 8px;'>
                     <div style='font-weight: bold;'>${l.item.name || ''}</div>
+                    ${l.item.image_path ? `<div style='margin:6px 0;'><img src='${getImageUrl(l.item.image_path)}' alt='' style='max-width:64px; max-height:48px; border-radius:4px; border:1px solid #eee; display:block;'/></div>` : ''}
                     ${l.item.description ? `<div style='font-weight: normal; white-space: pre-line;'>${l.item.description}</div>` : ''}
                   </td>
                   <td style='border: 1px solid #d1d8e0; padding: 8px; text-align: center;'>${l.item.hsn_code || ''}</td>
@@ -383,69 +391,77 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
               `).join('')}
           </tbody>
         </table>
-        <div style='display: flex; font-size: 13px; margin-top: 8px;'>
-          <div style='flex: 1; padding: 8px;'>
-            <div style='max-width: 340px; float: left;'>
-              <!-- Only show Total and Taxable Value if discount > 0 -->
-              <div style='margin-bottom: 2px;>
-                ${discount > 0 ? 'Total' : 'Taxable Value'}
-              </div>
-              ${discount > 0 ? `<div style='margin-bottom: 2px;'>Less Discount</div>` : ''}
-              ${discount > 0 ? `<div style='margin-bottom: 2px;'>Taxable Value</div>` : ''}
-            </div>
-            <div style='float: right; text-align: right; font-weight: normal; min-width: 120px;'>
-              <div style='margin-bottom: 2px;'>
-                ${discount > 0 ? pdfTotalCost.toFixed(2) : pdfNetTotal.toFixed(2)}
-              </div>
-              ${discount > 0 ? `<div style='margin-bottom: 2px;'>${discount.toFixed(2)}</div>` : ''}
-              ${discount > 0 ? `<div style='margin-bottom: 2px;'>${pdfNetTotal.toFixed(2)}</div>` : ''}
-              <!-- GST rows only on the right -->
-              ${isKarnataka
-                ? Object.entries(gstSummary).map(([rate, amount]) => `<div style='margin-bottom: 2px;'>CGST ₹ ${(amount/2).toFixed(2)} (${(Number(rate)/2).toFixed(1).replace(/\.0$/, '')}%)</div><div style='margin-bottom: 2px;'>SGST ₹ ${(amount/2).toFixed(2)} (${(Number(rate)/2).toFixed(1).replace(/\.0$/, '')}%)</div>`).join('')
-                : Object.entries(gstSummary).map(([rate, amount]) => `<div style='margin-bottom: 2px;'>IGST ₹ ${amount.toFixed(2)} (${rate}%)</div>`).join('')
-              }
-              <div style='margin-top: 12px; font-weight: bold; font-size: 16px;'>Total<br />${pdfGrandTotal.toFixed(2)}</div>
-            </div>
-            <div style='clear: both'></div>
+        <div style='display: flex; justify-content: flex-end; margin-bottom: 32px;'>
+          <table style='font-size: 15px; font-weight: 600; min-width: 320px; box-shadow: 0 2px 8px #eee; border-radius: 8px; background: #fafbfc;'>
+            <tbody>
+              <tr>
+                <td style='text-align: right; padding: 4px 16px;'>TOTAL</td>
+                <td style='text-align: right; padding: 4px 0;'>₹ ${pdfTotalCost.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td style='text-align: right; padding: 4px 16px;'>DISCOUNT</td>
+                <td style='text-align: right; padding: 4px 0;'>₹ ${discount.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td style='text-align: right; padding: 4px 16px;'>NET TOTAL</td>
+                <td style='text-align: right; padding: 4px 0;'>₹ ${pdfNetTotal.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td style='text-align: right; padding: 4px 16px;'>GST</td>
+                <td style='text-align: right; padding: 4px 0;'>₹ ${pdfGst.toFixed(2)}</td>
+              </tr>
+              <tr style='font-weight: bold; font-size: 17px;'>
+                <td style='text-align: right; padding: 4px 16px;'>GRAND TOTAL</td>
+                <td style='text-align: right; padding: 4px 0;'>₹ ${pdfGrandTotal.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style='margin-top: 24px;'>
+          <div style='font-size: 15px; margin-bottom: 16px;'>
+            <span style='font-weight: bold; font-style: italic; text-decoration: underline;'>Terms & Conditions</span>
+            <ul style='color: red; margin-top: 8px; margin-bottom: 16px; padding-left: 24px;'>
+              <li>* If any unforeseen requirements come up, costs might change.</li>
+              <li>* Scaffolding / Crain to be provided by client, else it will be charged extra if required.</li>
+              <li>* 80% Advance (Grand Total) to confirm the order and balance before dispatch of material from our factory.</li>
+              <li>* Formal P.O. to be given at the time of confirming the order.</li>
+              <li>* Power supply upto signage site has to be provided by the client.</li>
+              <li>* 15 working days required to complete the job from reciept of advance and P.O. subject to favourable weather conditions.</li>
+              <li>* 1 year warranty only for material defects, physical damage & incoming electrical problems will not be covered.</li>
+              <li>* Working Hours- 9.30 AM-7.30 PM. Any Installation before or after working hours will be charged at 10% extra.</li>
+              <li>* All permissions to be obtained by client from authorities / land owners.</li>
+              <li>* We are not responsible for any theft/damage to material at the site.</li>
+              <li>* All prices are subject to change without notice, Please reconfirm at the time of order.</li>
+              <li>* 300w Dimmer control unit will be charged extra at Rs.1750/- per piece if required for any signage.</li>
+            </ul>
           </div>
-        </div>
-        <div style='margin-bottom: 16px; font-size: 12px;'>
-          <div style='font-weight: bold; text-decoration: underline; color: #0a3d62; margin-bottom: 4px;'>Payment Details</div>
-          <div style='display: flex; align-items: center; gap: 24px;'>
-            <div>
-              <div>Account Name: <b>Sign Company</b></div>
-              <div>Account Number: <b>59986534909</b></div>
-              <div>IFSC: <b>IDFB0080184</b></div>
-              <div>Bank: <b>IDFC FIRST, JEEVAN BIMA NAGAR BRANCH</b></div>
-              <div>UPI ID: <b>signcompany@idfcbank</b></div>
+          <div style='display: flex; align-items: flex-start; gap: 32px; margin-bottom: 16px;'>
+            <div style='flex: 2;'>
+              <div style='font-weight: 600; margin-bottom: 6px;'>Bank & Payment Details</div>
+              <div>Company name: Sign Company</div>
+              <div>Account number: 59986534909</div>
+              <div>IFSC: IDFB0080184</div>
+              <div>SWIFT code: IDFBINBBMUM</div>
+              <div>Bank name: IDFC FIRST</div>
+              <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
+              <div>UPI ID: signcompany@idfcbank</div>
+              <div style='margin-top: 10px;'>GSTN: 29BPYPK6641B2Z6</div>
+              <div>PAN: BPYPK6641B</div>
             </div>
-            <img src='/qr.png' alt='UPI QR' style='height: 150px; width: 150px; object-fit: contain; border: 1px solid #ccc; border-radius: 8px; background: #fff;' />
+            <div style='flex: 1; text-align: center;'>
+              <div style='font-weight: 700; margin-bottom: 8px;'>SCAN & PAY</div>
+              <img src='/qr.png' alt='UPI QR' style='height: 120px; width: 120px; object-fit: contain; border: 1px solid #ccc; border-radius: 8px; background: #fff; margin-bottom: 8px;' />
+              <div style='font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 500;'>UPI ID: signcompany@idfcbank</div>
+            </div>
           </div>
-        </div>
-        <div style='margin-bottom: 16px; font-size: 12px;'>
-          <div style='font-weight: bold; text-decoration: underline; color: #0a3d62; margin-bottom: 4px;'>Terms & Conditions</div>
-          <ul style='margin: 0 0 0 18px; color: #b71c1c;'>
-            <li>If any unforeseen requirements come up, costs might change.</li>
-            <li>Scaffolding / Crane to be provided by client, else it will be charged extra if required.</li>
-            <li>80% Advance (Grand Total) to confirm the order and balance before dispatch of material from our factory.</li>
-            <li>Formal P.O. to be given at the time of confirming the order.</li>
-            <li>Power supply up to signage site has to be provided by the client.</li>
-            <li>15 working days required to complete the job from receipt of advance and P.O. subject to favourable weather conditions.</li>
-            <li>1 year warranty only for material defects, physical damage & incoming electrical problems will not be covered.</li>
-            <li>Working Hours: 9.30 AM-7.30 PM. Any Installation before or after working hours will be charged at 10% extra.</li>
-            <li>All permissions to be obtained by client from authorities / land owners.</li>
-            <li>We are not responsible for any theft/damage to material at the site.</li>
-            <li>All prices are subject to change without notice. Please reconfirm at the time of order.</li>
-            <li>300w Dimmer control unit will be charged extra at Rs.1750/- per piece if required for any signage.</li>
-          </ul>
-        </div>
-        <div style='margin-bottom: 22px; font-size: 12px;'>
-          <div>Looking forward to a positive response from your side at the earliest.<br/>Thanking You,</div>
-          <div style='font-weight: bold; font-style: italic; margin-top: 8px;'>For Sign Company</div>
-          <div style='font-weight: bold; margin-top: 16px; height: 30px;'>Authorized Signatory</div>
-        </div>
-        <div style='font-size: 11px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 8px;'>
-          Generated on ${today}
+          <div style='margin-bottom: 16px;'>
+            <div>Looking forward to a positive response from your side at the earliest.<br/>Thanking You,</div>
+            <div style='font-weight: bold; font-style: italic; margin-top: 8px;'>For Sign Company</div>
+            <div style='font-weight: bold; margin-top: 16px;'>Authorized Signatory</div>
+          </div>
+          <div style='font-size: 11px; color: #888; text-align: right; border-top: 1px solid #eee; padding-top: 8px;'>
+            Generated on ${today}
+          </div>
         </div>
       </div>
     `;
