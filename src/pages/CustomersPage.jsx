@@ -86,8 +86,13 @@ export default function CustomersPage() {
     return latest;
   };
 
-  // Sort customers by last update descending (most recent first)
+  // Sort customers by last update descending (most recent first), but customers with no orders always at the bottom
   const sortedCustomers = [...customers].sort((a, b) => {
+    // Customers with no orders go to the bottom
+    if ((!a.orders || a.orders.length === 0) && (!b.orders || b.orders.length === 0)) return 0;
+    if (!a.orders || a.orders.length === 0) return 1;
+    if (!b.orders || b.orders.length === 0) return -1;
+    // Both have orders, sort by last update
     const aDate = getCustomerLastUpdate(a);
     const bDate = getCustomerLastUpdate(b);
     if (!aDate && !bDate) return 0;
