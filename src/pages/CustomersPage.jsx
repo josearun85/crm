@@ -18,16 +18,31 @@ export default function CustomersPage() {
   useEffect(() => {
     fetchData();
   }, []);
-  
-  // On mount or when location changes, check for selected param
+
+  // Fetch all notes for all orders after customers are loaded
+  const [orderNotesMap, setOrderNotesMap] = useState({}); // { orderId: latestNoteDate }
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const selected = params.get('selected');
-    if (selected) {
-      setSelectedCustomer(selected);
-      setTimeout(() => scrollToCustomer(selected), 300);
+    async function fetchOrderNotesForAllOrders() {
+      if (!customers || customers.length === 0) return;
+      const allOrderIds = customers.flatMap(c => c.orders?.map(o => o.id) || []);
+      if (allOrderIds.length === 0) return;
+      const { data: notes, error } = await supabase
+        .from('notes')
+        .select('order_id, created_at')
+        .in('order_id', allOrderIds)
+        .order('created_at', { ascending: false });
+      if (error) return;
+      // Map: orderId -> latest created_at
+      const map = {};
+      notes.forEach(note => {
+        if (!map[note.order_id] || new Date(note.created_at) > new Date(map[note.order_id])) {
+          map[note.order_id] = note.created_at;
+        }
+      });
+      setOrderNotesMap(map);
     }
-  }, [location.search, customers]);
+    fetchOrderNotesForAllOrders();
+  }, [customers]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -60,15 +75,10 @@ export default function CustomersPage() {
 
   // Sort customers by last update (latest feed note or order updated_at)
   const getCustomerLastUpdate = (customer) => {
-    // Find the latest updated_at or feed note among all orders
     if (!customer.orders || customer.orders.length === 0) return null;
     let latest = null;
     customer.orders.forEach(order => {
-      // Find latest feed note for this order
-      let feedDate = null;
-      if (order.notes && order.notes.length > 0) {
-        feedDate = order.notes.reduce((max, n) => new Date(n.created_at) > new Date(max) ? n.created_at : max, order.notes[0].created_at);
-      }
+      const feedDate = orderNotesMap[order.id];
       const updated = [order.updated_at, feedDate].filter(Boolean).map(d => new Date(d));
       const orderLatest = updated.length ? new Date(Math.max(...updated)) : null;
       if (!latest || (orderLatest && orderLatest > latest)) latest = orderLatest;
