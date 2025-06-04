@@ -340,6 +340,14 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
                     </select>
                   </label>
                 </div>
+                <div style={{ fontSize: '0.8rem', color: '#666', marginTop: 4 }}>
+                  <span>Created: {order.created_at ? moment(order.created_at).format('DD/MM/YYYY') : '-'}</span>
+                  {order.updated_at && order.updated_at !== order.created_at && (
+                    <span style={{ marginLeft: 12 }}>
+                      Updated: {moment(order.updated_at).format('DD/MM/YYYY')}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           );
