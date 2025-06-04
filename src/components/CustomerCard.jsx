@@ -36,6 +36,7 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const autoSaveTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [orderFeeds, setOrderFeeds] = useState({}); // { [orderId]: latestFeedDate }
 
   const goToGantt = (orderId) => {
     navigate(`/orders-v2/${orderId}`);
@@ -78,6 +79,29 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
     setEditBuffer(prev => ({ ...prev, [field]: value }));
     setHasUnsavedChanges(true);
   };
+
+  useEffect(() => {
+    async function fetchOrderFeeds() {
+      if (!customer.orders || customer.orders.length === 0) return;
+      const orderIds = customer.orders.map(o => o.id);
+      // Fetch latest feed note for each order
+      const { data, error } = await supabase
+        .from('notes')
+        .select('order_id, created_at')
+        .in('order_id', orderIds)
+        .order('created_at', { ascending: false });
+      if (error) return;
+      // Map: orderId -> latest created_at
+      const latestFeed = {};
+      data.forEach(note => {
+        if (!latestFeed[note.order_id] || new Date(note.created_at) > new Date(latestFeed[note.order_id])) {
+          latestFeed[note.order_id] = note.created_at;
+        }
+      });
+      setOrderFeeds(latestFeed);
+    }
+    fetchOrderFeeds();
+  }, [customer.orders]);
 
   return (
     <div className="customer-card" style={{ background: '#fff', padding: '1rem', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}> 
@@ -292,6 +316,7 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
             DELAYED: '#ffcdd2',
           };
           const bgColor = isOverdue ? '#ffcdd2' : (statusColorMap[normalizedStatus] || '#f5f5f5');
+          const lastFeedDate = orderFeeds[order.id];
 
           return (
             <div key={`order-${order.id}`} style={{ paddingLeft: '2rem', marginBottom: '10px' }}>
@@ -342,11 +367,9 @@ export default function CustomerCard({ customer, onOrderUpdated }) {
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#666', marginTop: 4 }}>
                   <span>Created: {order.created_at ? moment(order.created_at).format('DD/MM/YYYY') : '-'}</span>
-                  {order.updated_at && order.updated_at !== order.created_at && (
-                    <span style={{ marginLeft: 12 }}>
-                      Updated: {moment(order.updated_at).format('DD/MM/YYYY')}
-                    </span>
-                  )}
+                  <span style={{ marginLeft: 12 }}>
+                    Last Updated: {lastFeedDate ? moment(lastFeedDate).format('DD/MM/YYYY') : (order.updated_at ? moment(order.updated_at).format('DD/MM/YYYY') : '-')}
+                  </span>
                 </div>
               </div>
             </div>
