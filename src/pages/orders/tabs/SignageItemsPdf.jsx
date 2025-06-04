@@ -67,9 +67,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
         <thead style={{ background: '#f3f3f3' }}>
           <tr>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>S. No.</th>
-            <th style={{ border: '1px solid #ccc', padding: 8 }}>Image</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Name</th>
-            <th style={{ border: '1px solid #ccc', padding: 8 }}>Description</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Quantity</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Cost</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>HSN Code</th>
@@ -79,13 +77,17 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
           {items.map((item, idx) => (
             <tr key={item.id || idx}>
               <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>{idx + 1}</td>
-              <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center', width: 60 }}>
-                {item.image_path ? (
-                  <img src={getImageUrl(item.image_path)} alt="" style={{ maxWidth: 48, maxHeight: 48, borderRadius: 4, border: '1px solid #eee' }} />
-                ) : null}
+              <td style={{ border: '1px solid #ccc', padding: 8 }}>
+                <div style={{ fontWeight: 600 }}>{item.name}</div>
+                {item.image_path && (
+                  <div style={{ margin: '6px 0' }}>
+                    <img src={getImageUrl(item.image_path)} alt="" style={{ maxWidth: 48, maxHeight: 48, borderRadius: 4, border: '1px solid #eee' }} />
+                  </div>
+                )}
+                {item.description && (
+                  <div style={{ fontWeight: 400, color: '#444', whiteSpace: 'pre-line' }}>{item.description}</div>
+                )}
               </td>
-              <td style={{ border: '1px solid #ccc', padding: 8 }}>{item.name}</td>
-              <td style={{ border: '1px solid #ccc', padding: 8 }}>{item.description}</td>
               <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>{item.quantity}</td>
               <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'right' }}>
                 {allBoqs.filter(b => b.signage_item_id === item.id).reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0).toFixed(2)}

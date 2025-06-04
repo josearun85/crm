@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import html2pdf from "html2pdf.js";
 import SignageItemsPdf from "./SignageItemsPdf";
 import InvoicePdf from "./InvoicePdf";
-import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem, fetchProcurementTasks, ensureFabricationStepsForSignageItems, fetchInventory, addFeedNote, fetchOrderOverview, updateOrderDetails } from "../services/orderDetailsService";
+import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem, fetchProcurementTasks, ensureFabricationStepsForSignageItems, fetchInventory, addFeedNote, fetchOrderOverview, updateOrderDetails, fetchOrderFiles } from "../services/orderDetailsService";
 import { createRoot } from "react-dom/client";
 import UnitInput from "../../../components/UnitInput";
 import supabase from '../../../supabaseClient';
@@ -116,6 +116,8 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
   const handleDownloadPdf = async () => {
     const itemsScaled = getScaledItems();
     const allBoqs = await fetchBoqItems(orderId);
+    // Fetch files for this order
+    const files = await fetchOrderFiles(orderId);
     const pdfData = {
       items: itemsScaled.filter(i => i.name || i.description),
       allBoqs,
@@ -126,6 +128,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
       gst,
       grandTotal,
       customer, // pass full customer object
+      files, // pass files to PDF
     };
     const pdfWindow = window.open('', '_blank');
     if (!pdfWindow) {

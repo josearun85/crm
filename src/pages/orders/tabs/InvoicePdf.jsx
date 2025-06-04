@@ -282,8 +282,12 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
             <div style={{ fontWeight: 700, color: '#232323', marginBottom: 12, fontSize: 15, fontFamily: 'Inter, Helvetica, Arial, sans-serif', letterSpacing: 0.5 }}>SCAN & PAY</div>
             <img src={qrUrl} alt="UPI QR" style={{ height: 100, width: 100, objectFit: 'contain', border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff', marginBottom: 12 }} />
             <div style={{ fontSize: 12, color: '#888', marginBottom: 16, fontWeight: 500 }}>UPI ID: signcompany@idfcbank</div>
-            <div style={{ fontWeight: 700, color: '#232323', marginTop: 18, fontFamily: 'Inter, Helvetica, Arial, sans-serif', fontSize: 13 }}>For SIGN COMPANY</div>
-            <div style={{ fontWeight: 500, marginTop: 10, color: '#232323', fontSize: 12 }}>Authorised Signatory</div>
+            <div style={{ fontWeight: 700, color: '#232323', marginTop: 18, fontFamily: isPdfMode ? 'Helvetica, Arial, sans-serif' : 'Inter, Helvetica, Arial, sans-serif', fontSize: 13, letterSpacing: 0.5, wordSpacing: 2 }}>For SIGN COMPANY</div>
+            <div style={{ fontWeight: 500, marginTop: 10, color: '#232323', fontSize: 12, letterSpacing: 0.5, wordSpacing: 2 }}>
+              <span>Authorised</span>
+              <span style={{ display: 'inline-block', minWidth: 8 }}></span>
+              <span>Signatory</span>
+            </div>
           </div>
         </div>
       </div>
