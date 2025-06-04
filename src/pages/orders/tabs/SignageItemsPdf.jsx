@@ -1,5 +1,13 @@
 import React from "react";
 import { getSignageItemTotalWithMargin } from '../../../services/orderService';
+import supabase from '../../../supabaseClient';
+
+function getImageUrl(imagePath) {
+  if (!imagePath) return null;
+  // Use public URL for PDF (signed URLs not possible in static PDF)
+  const { data } = supabase.storage.from('crm').getPublicUrl(imagePath);
+  return data?.publicUrl || null;
+}
 
 export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal, customer = {}, jobName = "", po_number, po_date, version }) {
   function getRateWithMargin({ item, allBoqs, scaling }) {
@@ -59,6 +67,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
         <thead style={{ background: '#f3f3f3' }}>
           <tr>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>S. No.</th>
+            <th style={{ border: '1px solid #ccc', padding: 8 }}>Image</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Name</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Description</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Quantity</th>
@@ -70,6 +79,11 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
           {items.map((item, idx) => (
             <tr key={item.id || idx}>
               <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>{idx + 1}</td>
+              <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center', width: 60 }}>
+                {item.image_path ? (
+                  <img src={getImageUrl(item.image_path)} alt="" style={{ maxWidth: 48, maxHeight: 48, borderRadius: 4, border: '1px solid #eee' }} />
+                ) : null}
+              </td>
               <td style={{ border: '1px solid #ccc', padding: 8 }}>{item.name}</td>
               <td style={{ border: '1px solid #ccc', padding: 8 }}>{item.description}</td>
               <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>{item.quantity}</td>

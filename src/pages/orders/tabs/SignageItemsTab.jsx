@@ -5,6 +5,7 @@ import InvoicePdf from "./InvoicePdf";
 import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem, fetchProcurementTasks, ensureFabricationStepsForSignageItems, fetchInventory, addFeedNote, fetchOrderOverview, updateOrderDetails } from "../services/orderDetailsService";
 import { createRoot } from "react-dom/client";
 import UnitInput from "../../../components/UnitInput";
+import supabase from '../../../supabaseClient';
 
 const unitOptions = [
   { value: 'nos', label: 'nos' },
@@ -513,7 +514,6 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         if (!map[t.boq_item_id]) map[t.boq_item_id] = [];
         map[t.boq_item_id].push(t);
       }
-      setProcurementTasksByBoqId(map);
     });
   }, [orderId, selectedItemId]);
 
@@ -753,6 +753,99 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     }
   }
 
+  // Add SignageItemImageCell component for paste/upload and thumbnail display
+  function SignageItemImageCell({ item, onImageUploaded }) {
+    const [uploading, setUploading] = useState(false);
+    const [thumbUrl, setThumbUrl] = useState(null);
+    const cellRef = useRef();
+
+    // Fetch signed URL for thumbnail
+    useEffect(() => {
+      async function fetchUrl() {
+        if (item.image_path) {
+          const { data, error } = await supabase.storage.from('crm').createSignedUrl(item.image_path, 3600);
+          if (!error) setThumbUrl(data.signedUrl);
+          else setThumbUrl(null);
+        } else {
+          setThumbUrl(null);
+        }
+      }
+      fetchUrl();
+    }, [item.image_path]);
+
+    // Handle paste event
+    const handlePaste = async (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const clipboardItem of items) {
+        if (clipboardItem.type.startsWith('image/')) {
+          const file = clipboardItem.getAsFile();
+          if (file && item.id) {
+            setUploading(true);
+            try {
+              const fileName = `signage_items/${item.id}/${Date.now()}-${file.name}`;
+              const { error } = await supabase.storage.from('crm').upload(fileName, file, { upsert: true });
+              if (error) throw error;
+              await updateSignageItem(item.id, { image_path: fileName });
+              onImageUploaded && onImageUploaded(fileName);
+            } catch (err) {
+              alert('Image upload failed: ' + err.message);
+            } finally {
+              setUploading(false);
+            }
+          }
+          break;
+        }
+      }
+    };
+
+    // Handle delete image
+    const handleDelete = async (e) => {
+      e.stopPropagation();
+      if (!item.image_path || !item.id) return;
+      if (!window.confirm('Remove this image?')) return;
+      setUploading(true);
+      try {
+        await supabase.storage.from('crm').remove([item.image_path]);
+        await updateSignageItem(item.id, { image_path: null });
+        onImageUploaded && onImageUploaded(null);
+      } catch (err) {
+        alert('Failed to delete image: ' + err.message);
+      } finally {
+        setUploading(false);
+      }
+    };
+
+    return (
+      <div
+        ref={cellRef}
+        tabIndex={0}
+        onPaste={handlePaste}
+        style={{
+          width: 56, height: 56, border: '1px dashed #bbb', borderRadius: 6, background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative', overflow: 'hidden'
+        }}
+        title={thumbUrl ? 'Paste to replace image' : 'Paste screenshot here'}
+      >
+        {uploading ? (
+          <span style={{ fontSize: 12, color: '#888' }}>Uploading...</span>
+        ) : thumbUrl ? (
+          <>
+            <img src={thumbUrl} alt="Signage" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+            <button
+              onClick={handleDelete}
+              style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(255,255,255,0.8)', border: 'none', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 14, color: '#d32f2f', padding: 0 }}
+              title="Remove image"
+            >
+              ×
+            </button>
+          </>
+        ) : (
+          <span style={{ fontSize: 12, color: '#bbb' }}>Paste Image</span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 flex justify-center relative">
       {/* Watermark logo */}
@@ -773,7 +866,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
           zIndex: 0,
         }}
       />
-      <div className="w-full max-w-[1200px]" style={{ position: 'relative', zIndex: 1 }}>
+      <div className="w-full max-w-[1400px]" style={{ position: 'relative', zIndex: 1 }}>
         {/* Hidden PDF render target */}
         {showPdf && (
           <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', zIndex: -1, opacity: 0, pointerEvents: 'none' }} ref={pdfDivRef}>
@@ -800,6 +893,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
               <thead className="bg-gray-100 text-left">
                 <tr>
                   <th className="p-2 border">S. No.</th>
+                  <th className="p-2 border w-16">Image</th>
                   <th className="p-2 border w-[220px]">Name</th>
                   <th className="p-2 border w-[340px]">Description</th>
                   <th className="p-2 border">HSN Code</th>
@@ -820,6 +914,13 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                     className={`cursor-pointer ${showBoqForItemId === item.id ? "bg-yellow-50" : ""}`}
                   >
                     <td className="p-2 border">{idx + 1}</td>
+                    <td className="p-2 border">
+                      <SignageItemImageCell item={item} onImageUploaded={async () => {
+                        // Refresh item in state
+                        const updated = await fetchSignageItems(orderId);
+                        setItems(updated);
+                      }} />
+                    </td>
                     {/* Name */}
                     <td className="p-2 border">
                       <input
