@@ -341,11 +341,13 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
       const base = window.location.origin || '';
       return base + '/storage/v1/object/public/crm/' + imagePath.replace(/^\/+/, '');
     }
+    const logoUrl = (window.location.origin || '') + '/logo.png';
+    const qrUrl = (window.location.origin || '') + '/qr.png';
 
     return `
       <div style='font-family: "Segoe UI", Arial, sans-serif; max-width: 730px; margin: 0 auto; color: #222; font-size: 13px; padding: 0 18px; box-sizing: border-box;'>
         <div style='display: flex; align-items: center; border-bottom: 2px solid #0a3d62; padding-bottom: 12px; margin-bottom: 18px;'>
-          <img src='/logo.png' alt='Sign Company Logo' style='height: 55px; margin-right: 18px;' />
+          <img src='${logoUrl}' alt='Sign Company Logo' style='height: 55px; margin-right: 18px;' />
           <div>
             <div style='font-size: 22px; font-weight: bold; color: #0a3d62;'>Sign Company</div>
             <div style='font-size: 12px; color: #555;'>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore - 560 075</div>
@@ -450,7 +452,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
             </div>
             <div style='flex: 1; text-align: center;'>
               <div style='font-weight: 700; margin-bottom: 8px;'>SCAN & PAY</div>
-              <img src='/qr.png' alt='UPI QR' style='height: 120px; width: 120px; object-fit: contain; border: 1px solid #ccc; border-radius: 8px; background: #fff; margin-bottom: 8px;' />
+              <img src='${qrUrl}' alt='UPI QR' style='height: 120px; width: 120px; object-fit: contain; border: 1px solid #ccc; border-radius: 8px; background: #fff; margin-bottom: 8px;' />
               <div style='font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 500;'>UPI ID: signcompany@idfcbank</div>
             </div>
           </div>
