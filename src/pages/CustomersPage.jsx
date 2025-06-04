@@ -76,14 +76,14 @@ export default function CustomersPage() {
     return latest;
   };
 
-  // Sort customers by last update descending
+  // Sort customers by last update ascending (oldest first)
   const sortedCustomers = [...customers].sort((a, b) => {
     const aDate = getCustomerLastUpdate(a);
     const bDate = getCustomerLastUpdate(b);
     if (!aDate && !bDate) return 0;
-    if (!aDate) return 1;
-    if (!bDate) return -1;
-    return bDate - aDate;
+    if (!aDate) return -1;
+    if (!bDate) return 1;
+    return aDate - bDate;
   });
 
   const filteredCustomers = sortedCustomers
