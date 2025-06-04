@@ -58,18 +58,36 @@ export default function CustomersPage() {
     }
   };
 
-  const filteredCustomers = customers
+  // Sort customers by last update (latest feed note or order updated_at)
+  const getCustomerLastUpdate = (customer) => {
+    // Find the latest updated_at or feed note among all orders
+    if (!customer.orders || customer.orders.length === 0) return null;
+    let latest = null;
+    customer.orders.forEach(order => {
+      // Find latest feed note for this order
+      let feedDate = null;
+      if (order.notes && order.notes.length > 0) {
+        feedDate = order.notes.reduce((max, n) => new Date(n.created_at) > new Date(max) ? n.created_at : max, order.notes[0].created_at);
+      }
+      const updated = [order.updated_at, feedDate].filter(Boolean).map(d => new Date(d));
+      const orderLatest = updated.length ? new Date(Math.max(...updated)) : null;
+      if (!latest || (orderLatest && orderLatest > latest)) latest = orderLatest;
+    });
+    return latest;
+  };
+
+  // Sort customers by last update descending
+  const sortedCustomers = [...customers].sort((a, b) => {
+    const aDate = getCustomerLastUpdate(a);
+    const bDate = getCustomerLastUpdate(b);
+    if (!aDate && !bDate) return 0;
+    if (!aDate) return 1;
+    if (!bDate) return -1;
+    return bDate - aDate;
+  });
+
+  const filteredCustomers = sortedCustomers
     .slice() // copy array to avoid mutating state
-    .sort((a, b) => {
-      // Find latest order date for each customer (fallback to 0 if no orders)
-      const aLatest = a.orders && a.orders.length
-        ? Math.max(...a.orders.map(o => o.created_at ? new Date(o.created_at).getTime() : 0))
-        : 0;
-      const bLatest = b.orders && b.orders.length
-        ? Math.max(...b.orders.map(o => o.created_at ? new Date(o.created_at).getTime() : 0))
-        : 0;
-      return bLatest - aLatest;
-    })
     .filter(c => {
       const q = search.trim().toLowerCase();
       if (!q) return true;
@@ -109,7 +127,7 @@ export default function CustomersPage() {
             {loading ? (
               <p>Loading...</p>
             ) : (
-              filteredCustomers.map(customer => (
+              sortedCustomers.map(customer => (
                 <div
                   key={customer.id}
                   className={`customer-list-item ${selectedCustomer === customer.id ? 'selected' : ''}`}
@@ -118,8 +136,9 @@ export default function CustomersPage() {
                   <div className="customer-name">{customer.name}</div>
                   <div className="customer-info">
                     {customer.phone && <span>{customer.phone}</span>}
-                    {customer.sales_stage && <span className="sales-stage">{customer.sales_stage}</span>}
+                    {customer.email && <span>{customer.email}</span>}
                   </div>
+                  {customer.sales_stage && <span className="sales-stage">{customer.sales_stage}</span>}
                   {customer.orders && customer.orders.length > 0 && (
                     <div className="order-count">{customer.orders.length} order{customer.orders.length !== 1 ? 's' : ''}</div>
                   )}
