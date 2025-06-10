@@ -168,7 +168,7 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 28, fontWeight: 900, color: '#0a3d62', letterSpacing: 1, fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase', marginBottom: 2 }}>SIGN COMPANY</div>
             <div style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bengaluru - 560 075</div>
-            <div style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>PHONE: <b>8431555050</b> &nbsp;|&nbsp; GSTN: <b>29BPYPPK6641B2Z6</b></div>
+            <div style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>PHONE: <b>8431505007</b> &nbsp;|&nbsp; GSTN: <b>29BPYPPK6641B2Z6</b></div>
           </div>
           {/* <div style={{ textAlign: 'right', minWidth: 260 }}>
             <div style={{ fontWeight: 700, fontSize: 22, color: '#0a3d62', letterSpacing: 0.2, fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase', marginBottom: 2 }}>TAX INVOICE</div>
