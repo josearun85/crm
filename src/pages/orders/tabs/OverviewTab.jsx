@@ -51,7 +51,7 @@ export default function OverviewTab({ orderId }) {
     <div className="space-y-4 max-w-xl relative">
       {/* Watermark logo */}
       <img
-        src="/logo.png"
+        src="/logo.jpeg"
         alt="Logo watermark"
         aria-hidden="true"
         style={{

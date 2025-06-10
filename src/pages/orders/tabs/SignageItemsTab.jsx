@@ -26,6 +26,10 @@ const unitOptions = [
   { value: 'lump sum', label: 'lump sum' },
 ];
 
+// Define logoUrl and qrUrl for use in renderPdfHtmlAsync
+const logoUrl = '/logo.jpeg';
+const qrUrl = '/qr.png';
+
 export default function SignageItemsTab({ orderId, customerGstin, setCustomerGstin, customerPan, setCustomerPan, gstBillableAmount, gstBillablePercent }) {
   const [items, setItems] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(null);
@@ -117,8 +121,10 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
   const handleDownloadPdf = async () => {
     const itemsScaled = getScaledItems();
     const allBoqs = await fetchBoqItems(orderId);
-    // Fetch files for this order
     const files = await fetchOrderFiles(orderId);
+    // Fetch order for job name
+    const { data: orderArr = [] } = await supabase.from('orders').select('*').eq('id', orderId);
+    const order = orderArr[0] || {};
     const pdfData = {
       items: itemsScaled.filter(i => i.name || i.description),
       allBoqs,
@@ -128,14 +134,17 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
       netTotal,
       gst,
       grandTotal,
-      customer, // pass full customer object
-      files, // pass files to PDF
+      customer,
+      files,
+      order, // Pass order for job name
     };
     const pdfWindow = window.open('', '_blank');
     if (!pdfWindow) {
       alert('Popup blocked! Please allow popups for this site.');
       return;
     }
+    // Use async HTML rendering
+    const html = await renderPdfHtmlAsync(pdfData);
     pdfWindow.document.write(`
       <html>
         <head>
@@ -148,7 +157,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
           </style>
         </head>
         <body>
-          <div id="pdf-root">${renderPdfHtml(pdfData)}</div>
+          <div id="pdf-root">${html}</div>
           <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
           <script>
             function exportPDF() {
@@ -256,8 +265,15 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     setTimeout(renderReact, 200);
   };
 
-  // Helper to render the PDF HTML as a string
-  function renderPdfHtml({ items, allBoqs, discount, orderId, totalCost, netTotal, gst, grandTotal, customerGstin }) {
+  // Helper for image URL (public) - fetch from Supabase
+  async function getImageUrlAsync(imagePath) {
+    if (!imagePath) return '';
+    const { data } = await supabase.storage.from('crm').getPublicUrl(imagePath);
+    return data?.publicUrl || '';
+  }
+
+  // Helper to render the PDF HTML as a string (async version)
+  async function renderPdfHtmlAsync({ items, allBoqs, discount, orderId, totalCost, netTotal, gst, grandTotal, customerGstin, customer, order }) {
     const scaling = getGstBillableScaling(items);
     const today = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
     const orderVersion = 1; // Placeholder for version
@@ -291,17 +307,30 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
       });
     }
 
-    // Calculate scaled line items for PDF
+    // Calculate scaled line items for PDF using the same logic as the table
     const scaledLineItems = items.map((item, idx) => {
-      const cost = allBoqs.filter(b => b.signage_item_id === item.id).reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0) * scaling;
+      const rate = getScaledRate(item); // uses signage_items logic
       const qty = Number(item.quantity) || 1;
-      const rate = cost / qty;
-      const amount = cost;
+      const amount = rate * qty;
       const gstPercent = Number(item.gst_percent ?? 18);
       const gstAmount = amount * gstPercent / 100;
       const costAfterTax = amount + gstAmount;
-      return { idx, item, qty, rate, amount, gstPercent, gstAmount, costAfterTax };
+      let imageUrl = '';
+      if (item.image_path) {
+        // Use a signed URL for the image, as in the table thumbnail
+        // (async not needed here, as getScaledRate is sync)
+        // We'll fetch the signed URL below in a Promise.all
+        imageUrl = item.image_path;
+      }
+      return { idx, item, qty, rate, amount, gstPercent, gstAmount, costAfterTax, imageUrl };
     });
+    // Now fetch all image signed URLs in parallel
+    await Promise.all(scaledLineItems.map(async l => {
+      if (l.imageUrl) {
+        const { data, error } = await supabase.storage.from('crm').createSignedUrl(l.imageUrl, 3600);
+        l.imageUrl = !error && data?.signedUrl ? data.signedUrl : '';
+      }
+    }));
 
     // Totals
     const pdfTotalCost = scaledLineItems.reduce((sum, l) => sum + l.amount, 0);
@@ -309,94 +338,212 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     const pdfGst = scaledLineItems.reduce((sum, l) => sum + l.gstAmount, 0);
     const pdfGrandTotal = pdfNetTotal + pdfGst;
 
-    // Helper for image URL (public)
-    function getImageUrl(imagePath) {
-      if (!imagePath) return '';
-      const base = window.location.origin || '';
-      return base + '/storage/v1/object/public/crm/' + imagePath.replace(/^\/+/, '');
-    }
-    const logoUrl = (window.location.origin || '') + '/logo.png';
-    const qrUrl = (window.location.origin || '') + '/qr.png';
-
     return `
-      <div style='font-family: "Segoe UI", Arial, sans-serif; max-width: 730px; margin: 0 auto; color: #222; font-size: 13px; padding: 0 18px; box-sizing: border-box;'>
-        <div style='display: flex; align-items: center; border-bottom: 2px solid #0a3d62; padding-bottom: 12px; margin-bottom: 18px;'>
-          <img src='${logoUrl}' alt='Sign Company Logo' style='height: 55px; margin-right: 18px;' />
-          <div>
+      <style>
+        body {
+          background: #f6f8fa;
+          margin: 0;
+          padding: 0;
+          counter-reset: page;
+        }
+        .pdf-main {
+          background: #fff;
+          max-width: 760px;
+          margin: 32px auto 0 auto;
+          border-radius: 12px;
+          box-shadow: 0 4px 24px #dbeafe99;
+          padding: 32px 32px 80px 32px;
+          min-height: 900px;
+          position: relative;
+        }
+        .pdf-header {
+          display: flex;
+          align-items: center;
+          border-bottom: 2px solid #0a3d62;
+          padding-bottom: 12px;
+          margin-bottom: 18px;
+          background: #f3f6fa;
+          border-radius: 8px 8px 0 0;
+        }
+        .pdf-header img {
+          height: 100px;
+          margin-right: 18px;
+        }
+        .pdf-header-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .pdf-title-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 10px;
+        }
+        .pdf-summary-table {
+          font-size: 15px;
+          font-weight: 600;
+          min-width: 320px;
+          box-shadow: 0 2px 8px #eee;
+          border-radius: 8px;
+          background: #f3f6fa;
+          margin-top: 8px;
+        }
+        .pdf-summary-table td {
+          text-align: right;
+          padding: 4px 16px;
+        }
+        .pdf-summary-table tr:last-child {
+          font-weight: bold;
+          font-size: 17px;
+        }
+        .pdf-page-break {
+          page-break-after: always;
+          break-after: page;
+          height: 0;
+        }
+        .pdf-section-break {
+          border-top: 2px dashed #d1d8e0;
+          margin: 32px 0 24px 0;
+        }
+        .pdf-footer {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 48px;
+          background: #f3f6fa;
+          color: #444;
+          font-size: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 32px;
+          border-top: 1px solid #d1d8e0;
+        }
+        @media print {
+          .pdf-footer {
+            position: fixed;
+            bottom: 0;
+          }
+        }
+        .pdf-footer .footer-left {
+          font-weight: 600;
+        }
+        .pdf-footer .footer-right {
+          font-size: 12px;
+        }
+        .pdf-footer:after {
+          content: "Page " counter(page);
+        }
+        .pdf-table th, .pdf-table td {
+          border: 1px solid #d1d8e0;
+          padding: 8px;
+        }
+        .pdf-table th {
+          background: #f3f6fa;
+        }
+        .pdf-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 12px;
+          margin-bottom: 18px;
+          box-sizing: border-box;
+        }
+        .pdf-item-img {
+          max-width: 120px;
+          max-height: 80px;
+          object-fit: contain;
+          border-radius: 8px;
+          border: 1px solid #bbb;
+          box-shadow: 0 1px 4px #ccc;
+          background: #fff;
+          display: block;
+          margin: 6px auto;
+        }
+      </style>
+      <div class="pdf-main">
+        <div class="pdf-header">
+          <img src='${logoUrl}' alt='Sign Company Logo' />
+          <div class="pdf-header-info">
             <div style='font-size: 22px; font-weight: bold; color: #0a3d62;'>Sign Company</div>
             <div style='font-size: 12px; color: #555;'>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore - 560 075</div>
             <div style='font-size: 12px; color: #555;'>M: +91 8431505007 | GSTN: 29BPYPPK6641B2Z6 | PAN: BPYPPK6641B</div>
           </div>
         </div>
-        <div style='display: flex; justify-content: space-between; margin-bottom: 10px;'>
+        <div class="pdf-title-row">
           <div>
-            <div style='font-size: 15px; font-weight: bold, color: #0a3d62;'>ESTIMATE</div>
+            <div style='font-size: 15px; font-weight: bold; color: #0a3d62;'>ESTIMATE</div>
             <div style='font-size: 12px;'>Estimate #: <b>${orderId}.${orderVersion || 1}.${orderYear}</b></div>
+            ${order.name ? `<div style='font-size: 12px;'>Job: <b>${order.name}</b></div>` : ''}
             <div style='font-size: 12px;'>Date: <b>${today}</b></div>
           </div>
         </div>
-        <table style='width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 18px; box-sizing: border-box;'>
+        <table class="pdf-table">
           <thead>
-            <tr style='background: #f3f6fa;'>
-              <th style='border: 1px solid #d1d8e0; padding: 8px;'>S. No.</th>
-              <th style='border: 1px solid #d1d8e0; padding: 8px;'>Name & Description</th>
-              <th style='border: 1px solid #d1d8e0; padding: 8px;'>HSN Code</th>
-              <th style='border: 1px solid #d1d8e0; padding: 8px;'>Qty</th>
-              <th style='border: 1px solid #d1d8e0; padding: 8px;'>Rate</th>
-              <th style='border: 1px solid #d1d8e0; padding: 8px;'>Amount</th>
-              <th style='border: 1px solid #d1d8e0; padding: 8px;'>GST</th>
-              <th style='border: 1px solid #d1d8e0; padding: 8px;'>Cost After Tax</th>
+            <tr>
+              <th>S. No.</th>
+              <th>Name & Description</th>
+              <th>HSN Code</th>
+              <th>Qty</th>
+              <th>Rate</th>
+              <th>Amount</th>
+              <th>GST</th>
+              <th>Cost After Tax</th>
             </tr>
           </thead>
           <tbody>
             ${scaledLineItems.map(l => `
                 <tr>
-                  <td style='border: 1px solid #d1d8e0; padding: 8px; text-align: center;'>${l.idx + 1}</td>
-                  <td style='border: 1px solid #d1d8e0; padding: 8px;'>
+                  <td style='text-align: center;'>${l.idx + 1}</td>
+                  <td>
                     <div style='font-weight: bold;'>${l.item.name || ''}</div>
-                    ${l.item.image_path ? `<div style='margin:6px 0;'><img src='${getImageUrl(l.item.image_path)}' alt='' style='max-width:64px; max-height:48px; border-radius:4px; border:1px solid #eee; display:block;'/></div>` : ''}
+                    ${l.imageUrl ? `<img src='${l.imageUrl}' alt='' class='pdf-item-img'/>` : ''}
                     ${l.item.description ? `<div style='font-weight: normal; white-space: pre-line;'>${l.item.description}</div>` : ''}
                   </td>
-                  <td style='border: 1px solid #d1d8e0; padding: 8px; text-align: center;'>${l.item.hsn_code || ''}</td>
-                  <td style='border: 1px solid #d1d8e0; padding: 8px; text-align: center;'>${l.qty}</td>
-                  <td style='border: 1px solid #d1d8e0; padding: 8px; text-align: right;'>${l.rate.toFixed(2)}</td>
-                  <td style='border: 1px solid #d1d8e0; padding: 8px; text-align: right;'>${l.amount.toFixed(2)}</td>
-                  <td style='border: 1px solid #d1d8e0; padding: 8px; text-align: right;'>${l.gstAmount.toFixed(2)} (${l.gstPercent}%)</td>
-                  <td style='border: 1px solid #d1d8e0; padding: 8px; text-align: right;'>${l.costAfterTax.toFixed(2)}</td>
+                  <td style='text-align: center;'>${l.item.hsn_code || ''}</td>
+                  <td style='text-align: center;'>${l.qty}</td>
+                  <td style='text-align: right;'>${l.rate.toFixed(2)}</td>
+                  <td style='text-align: right;'>${l.amount.toFixed(2)}</td>
+                  <td style='text-align: right;'>${l.gstAmount.toFixed(2)} (${l.gstPercent}%)</td>
+                  <td style='text-align: right;'>${l.costAfterTax.toFixed(2)}</td>
                 </tr>
               `).join('')}
           </tbody>
         </table>
         <div style='display: flex; justify-content: flex-end; margin-bottom: 32px;'>
-          <table style='font-size: 15px; font-weight: 600; min-width: 320px; box-shadow: 0 2px 8px #eee; border-radius: 8px; background: #fafbfc;'>
+          <table class="pdf-summary-table">
             <tbody>
               <tr>
-                <td style='text-align: right; padding: 4px 16px;'>TOTAL</td>
-                <td style='text-align: right; padding: 4px 0;'>₹ ${pdfTotalCost.toFixed(2)}</td>
+                <td>TOTAL</td>
+                <td>₹ ${pdfTotalCost.toFixed(2)}</td>
+              </tr>
+              ${discount !== 0 ? `
+              <tr>
+                <td>DISCOUNT</td>
+                <td>₹ ${discount.toFixed(2)}</td>
+              </tr>
+              ` : ''}
+              <tr>
+                <td>NET TOTAL</td>
+                <td>₹ ${pdfNetTotal.toFixed(2)}</td>
               </tr>
               <tr>
-                <td style='text-align: right; padding: 4px 16px;'>DISCOUNT</td>
-                <td style='text-align: right; padding: 4px 0;'>₹ ${discount.toFixed(2)}</td>
+                <td>GST</td>
+                <td>₹ ${pdfGst.toFixed(2)}</td>
               </tr>
               <tr>
-                <td style='text-align: right; padding: 4px 16px;'>NET TOTAL</td>
-                <td style='text-align: right; padding: 4px 0;'>₹ ${pdfNetTotal.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td style='text-align: right; padding: 4px 16px;'>GST</td>
-                <td style='text-align: right; padding: 4px 0;'>₹ ${pdfGst.toFixed(2)}</td>
-              </tr>
-              <tr style='font-weight: bold; font-size: 17px;'>
-                <td style='text-align: right; padding: 4px 16px;'>GRAND TOTAL</td>
-                <td style='text-align: right; padding: 4px 0;'>₹ ${pdfGrandTotal.toFixed(2)}</td>
+                <td>GRAND TOTAL</td>
+                <td>₹ ${pdfGrandTotal.toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <div class="pdf-page-break"></div>
+        <div class="pdf-section-break"></div>
         <div style='margin-top: 24px;'>
           <div style='font-size: 15px; margin-bottom: 16px;'>
             <span style='font-weight: bold; font-style: italic; text-decoration: underline;'>Terms & Conditions</span>
-            <ul style='color: red; margin-top: 8px; margin-bottom: 16px; padding-left: 24px;'>
+            <ul style='color: red; margin-top: 8px; margin-bottom: 16px; padding-left: 24px; font-size: 13px;'>
               <li>* If any unforeseen requirements come up, costs might change.</li>
               <li>* Scaffolding / Crain to be provided by client, else it will be charged extra if required.</li>
               <li>* 80% Advance (Grand Total) to confirm the order and balance before dispatch of material from our factory.</li>
@@ -421,13 +568,9 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
               <div>Bank name: IDFC FIRST</div>
               <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
               <div>UPI ID: signcompany@idfcbank</div>
-              <div style='margin-top: 10px;'>GSTN: 29BPYPPK6641B2Z6</div>
-              <div>PAN: BPYPPK6641B</div>
             </div>
             <div style='flex: 1; text-align: center;'>
-              <div style='font-weight: 700; margin-bottom: 8px;'>SCAN & PAY</div>
               <img src='${qrUrl}' alt='UPI QR' style='height: 150px; width: 150px; object-fit: contain; border: 1px solid #ccc; border-radius: 8px; background: #fff; margin-bottom: 8px;' />
-             
             </div>
           </div>
           <div style='margin-bottom: 16px;'>
@@ -435,9 +578,10 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
             <div style='font-weight: bold; font-style: italic; margin-top: 8px;'>For Sign Company</div>
             <div style='font-weight: bold; margin-top: 16px;'>Authorized Signatory</div>
           </div>
-          <div style='font-size: 11px; color: #888; text-align: right; border-top: 1px solid #eee; padding-top: 8px;'>
-            Generated on ${today}
-          </div>
+        </div>
+        <div class="pdf-footer">
+          <div class="footer-left">Sign Company &bull; www.signcompany.com &bull; +91 8431505007</div>
+          <div class="footer-right">Generated on ${today} &bull; Page <span class="pageNumber"></span></div>
         </div>
       </div>
     `;
@@ -875,7 +1019,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     <div className="space-y-4 flex justify-center relative">
       {/* Watermark logo */}
       <img
-        src="/logo.png"
+        src="/logo.jpeg"
         alt="Logo watermark"
         aria-hidden="true"
         style={{

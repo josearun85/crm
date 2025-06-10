@@ -120,12 +120,7 @@ export default function CustomersPage() {
         <div className="left-panel">
           <div className="left-panel-header">
             <h2>Customers</h2>
-            <button
-              onClick={() => setShowForm(true)}
-              className="add-customer-btn"
-            >
-              + Add
-            </button>
+           
           </div>
           
           <div className="search-container">

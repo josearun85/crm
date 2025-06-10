@@ -1,15 +1,61 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { getSignageItemTotalWithMargin } from '../../../services/orderService';
 import supabase from '../../../supabaseClient';
 
-function getImageUrl(imagePath) {
-  if (!imagePath) return null;
-  // Use public URL for PDF (signed URLs not possible in static PDF)
-  const { data } = supabase.storage.from('crm').getPublicUrl(imagePath);
-  return data?.publicUrl || null;
+// Helper to fetch image as base64
+function useBase64Image(imagePath) {
+  const [base64, setBase64] = useState(null);
+  useEffect(() => {
+    async function fetchBase64() {
+      if (!imagePath) return;
+      const { data } = supabase.storage.from('crm').getPublicUrl(imagePath);
+      if (!data?.publicUrl) return;
+      try {
+        const response = await fetch(data.publicUrl);
+        const blob = await response.blob();
+        const reader = new window.FileReader();
+        reader.onloadend = () => setBase64(reader.result);
+        reader.readAsDataURL(blob);
+      } catch (e) {
+        setBase64(null);
+      }
+    }
+    fetchBase64();
+  }, [imagePath]);
+  return base64;
 }
 
 export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, orderId, totalCost, netTotal, gst, grandTotal, customer = {}, jobName = "", po_number, po_date, version }) {
+  // Map of image_path -> base64
+  const [imagesBase64, setImagesBase64] = useState({});
+
+  useEffect(() => {
+    async function fetchAllImages() {
+      const newImages = {};
+      await Promise.all(items.map(async (item) => {
+        if (!item.image_path) return;
+        const { data } = supabase.storage.from('crm').getPublicUrl(item.image_path);
+        if (!data?.publicUrl) return;
+        try {
+          const response = await fetch(data.publicUrl);
+          const blob = await response.blob();
+          const reader = new window.FileReader();
+          await new Promise((resolve) => {
+            reader.onloadend = () => {
+              newImages[item.image_path] = reader.result;
+              resolve();
+            };
+            reader.readAsDataURL(blob);
+          });
+        } catch (e) {
+          newImages[item.image_path] = null;
+        }
+      }));
+      setImagesBase64(newImages);
+    }
+    fetchAllImages();
+  }, [items]);
+
   function getRateWithMargin({ item, allBoqs, scaling }) {
     // Use the shared utility for margin logic
     const boqsMap = {};
@@ -27,7 +73,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
     <div style={{ fontFamily: 'sans-serif', maxWidth: 900, margin: '0 auto', color: '#222' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <img src="/logo.png" alt="Sign Company Logo" style={{ height: 60, marginBottom: 8 }} />
+          <img src="/logo.jpeg" alt="Sign Company Logo" style={{ height: 120, marginBottom: 8 }} />
           <div style={{ fontWeight: 'bold', fontSize: 22 }}>Sign Company</div>
           <div style={{ fontSize: 14 }}>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore - 560 075</div>
           <div style={{ fontSize: 14 }}>M +91 8431505007</div>
@@ -81,7 +127,15 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
                 <div style={{ fontWeight: 600 }}>{item.name}</div>
                 {item.image_path && (
                   <div style={{ margin: '6px 0' }}>
-                    <img src={getImageUrl(item.image_path)} alt="" style={{ maxWidth: 64, maxHeight: 48, borderRadius: 4, border: '1px solid #eee', display: 'block' }} />
+                    {imagesBase64[item.image_path] ? (
+                      <img
+                        src={imagesBase64[item.image_path]}
+                        alt=""
+                        style={{ maxWidth: 200, maxHeight: 100, borderRadius: 4, border: '1px solid #eee', display: 'block' }}
+                      />
+                    ) : (
+                      <div style={{ width: 200, height: 100, background: '#fafafa', border: '1px solid #eee', borderRadius: 4 }} />
+                    )}
                   </div>
                 )}
                 {item.description && (
@@ -105,10 +159,12 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
               <td style={{ textAlign: 'right', padding: '4px 16px' }}>TOTAL</td>
               <td style={{ textAlign: 'right', padding: '4px 0' }}>₹ {totalCost.toFixed(2)}</td>
             </tr>
-            <tr>
-              <td style={{ textAlign: 'right', padding: '4px 16px' }}>DISCOUNT</td>
-              <td style={{ textAlign: 'right', padding: '4px 0' }}>₹ {discount.toFixed(2)}</td>
-            </tr>
+            {parseFloat(discount) > 0 && (
+              <tr>
+                <td style={{ textAlign: 'right', padding: '4px 16px' }}>DISCOUNT</td>
+                <td style={{ textAlign: 'right', padding: '4px 0' }}>₹ {parseFloat(discount).toFixed(2)}</td>
+              </tr>
+            )}
             <tr>
               <td style={{ textAlign: 'right', padding: '4px 16px' }}>NET TOTAL</td>
               <td style={{ textAlign: 'right', padding: '4px 0' }}>₹ {netTotal.toFixed(2)}</td>
@@ -123,6 +179,13 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
             </tr>
           </tbody>
         </table>
+      </div>
+      <div style={{ fontSize: 15, fontWeight: 700, margin: '24px 0 0 0', color: '#232323' }}>
+        Amount Chargeable (in words)
+      </div>
+      <div style={{ fontSize: 15, marginBottom: 8, color: '#232323' }}>
+        {/* You may want to use a number-to-words util here */}
+        {/* Example: Four Thousand Six Hundred and Eighty Nine Rupees and Thirty Two Paise Only */}
       </div>
       {/* Rest of the content stacked below */}
       <div style={{ marginTop: 24 }}>
@@ -153,8 +216,8 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
             <div>Bank name: IDFC FIRST</div>
             <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
             <div>UPI ID: signcompany@idfcbank</div>
-            <div style={{ marginTop: 10 }}>GSTN: 29BYPPK6641B2Z6</div>
-            <div>PAN: BPYPPK6641B</div>
+            {/* <div style={{ marginTop: 10 }}>GSTN: 29BYPPK6641B2Z6</div>
+            <div>PAN: BPYPPK6641B</div> */}
           </div>
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>SCAN & PAY</div>

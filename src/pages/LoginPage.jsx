@@ -87,7 +87,7 @@ export default function LoginPage() {
         justifyContent: 'center',
         marginBottom: '1rem'
       }}>
-        <img src="/logo.png" alt="Sign Company Logo" style={{ maxWidth: '300px', height: 'auto' }} />
+        <img src="/logo.jpeg" alt="Sign Company Logo" style={{ maxWidth: '300px', height: 'auto' }} />
       </div>
       <div style={{
         flex: '1 1 100%',

@@ -173,7 +173,7 @@ crm
 ├── package.json / package-lock.json
 ├── postcss.config.js / tailwind.config.js / vite.config.js / vercel.json
 ├── public
-│   └── favicon_io, logo.jpeg, logo.png
+│   └── favicon_io, logo.jpeg, logo.jpeg
 ├── src
 │   ├── App.jsx / App.css / main.tsx
 │   ├── components (Customer forms, Gantt, InvoiceList, Navbar, FilePreview)

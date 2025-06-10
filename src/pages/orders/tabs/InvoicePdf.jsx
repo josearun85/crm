@@ -126,7 +126,7 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
 
   // Use absolute URLs for images
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const logoUrl = baseUrl + '/logo.png';
+  const logoUrl = baseUrl + '/logo.jpeg';
   const qrUrl = baseUrl + '/qr.png';
 
   // Load images as base64 for PDF rendering
