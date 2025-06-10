@@ -426,8 +426,8 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
             </div>
             <div style='flex: 1; text-align: center;'>
               <div style='font-weight: 700; margin-bottom: 8px;'>SCAN & PAY</div>
-              <img src='${qrUrl}' alt='UPI QR' style='height: 120px; width: 120px; object-fit: contain; border: 1px solid #ccc; border-radius: 8px; background: #fff; margin-bottom: 8px;' />
-              <div style='font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 500;'>UPI ID: signcompany@idfcbank</div>
+              <img src='${qrUrl}' alt='UPI QR' style='height: 150px; width: 150px; object-fit: contain; border: 1px solid #ccc; border-radius: 8px; background: #fff; margin-bottom: 8px;' />
+             
             </div>
           </div>
           <div style='margin-bottom: 16px;'>
