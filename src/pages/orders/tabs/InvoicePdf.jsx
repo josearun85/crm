@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getSignageItemTotalWithMargin } from '../../../services/orderService';
 
 // Add CSS styles for print layout
 const printStyles = `
@@ -116,15 +117,13 @@ function numberToWords(num) {
   return words;
 }
 
-export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
+export default function InvoicePdf({ invoice, customer, items, isPdfMode, allBoqs = [] }) {
   // invoice: { number, date, place_of_supply, sgst, cgst, total, ... }
   // customer: { name, address, gstin }
   // items: [{ description, hsn_code, qty, unit, rate, amount }]
   // Base64 image state
   const [logoBase64, setLogoBase64] = useState(null);
   const [qrBase64, setQrBase64] = useState(null);
-
-  // Use absolute URLs for images
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const logoUrl = baseUrl + '/logo.jpeg';
   const qrUrl = baseUrl + '/qr.png';
@@ -148,107 +147,354 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
     // eslint-disable-next-line
   }, [logoUrl, qrUrl]);
 
-  // In InvoicePdf, show Place of Supply and Invoice Number/Date in the header
-  // Find the correct values from props
-  const invoiceNumber = invoice.invoice_number || invoice.number || '-';
-  const invoiceDate = invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString('en-IN') : '-';
-  const placeOfSupply = invoice.place_of_supply || customer?.place_of_supply || '-';
+  // Header fields (robust extraction)
+  function getFirstNonEmpty(...args) {
+    for (const v of args) {
+      if (v !== undefined && v !== null && String(v).trim() !== '' && v !== '-') return v;
+    }
+    return '-';
+  }
 
-  // --- Totals Calculation ---
-  const total = items.reduce((sum, item) => sum + Number(item.amount), 0);
+  const invoiceNumber = getFirstNonEmpty(
+    invoice.invoice_number,
+    invoice.number,
+    invoice.invoiceNo,
+    invoice.no,
+    invoice.id,
+    invoice.id_number,
+    invoice.idNumber,
+    invoice?.meta?.invoice_number,
+    invoice?.meta?.number,
+    '-'
+  );
+  const invoiceDate = getFirstNonEmpty(
+    invoice.invoice_date && new Date(invoice.invoice_date).toLocaleDateString('en-IN'),
+    invoice.date && new Date(invoice.date).toLocaleDateString('en-IN'),
+    invoice.created_at && new Date(invoice.created_at).toLocaleDateString('en-IN'),
+    invoice?.meta?.date && new Date(invoice.meta.date).toLocaleDateString('en-IN'),
+    '-'
+  );
+  const placeOfSupply = getFirstNonEmpty(
+    invoice.place_of_supply,
+    invoice.placeOfSupply,
+    invoice.supply_place,
+    invoice.supplyPlace,
+    customer?.place_of_supply,
+    customer?.placeOfSupply,
+    customer?.supply_place,
+    customer?.supplyPlace,
+    '-'
+  );
+  const poNumber = getFirstNonEmpty(
+    invoice.po_number,
+    invoice.poNumber,
+    invoice.po,
+    invoice.purchase_order_number,
+    invoice.purchaseOrderNumber,
+    invoice?.meta?.po_number,
+    '-'
+  );
+  const poDate = getFirstNonEmpty(
+    invoice.po_date && new Date(invoice.po_date).toLocaleDateString('en-IN'),
+    invoice.poDate && new Date(invoice.poDate).toLocaleDateString('en-IN'),
+    invoice.purchase_order_date && new Date(invoice.purchase_order_date).toLocaleDateString('en-IN'),
+    invoice.purchaseOrderDate && new Date(invoice.purchaseOrderDate).toLocaleDateString('en-IN'),
+    invoice?.meta?.po_date && new Date(invoice.meta.po_date).toLocaleDateString('en-IN'),
+    '-'
+  );
+  const jobName = getFirstNonEmpty(
+    invoice.job_name,
+    invoice.jobName,
+    invoice.jobname,
+    invoice.project_name,
+    invoice.projectName,
+    invoice.name, // <-- add this
+    invoice.order_name, // <-- and this
+    invoice?.meta?.job_name,
+    invoice?.meta?.jobName,
+    invoice?.meta?.project_name,
+    invoice?.meta?.projectName,
+    '-'
+  );
+  const clientName = getFirstNonEmpty(
+    customer?.name,
+    customer?.client_name,
+    customer?.clientName,
+    invoice.client_name,
+    invoice.clientName,
+    invoice?.meta?.client_name,
+    invoice?.meta?.clientName,
+    '-'
+  );
+  const gstin = getFirstNonEmpty(
+    customer?.gstin,
+    customer?.gst_no,
+    customer?.gstNo,
+    invoice.gstin,
+    invoice.gst_no,
+    invoice.gstNo,
+    invoice?.meta?.gstin,
+    invoice?.meta?.gst_no,
+    invoice?.meta?.gstNo,
+    '-'
+  );
+
+  // --- Totals Calculation (match on-screen margin logic) ---
+  // Helper: get all BOQs for an item (returns array)
+  function getItemBoqs(item) {
+    if (!item.id) return [];
+    return allBoqs.filter(b => b.signage_item_id === item.id);
+  }
+  // Helper: get all BOQs as a map for getSignageItemTotalWithMargin
+  function getBoqsMap() {
+    const map = {};
+    allBoqs.forEach(b => {
+      if (!map[b.signage_item_id]) map[b.signage_item_id] = [];
+      map[b.signage_item_id].push(b);
+    });
+    return map;
+  }
+  const boqsMap = getBoqsMap();
+  // Helper: get GST-billable scaling factor (copied from SignageItemsTab)
+  function getGstBillableScaling(items) {
+    if (typeof invoice.gstBillablePercent !== 'undefined' && invoice.gstBillablePercent !== null && invoice.gstBillablePercent !== '' && Number(invoice.gstBillablePercent) !== 100) {
+      return Number(invoice.gstBillablePercent) / 100;
+    }
+    const billable = Number(invoice.gstBillableAmount);
+    if (!billable || !items.length) return 1;
+    const originalTotal = items.reduce((sum, item) => sum + Number(item.cost || 0), 0);
+    if (!originalTotal || billable === originalTotal) return 1;
+    return billable / originalTotal;
+  }
+  // Helper: get signage item total with margin (copied from SignageItemsTab)
+  function getSignageItemTotalWithMargin(item) {
+    const itemBoqs = allBoqs.filter(b => b.signage_item_id === item.id);
+    const boqTotal = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
+    if (item.total_with_margin && Number(item.total_with_margin) > 0) {
+      return Number(item.total_with_margin);
+    } else if (item.margin_percent && Number(item.margin_percent) > 0) {
+      return boqTotal * (1 + Number(item.margin_percent) / 100);
+    } else {
+      return boqTotal;
+    }
+  }
+  // Helper: get scaled rate for an item (uses margin logic, fallback if no BOQs)
+  function getScaledRate(item) {
+    const scaling = getGstBillableScaling(items);
+    const totalWithMargin = getSignageItemTotalWithMargin(item) * scaling;
+    const qty = Number(item.quantity ?? item.qty) || 1;
+    if (!qty) return 0;
+    return totalWithMargin / qty;
+  }
+  // Compute scaled items (with margin logic, always compute rate and amount from margin logic)
+  const scaledItems = items.map(item => {
+    const qty = Number(item.quantity ?? item.qty) || 1;
+    // Always compute rate from margin logic, never trust item.rate
+    const scaling = getGstBillableScaling(items);
+    const itemBoqs = allBoqs.filter(b => b.signage_item_id === item.id);
+    const boqTotal = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
+    let totalWithMargin;
+    if (item.total_with_margin && Number(item.total_with_margin) > 0) {
+      totalWithMargin = Number(item.total_with_margin);
+    } else if (item.margin_percent && Number(item.margin_percent) > 0) {
+      totalWithMargin = boqTotal * (1 + Number(item.margin_percent) / 100);
+    } else {
+      totalWithMargin = boqTotal;
+    }
+    totalWithMargin = totalWithMargin * scaling;
+    const rate = qty ? totalWithMargin / qty : 0;
+    const amount = rate * qty;
+    const gstP = Number(item.gst_percent ?? 18);
+    const gstAmt = amount * gstP / 100;
+    const costAfterTax = amount + gstAmt;
+    return { ...item, qty, rate, amount, gstP, gstAmt, costAfterTax };
+  });
+  // Warn if allBoqs is empty
+  if (!allBoqs || allBoqs.length === 0) {
+    console.warn('InvoicePdf: allBoqs is empty, margin logic will not be applied.');
+  }
+  const total = scaledItems.reduce((sum, item) => sum + item.amount, 0);
   const discount = Number(invoice.discount) || 0;
-  const taxableValue = total - discount;
-  // Assume 9% SGST and 9% CGST for all items (or use item.gst_percent if needed)
-  const sgst = items.reduce((sum, item) => sum + (Number(item.amount) * 0.09), 0);
-  const cgst = items.reduce((sum, item) => sum + (Number(item.amount) * 0.09), 0);
-  const grandTotal = taxableValue + sgst + cgst;
-
-  // Always use computed grandTotal for amount in words
+  const netTotal = total - discount;
+  const gst = scaledItems.reduce((sum, item) => sum + item.gstAmt, 0);
+  const sgst = gst / 2;
+  const cgst = gst / 2;
+  const grandTotal = netTotal + gst;
   const amountInWords = numberToWords(grandTotal);
+
+  // --- Classic Tax Invoice Layout ---
+  // Calculate per-item GST and cost after tax (match SignageItemsTab logic)
+  const getGstPercent = (item) => item.gst_percent || gstPercent;
+  const itemRows = items.map((item, idx) => {
+    const rate = Number(item.rate);
+    const qty = Number(item.qty);
+    const amount = Number(item.amount);
+    const gstP = getGstPercent(item);
+    const gstAmt = amount * gstP / 100;
+    const costAfterTax = amount + gstAmt;
+    return {
+      ...item,
+      idx: idx + 1,
+      rate,
+      qty,
+      amount,
+      gstP,
+      gstAmt,
+      costAfterTax,
+    };
+  });
+  // GST summary (SGST/CGST split)
+  const sgstClassic = gst / 2;
+  const cgstClassic = gst / 2;
+  // Final total (classic: grandTotal = netTotal + gst)
+  const grandTotalClassic = netTotal + gst;
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
-      <div
-        className="invoice-container"
-        style={{
-          fontFamily: 'Inter, Helvetica, Arial, sans-serif',
-          width: isPdfMode ? 760 : 794,
-          maxWidth: isPdfMode ? 760 : 794,
-          color: '#232323',
-          fontSize: 13,
-          background: '#fff',
-          border: isPdfMode ? 'none' : '1px solid #e0e0e0',
-          borderRadius: isPdfMode ? 0 : 12,
-          boxShadow: isPdfMode ? 'none' : '0 2px 8px #0001',
-          padding: 0,
-          position: 'relative',
-          margin: isPdfMode ? '0 auto' : '24px auto',
-          // Remove blue border and fit content
-        }}
-      >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '2px solid #0a3d62', padding: '0 0 12px 0', marginBottom: 0, background: '#fafbfc' }}>
-          <img src={logoBase64 || logoUrl} alt="Sign Company Logo" style={{ height: 80, width: 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid #ffe066', background: '#fff', marginRight: 24 }} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#0a3d62', letterSpacing: 1, fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase', marginBottom: 2 }}>SIGN COMPANY</div>
-            <div style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bengaluru - 560 075</div>
-            <div style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>PHONE: <b>8431505007</b> &nbsp;|&nbsp; GSTN: <b>29BPYPPK6641B2Z6</b></div>
+      <div className="invoice-container" style={{ fontFamily: 'Inter, Helvetica, Arial, sans-serif', width: isPdfMode ? 760 : 794, maxWidth: isPdfMode ? 760 : 794, color: '#232323', fontSize: 13, background: '#fff', border: isPdfMode ? 'none' : '1px solid #e0e0e0', borderRadius: isPdfMode ? 0 : 12, boxShadow: isPdfMode ? 'none' : '0 2px 8px #0001', padding: 0, position: 'relative', margin: isPdfMode ? '0 auto' : '24px auto' }}>
+        {/* Classic Header: Company info left, meta right as table */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '24px 32px 0 32px', background: '#fafbfc', marginBottom: 0 }}>
+          <div style={{ minWidth: 260, maxWidth: 400 }}>
+            <img src={logoBase64 || logoUrl} alt="Sign Company Logo" style={{ height: 110, marginBottom: 12}} />
+            <div style={{ fontWeight: 900, fontSize: 28, marginTop: 0, letterSpacing: 1, textTransform: 'uppercase' }}>SIGN COMPANY</div>
+            <div style={{ fontSize: 15, margin: '6px 0 0 0' }}>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore - 560 075</div>
+            <div style={{ fontSize: 15 }}>PHONE: <b>8431505007</b></div>
+            <div style={{ fontSize: 15 }}>GSTN: <b>29BPYPPK6641B2Z6</b></div>
           </div>
-        </div>
-        <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {/* Invoice Info */}
-          <div style={{ fontSize: 14, color: '#555', fontWeight: 600, borderBottom: '1px solid #e0e0e0', paddingBottom: 8 }}>
-            Invoice #{invoiceNumber} &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; Date: {invoiceDate}
-          </div>
-          <div style={{ fontSize: 14, color: '#555', fontWeight: 600 }}>
-            Place of Supply: <span style={{ fontWeight: 400 }}>{placeOfSupply}</span>
-          </div>
-        </div>
-        {/* Table - Items */}
-        <div style={{ padding: '0 24px', overflowX: 'auto' }}>
-          <table className="invoice-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: 16 }}>
-            <thead style={{ background: '#0a3d62', color: '#fff', fontSize: 14 }}>
+          <table style={{ minWidth: 320, fontSize: 15, fontWeight: 600, textAlign: 'right', borderCollapse: 'collapse', marginTop: 8, background: 'transparent' }}>
+            <tbody>
               <tr>
-                <th style={{ padding: '10px', border: '1px solid #fff', textAlign: 'left' }}>Description</th>
-                <th style={{ padding: '10px', border: '1px solid #fff', textAlign: 'left' }}>HSN/SAC</th>
-                <th style={{ padding: '10px', border: '1px solid #fff', textAlign: 'center' }}>Qty</th>
-                <th style={{ padding: '10px', border: '1px solid #fff', textAlign: 'center' }}>Rate</th>
-                <th style={{ padding: '10px', border: '1px solid #fff', textAlign: 'center' }}>Amount</th>
+                <td style={{ fontWeight: 700, textAlign: 'right', padding: '2px 8px' }}>INVOICE No:</td>
+                <td style={{ color: '#d32f2f', fontWeight: 700, padding: '2px 0', textAlign: 'left' }}>{invoiceNumber}</td>
+              </tr>
+              <tr>
+                <td style={{ fontWeight: 700, textAlign: 'right', padding: '2px 8px' }}>Date:</td>
+                <td style={{ fontWeight: 400, padding: '2px 0', textAlign: 'left' }}>{invoiceDate}</td>
+              </tr>
+              <tr>
+                <td style={{ fontWeight: 700, textAlign: 'right', padding: '2px 8px' }}>Place of Supply:</td>
+                <td style={{ fontWeight: 400, padding: '2px 0', textAlign: 'left' }}>{placeOfSupply}</td>
+              </tr>
+              <tr>
+                <td style={{ fontWeight: 700, textAlign: 'right', padding: '2px 8px' }}>Job Name:</td>
+                <td style={{ fontWeight: 400, padding: '2px 0', textAlign: 'left' }}>{jobName}</td>
+              </tr>
+              <tr>
+                <td style={{ fontWeight: 700, textAlign: 'right', padding: '2px 8px' }}>PO Number:</td>
+                <td style={{ fontWeight: 400, padding: '2px 0', textAlign: 'left' }}>{poNumber}</td>
+              </tr>
+              <tr>
+                <td style={{ fontWeight: 700, textAlign: 'right', padding: '2px 8px' }}>PO Date:</td>
+                <td style={{ fontWeight: 400, padding: '2px 0', textAlign: 'left' }}>{poDate}</td>
+              </tr>
+              <tr>
+                <td style={{ fontWeight: 700, textAlign: 'right', padding: '2px 8px' }}>Client:</td>
+                <td style={{ fontWeight: 400, padding: '2px 0', textAlign: 'left' }}>{clientName}</td>
+              </tr>
+              <tr>
+                <td style={{ fontWeight: 700, textAlign: 'right', padding: '2px 8px' }}>GSTIN:</td>
+                <td style={{ fontWeight: 700, padding: '2px 0', textAlign: 'left' }}>{gstin !== '-' ? gstin.toUpperCase() : '-'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {/* TAX INVOICE Title */}
+        <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 20, letterSpacing: 1, margin: '18px 0 8px 0' }}>TAX INVOICE</div>
+        {/* Items Table - classic columns */}
+        <div style={{ padding: '0 8px', marginTop: 8 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 24, background: '#fff' }}>
+            <thead style={{ background: '#f7f7f7' }}>
+              <tr>
+                <th style={{ border: '1px solid #ccc', padding: 8 }}>S. No.</th>
+                <th style={{ border: '1px solid #ccc', padding: 8 }}>Name & Description</th>
+                <th style={{ border: '1px solid #ccc', padding: 8 }}>HSN Code</th>
+                <th style={{ border: '1px solid #ccc', padding: 8 }}>Qty</th>
+                <th style={{ border: '1px solid #ccc', padding: 8 }}>Rate</th>
+                <th style={{ border: '1px solid #ccc', padding: 8 }}>Amount</th>
+                <th style={{ border: '1px solid #ccc', padding: 8 }}>GST</th>
+                <th style={{ border: '1px solid #ccc', padding: 8 }}>Cost After Tax</th>
               </tr>
             </thead>
-            <tbody style={{ fontSize: 14, color: '#333' }}>
-              {items.map((item, index) => (
-                <tr key={index} style={{ borderBottom: '1px solid #e0e0e0' }}>
-                  <td style={{ padding: '8px', border: '1px solid #e0e0e0' }}>{item.description}</td>
-                  <td style={{ padding: '8px', border: '1px solid #e0e0e0' }}>{item.hsn_code}</td>
-                  <td style={{ padding: '8px', border: '1px solid #e0e0e0', textAlign: 'center' }}>{item.qty}</td>
-                  <td style={{ padding: '8px', border: '1px solid #e0e0e0', textAlign: 'center' }}>{item.rate}</td>
-                  <td style={{ padding: '8px', border: '1px solid #e0e0e0', textAlign: 'center' }}>{item.amount}</td>
+            <tbody>
+              {scaledItems.map((item, idx) => (
+                <tr key={idx}>
+                  <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>{idx + 1}</td>
+                  <td style={{ border: '1px solid #ccc', padding: 8 }}>
+                    <div style={{ fontWeight: 700 }}>{item.name || item.description || '-'}</div>
+                    {item.description && (
+                      <div style={{ fontWeight: 400, color: '#444', whiteSpace: 'pre-line' }}>{item.description}</div>
+                    )}
+                  </td>
+                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{item.hsn_code || ''}</td>
+                  <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>{item.qty}</td>
+                  <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'right' }}>{item.rate.toFixed(2)}</td>
+                  <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'right' }}>{item.amount.toFixed(2)}</td>
+                  <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'right', fontWeight: 600 }}>{item.gstAmt.toFixed(2)}<br /><span style={{ fontWeight: 400, fontSize: 12 }}>({item.gstP}%)</span></td>
+                  <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'right', fontWeight: 700 }}>{item.costAfterTax.toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {/* Summary - Totals */}
-        <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid #e0e0e0', marginTop: 16 }}>
-          <div style={{ fontSize: 14, color: '#555', fontWeight: 600 }}>
-            Total Amount: <span style={{ fontWeight: 700, fontSize: 16 }}>₹ {invoice.grand_total}</span>
-          </div>
-          <div style={{ fontSize: 14, color: '#555', fontWeight: 600 }}>
-            Amount in Words: <span style={{ fontWeight: 400 }}>{amountInWords}</span>
-          </div>
+        {/* Summary Table - classic style */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 0, paddingRight: 32 }}>
+          <table style={{ fontSize: 15, fontWeight: 600, minWidth: 320, background: '#fff' }}>
+            <tbody>
+              <tr>
+                <td style={{ textAlign: 'right', padding: '4px 8px' }}>TOTAL</td>
+                <td style={{ textAlign: 'right', padding: '4px 0' }}>{total.toFixed(2)}</td>
+              </tr>
+              {discount > 0 && (
+                <tr>
+                  <td style={{ textAlign: 'right', padding: '4px 8px' }}>DISCOUNT</td>
+                  <td style={{ textAlign: 'right', padding: '4px 0' }}>{discount.toFixed(2)}</td>
+                </tr>
+              )}
+              <tr>
+                <td style={{ textAlign: 'right', padding: '4px 8px' }}>NET TOTAL</td>
+                <td style={{ textAlign: 'right', padding: '4px 0' }}>{netTotal.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td style={{ textAlign: 'right', padding: '4px 8px' }}>GST Rate</td>
+                <td style={{ textAlign: 'right', padding: '4px 0' }}>{scaledItems.length > 0 ? scaledItems[0].gstP : 18}%</td>
+              </tr>
+              <tr>
+                <td style={{ textAlign: 'right', padding: '4px 8px' }}>CGST</td>
+                <td style={{ textAlign: 'right', padding: '4px 0' }}>{cgst.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td style={{ textAlign: 'right', padding: '4px 8px' }}>SGST</td>
+                <td style={{ textAlign: 'right', padding: '4px 0' }}>{sgst.toFixed(2)}</td>
+              </tr>
+              <tr style={{ fontWeight: 'bold', fontSize: 17 }}>
+                <td style={{ textAlign: 'right', padding: '4px 8px', color: '#d32f2f' }}>GRAND TOTAL</td>
+                <td style={{ textAlign: 'right', padding: '4px 0' }}>{grandTotal.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        {/* Footer - QR Code and UPI ID */}
-        <div className="invoice-footer" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e0e0e0', marginTop: 24 }}>
-          <div style={{ flex: 1, fontSize: 12, color: '#777', lineHeight: 1.6 }}>
-            Thank you for your business! Please make the payment within 15 days.
-          </div>
-          <div style={{ flex: 1.2, textAlign: 'center', borderLeft: '1px solid #e0e0e0', paddingLeft: 14 }}>
-            {/* <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Scan to Pay</div> */}
-            <img src={qrBase64 || qrUrl} alt="UPI QR" style={{ height: 150, width: 150, objectFit: 'contain', border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff', marginBottom: 12 }} />
-            {/* <div style={{ fontSize: 12, color: '#888', marginBottom: 16, fontWeight: 500 }}>UPI ID: signcompany@idfcbank</div> */}
-            <div style={{ fontSize: 12, color: '#888', marginBottom: 0, fontWeight: 500 }}>For any queries, contact us at support@signcompany.com</div>
+        {/* Amount in Words */}
+        <div style={{ fontSize: 15, fontWeight: 700, margin: '24px 0 0 32px', color: '#232323' }}>
+          Amount Chargeable (in words)
+        </div>
+        <div style={{ fontSize: 15, margin: '0 0 8px 32px', color: '#232323' }}>{amountInWords}</div>
+        {/* Terms & Conditions and Bank Details */}
+        <div style={{ margin: '24px 32px 0 32px', fontSize: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 32, marginBottom: 16 }}>
+            <div style={{ flex: 2 }}>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>Bank & Payment Details</div>
+              <div>Company name: Sign Company</div>
+              <div>Account number: 59986534909</div>
+              <div>IFSC: IDFB0080184</div>
+              <div>SWIFT code: IDFBINBBMUM</div>
+              <div>Bank name: IDFC FIRST</div>
+              <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
+              <div>UPI ID: signcompany@idfcbank</div>
+            </div>
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <img src={qrBase64 || qrUrl} alt="UPI QR" style={{ height: 150, width: 150, objectFit: 'contain', border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff', marginBottom: 12 }} />
+            </div>
           </div>
         </div>
       </div>
