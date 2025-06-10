@@ -325,7 +325,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
           <div>
             <div style='font-size: 22px; font-weight: bold; color: #0a3d62;'>Sign Company</div>
             <div style='font-size: 12px; color: #555;'>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore - 560 075</div>
-            <div style='font-size: 12px; color: #555;'>M: +91 8431505007 | GSTN: 29BPYPK6641B2Z6 | PAN: BPYPK6641B</div>
+            <div style='font-size: 12px; color: #555;'>M: +91 8431505007 | GSTN: 29BPYPPK6641B2Z6 | PAN: BPYPPK6641B</div>
           </div>
         </div>
         <div style='display: flex; justify-content: space-between; margin-bottom: 10px;'>
@@ -421,8 +421,8 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
               <div>Bank name: IDFC FIRST</div>
               <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
               <div>UPI ID: signcompany@idfcbank</div>
-              <div style='margin-top: 10px;'>GSTN: 29BPYPK6641B2Z6</div>
-              <div>PAN: BPYPK6641B</div>
+              <div style='margin-top: 10px;'>GSTN: 29BPYPPK6641B2Z6</div>
+              <div>PAN: BPYPPK6641B</div>
             </div>
             <div style='flex: 1; text-align: center;'>
               <div style='font-weight: 700; margin-bottom: 8px;'>SCAN & PAY</div>
