@@ -165,11 +165,11 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
               var root = document.getElementById('pdf-root');
               if (window.html2pdf) {
                 html2pdf().set({
-                  margin: 0.2,
+                  margin: [10, 10, 20, 10], // top, right, bottom, left (in mm)
                   filename: 'Signage_Estimate_${orderId}.pdf',
                   image: { type: 'jpeg', quality: 0.98 },
                   html2canvas: { scale: 2 },
-                  jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 }).from(root).save();
               } else {
                 setTimeout(exportPDF, 200);
@@ -336,8 +336,8 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
           margin: 32px auto 0 auto;
           border-radius: 12px;
           box-shadow: 0 4px 24px #dbeafe99;
-          padding: 32px 32px 80px 32px;
-          min-height: 900px;
+          padding: 32px 32px 120px 32px; /* Increased bottom padding to prevent clipping */
+          min-height: 1122px; /* Ensure full A4 height at 96dpi */
           position: relative;
         }
         .pdf-header {

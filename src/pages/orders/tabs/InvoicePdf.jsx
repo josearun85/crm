@@ -454,7 +454,7 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode, allBoq
               <div>SWIFT code: IDFBINBBMUM</div>
               <div>Bank name: IDFC FIRST</div>
               <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
-              <div>UPI ID: signcompany@idfcbank</div>
+              {/* <div>UPI ID: signcompany@idfcbank</div> */}
             </div>
             <div style={{ flex: 1, textAlign: 'center' }}>
               <img src={qrBase64 || qrUrl} alt="UPI QR" style={{ height: 150, width: 150, objectFit: 'contain', border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff', marginBottom: 12 }} />
