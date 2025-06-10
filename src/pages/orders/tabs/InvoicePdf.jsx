@@ -120,7 +120,6 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
   // invoice: { number, date, place_of_supply, sgst, cgst, total, ... }
   // customer: { name, address, gstin }
   // items: [{ description, hsn_code, qty, unit, rate, amount }]
-  const amountInWords = invoice.amount_in_words || numberToWords(invoice.grand_total || 0);
   // Base64 image state
   const [logoBase64, setLogoBase64] = useState(null);
   const [qrBase64, setQrBase64] = useState(null);
@@ -163,6 +162,9 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
   const sgst = items.reduce((sum, item) => sum + (Number(item.amount) * 0.09), 0);
   const cgst = items.reduce((sum, item) => sum + (Number(item.amount) * 0.09), 0);
   const grandTotal = taxableValue + sgst + cgst;
+
+  // Always use computed grandTotal for amount in words
+  const amountInWords = numberToWords(grandTotal);
 
   return (
     <>
@@ -243,9 +245,9 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
             Thank you for your business! Please make the payment within 15 days.
           </div>
           <div style={{ flex: 1.2, textAlign: 'center', borderLeft: '1px solid #e0e0e0', paddingLeft: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Scan to Pay</div>
-            <img src={qrBase64 || qrUrl} alt="UPI QR" style={{ height: 120, width: 120, objectFit: 'contain', border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff', marginBottom: 12 }} />
-            <div style={{ fontSize: 12, color: '#888', marginBottom: 16, fontWeight: 500 }}>UPI ID: signcompany@idfcbank</div>
+            {/* <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Scan to Pay</div> */}
+            <img src={qrBase64 || qrUrl} alt="UPI QR" style={{ height: 150, width: 150, objectFit: 'contain', border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff', marginBottom: 12 }} />
+            {/* <div style={{ fontSize: 12, color: '#888', marginBottom: 16, fontWeight: 500 }}>UPI ID: signcompany@idfcbank</div> */}
             <div style={{ fontSize: 12, color: '#888', marginBottom: 0, fontWeight: 500 }}>For any queries, contact us at support@signcompany.com</div>
           </div>
         </div>

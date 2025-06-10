@@ -158,8 +158,8 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
           </div>
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>SCAN & PAY</div>
-            <img src="/qr.png" alt="UPI QR" style={{ height: 120, width: 120, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff', marginBottom: 8 }} />
-            <div style={{ fontSize: 12, color: '#888', marginBottom: 8, fontWeight: 500 }}>UPI ID: signcompany@idfcbank</div>
+            <img src="/qr.png" alt="UPI QR" style={{ height: 150, width: 150, objectFit: 'contain', border: '1px solid #ccc', borderRadius: 8, background: '#fff', marginBottom: 8 }} />
+            {/* <div style={{ fontSize: 12, color: '#888', marginBottom: 8, fontWeight: 500 }}>UPI ID: signcompany@idfcbank</div> */}
           </div>
         </div>
         <div style={{ marginBottom: 16 }}>
