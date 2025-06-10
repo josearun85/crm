@@ -21,7 +21,7 @@ const printStyles = `
       height: auto !important;
       min-height: 0 !important;
       max-height: none !important;
-      margin: 0 !important;
+      margin: 0 auto !important;
       padding: 0 !important;
       border: none !important;
       box-shadow: none !important;
@@ -80,21 +80,18 @@ const printStyles = `
   @media screen {
     .invoice-container {
       min-height: 100vh;
-      width: 210mm;
-      min-height: 297mm;
+      width: 794px;
+      max-width: 100vw;
       margin: 24px auto;
-      box-shadow: 0 0 0 2px #1976d2, 0 2px 8px #0002;
-      border: 2px dashed #1976d2;
+      box-shadow: 0 2px 8px #0002;
+      border: 1px solid #e0e0e0;
       background: #fff;
       position: relative;
+      border-radius: 12px;
+      padding: 0;
     }
     .a4-outline {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      border: 2px dashed #1976d2;
-      pointer-events: none;
-      z-index: 10;
-      display: block;
+      display: none !important;
     }
   }
 `;
@@ -147,12 +144,12 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
           boxShadow: isPdfMode ? 'none' : '0 2px 8px #0001',
           padding: 0,
           position: 'relative',
-          margin: isPdfMode ? '0' : '24px auto',
-          padding: isPdfMode ? '0' : undefined,
+          margin: isPdfMode ? '0 auto' : '24px auto',
+          // Remove blue border and fit content
         }}
       >
         {/* A4 outline for preview only, not for PDF */}
-        {!isPdfMode && <div className="a4-outline" />}
+        {/* Removed blue dashed border */}
         {/* Header */}
         <div className="invoice-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e0e0e0', padding: isPdfMode ? '0 28px 12px 28px' : '24px 28px 12px 28px', borderTopLeftRadius: isPdfMode ? 0 : 12, borderTopRightRadius: isPdfMode ? 0 : 12, background: '#fafbfc', marginTop: 0 }}>
           <div>
@@ -161,7 +158,7 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
           <div style={{ textAlign: 'right', fontSize: 13, lineHeight: 1.5 }}>
             <div style={{ fontWeight: 700, fontSize: 18, color: '#232323', letterSpacing: 0.2, fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase' }}>Sign Company</div>
             <div style={{ color: '#444' }}>Shed #7, No.120, Malleshpalya Main Road,<br />New Thippasandra Post, Bangalore - 560 075</div>
-            <div style={{ color: '#444' }}>PHONE: <b>8431550507</b></div>
+            <div style={{ color: '#444' }}>PHONE: <b>8431505007</b></div>
             <div style={{ color: '#444' }}>GSTN: <b>29BPYPK6641B2Z6</b></div>
           </div>
         </div>
@@ -265,7 +262,7 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
           <div style={{ flex: 2, paddingRight: 14 }}>
             <div style={{ fontWeight: 600, color: '#232323', marginBottom: 4, fontFamily: 'Inter, Helvetica, Arial, sans-serif', fontSize: 13 }}>Amount Chargeable (in words)</div>
             <div style={{ fontWeight: 500, color: '#232323', marginBottom: 8 }}>{amountInWords}</div>
-            <div style={{ color: '#444', fontWeight: 400 }}>Company's PAN: <b>BYPPK6641B</b></div>
+            <div style={{ color: '#444', fontWeight: 400 }}>Company's PAN: <b>29BYPPK6641B2Z6</b></div>
             <div style={{ color: '#444', fontWeight: 400 }}>Payment Terms: <b>Immediate</b></div>
             <div style={{ color: '#444', fontWeight: 400 }}>Note-Please make cheques in favor of <b>"SIGN COMPANY"</b></div>
           </div>
