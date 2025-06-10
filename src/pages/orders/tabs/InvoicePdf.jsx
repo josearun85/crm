@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { getSignageItemTotalWithMargin } from '../../../services/orderService';
 
 // Add CSS styles for print layout
 const printStyles = `
@@ -256,20 +255,26 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode, allBoq
   }
   const boqsMap = getBoqsMap();
   // Helper: get GST-billable scaling factor (copied from SignageItemsTab)
-  function getGstBillableScaling(items) {
+  function getGstBillableScaling() {
+    // Try to get from invoice, fallback to 1
     if (typeof invoice.gstBillablePercent !== 'undefined' && invoice.gstBillablePercent !== null && invoice.gstBillablePercent !== '' && Number(invoice.gstBillablePercent) !== 100) {
       return Number(invoice.gstBillablePercent) / 100;
     }
-    const billable = Number(invoice.gstBillableAmount);
-    if (!billable || !items.length) return 1;
-    const originalTotal = items.reduce((sum, item) => sum + Number(item.cost || 0), 0);
-    if (!originalTotal || billable === originalTotal) return 1;
-    return billable / originalTotal;
+    if (typeof invoice.gstBillableAmount !== 'undefined' && invoice.gstBillableAmount !== null && invoice.gstBillableAmount !== '' && items.length) {
+      const billable = Number(invoice.gstBillableAmount);
+      const originalTotal = items.reduce((sum, item) => sum + getSignageItemTotalWithMargin(item), 0);
+      if (originalTotal && billable !== originalTotal) {
+        return billable / originalTotal;
+      }
+    }
+    return 1;
   }
-  // Helper: get signage item total with margin (copied from SignageItemsTab)
+  // Helper: get signage item total with margin (shared logic, used for both table and PDF)
   function getSignageItemTotalWithMargin(item) {
+    // Find all BOQ items for this signage item
     const itemBoqs = allBoqs.filter(b => b.signage_item_id === item.id);
     const boqTotal = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
+    // Use margin logic if present
     if (item.total_with_margin && Number(item.total_with_margin) > 0) {
       return Number(item.total_with_margin);
     } else if (item.margin_percent && Number(item.margin_percent) > 0) {
@@ -278,9 +283,8 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode, allBoq
       return boqTotal;
     }
   }
-  // Helper: get scaled rate for an item (uses margin logic, fallback if no BOQs)
   function getScaledRate(item) {
-    const scaling = getGstBillableScaling(items);
+    const scaling = getGstBillableScaling();
     const totalWithMargin = getSignageItemTotalWithMargin(item) * scaling;
     const qty = Number(item.quantity ?? item.qty) || 1;
     if (!qty) return 0;
@@ -289,20 +293,7 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode, allBoq
   // Compute scaled items (with margin logic, always compute rate and amount from margin logic)
   const scaledItems = items.map(item => {
     const qty = Number(item.quantity ?? item.qty) || 1;
-    // Always compute rate from margin logic, never trust item.rate
-    const scaling = getGstBillableScaling(items);
-    const itemBoqs = allBoqs.filter(b => b.signage_item_id === item.id);
-    const boqTotal = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
-    let totalWithMargin;
-    if (item.total_with_margin && Number(item.total_with_margin) > 0) {
-      totalWithMargin = Number(item.total_with_margin);
-    } else if (item.margin_percent && Number(item.margin_percent) > 0) {
-      totalWithMargin = boqTotal * (1 + Number(item.margin_percent) / 100);
-    } else {
-      totalWithMargin = boqTotal;
-    }
-    totalWithMargin = totalWithMargin * scaling;
-    const rate = qty ? totalWithMargin / qty : 0;
+    const rate = getScaledRate(item);
     const amount = rate * qty;
     const gstP = Number(item.gst_percent ?? 18);
     const gstAmt = amount * gstP / 100;
@@ -321,33 +312,6 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode, allBoq
   const cgst = gst / 2;
   const grandTotal = netTotal + gst;
   const amountInWords = numberToWords(grandTotal);
-
-  // --- Classic Tax Invoice Layout ---
-  // Calculate per-item GST and cost after tax (match SignageItemsTab logic)
-  const getGstPercent = (item) => item.gst_percent || gstPercent;
-  const itemRows = items.map((item, idx) => {
-    const rate = Number(item.rate);
-    const qty = Number(item.qty);
-    const amount = Number(item.amount);
-    const gstP = getGstPercent(item);
-    const gstAmt = amount * gstP / 100;
-    const costAfterTax = amount + gstAmt;
-    return {
-      ...item,
-      idx: idx + 1,
-      rate,
-      qty,
-      amount,
-      gstP,
-      gstAmt,
-      costAfterTax,
-    };
-  });
-  // GST summary (SGST/CGST split)
-  const sgstClassic = gst / 2;
-  const cgstClassic = gst / 2;
-  // Final total (classic: grandTotal = netTotal + gst)
-  const grandTotalClassic = netTotal + gst;
 
   return (
     <>

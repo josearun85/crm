@@ -3,10 +3,8 @@ import html2pdf from "html2pdf.js";
 import SignageItemsPdf from "./SignageItemsPdf";
 import InvoicePdf from "./InvoicePdf";
 import { fetchSignageItems, fetchBoqItems, addBoqItem, deleteBoqItem, updateBoqItem, addSignageItem, updateSignageItem, deleteSignageItem, fetchProcurementTasks, ensureFabricationStepsForSignageItems, fetchInventory, addFeedNote, fetchOrderOverview, updateOrderDetails, fetchOrderFiles } from "../services/orderDetailsService";
-import { createRoot } from "react-dom/client";
-import UnitInput from "../../../components/UnitInput";
+import { createRoot } from 'react-dom/client';
 import supabase from '../../../supabaseClient';
-import { generateInvoicePdf } from '../../../services/generateInvoicePdf';
 import BoqTab from './BoqTab';
 
 const unitOptions = [
@@ -81,10 +79,12 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     return billable / originalTotal;
   }
 
-  // Helper: get signage item total with margin (shared logic)
+  // Helper: get signage item total with margin (shared logic, used for both table and PDF)
   function getSignageItemTotalWithMargin(item) {
+    // Find all BOQ items for this signage item
     const itemBoqs = allBoqs.filter(b => b.signage_item_id === item.id);
     const boqTotal = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
+    // Use margin logic if present
     if (item.total_with_margin && Number(item.total_with_margin) > 0) {
       return Number(item.total_with_margin);
     } else if (item.margin_percent && Number(item.margin_percent) > 0) {
@@ -199,24 +199,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
       const { data: boqsData = [] } = await supabase.from('boq_items').select('*').in('signage_item_id', signageItemIds);
       boqs = boqsData;
     }
-    // Prepare items for InvoicePdf (match order page logic)
-    const items = signageItems.filter(i => i.name || i.description).map(item => {
-      const itemBoqs = boqs.filter(b => b.signage_item_id === item.id);
-      const totalCost = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
-      const qty = Number(item.quantity) || 1;
-      const rate = totalCost / qty;
-      return {
-        name: item.name || '',
-        description: item.description || '',
-        hsn_code: item.hsn_code || '',
-        qty: qty,
-        unit: item.unit || '',
-        rate: rate,
-        amount: (rate * qty).toFixed(2),
-        gst_percent: item.gst_percent || 18,
-      };
-    });
-    // Open a new tab and render the invoice preview
+    // Pass raw signageItems and allBoqs to InvoicePdf
     const previewWindow = window.open('', '_blank');
     if (!previewWindow) {
       alert('Popup blocked! Please allow popups for this site.');
@@ -259,7 +242,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
       const reactRoot = createRoot(root);
       reactRoot.render(
         InvoicePdf ?
-          React.createElement(InvoicePdf, { invoice: order, customer, items, isPdfMode: true }) :
+          React.createElement(InvoicePdf, { invoice: order, customer, items: signageItems, isPdfMode: true, allBoqs: boqs }) :
           null
       );
     };
@@ -745,86 +728,55 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
   // Helper to handle blur for signage item fields
   const handleItemBlur = async (idx, field, value) => {
     const item = items[idx];
-    if (!item) return;
-    if (item.id) {
-      await updateSignageItem(item.id, { ...item, [field]: value });
-      const user = await import('../../../supabaseClient').then(m => m.default.auth.getUser());
-      await addFeedNote({
-        type: 'feed',
-        content: `Signage item updated by ${user?.data?.user?.email || 'Unknown'}`,
-        signage_item_id: item.id,
-        orderId,
-        created_by: user?.data?.user?.id,
-        created_by_name: user?.data?.user?.user_metadata?.full_name || '',
-        created_by_email: user?.data?.user?.email || ''
-      });
+    if (!item || !item.id) return; // Only update existing items
+    // Trim string values
+    const processedValue = typeof value === 'string' ? value.trim() : value;
+    // Avoid unnecessary updates if the value hasn't changed
+    if (item[field] === processedValue) return;
+    try {
+      await updateSignageItem(item.id, { [field]: processedValue });
+      // No need to refetch, local state is source of truth until refresh
+    } catch (err) {
+      console.error(`Failed to update item ${field}`, err);
+      // Optionally revert or show error
     }
   };
 
-  // Helper: get total BOQ cost for a signage item
-  function getSignageBoqTotal(signageItemId) {
-    return allBoqs.filter(b => b.signage_item_id === signageItemId)
-      .reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
-  }
 
-  // Handler for margin % change
-  const handleMarginPercentChange = (signageItem, val) => {
-    const boqTotal = getSignageBoqTotal(signageItem.id);
-    const marginPercent = parseFloat(val) || 0;
-    const totalWithMargin = boqTotal * (1 + marginPercent / 100);
-    setMarginEdit(edit => ({
-      ...edit,
-      [signageItem.id]: {
-        marginPercent: val,
-        totalWithMargin: totalWithMargin.toFixed(2),
-        lastEdited: 'margin',
-      },
-    }));
-    // Also update signage item in state for instant UI
-    setItems(items => items.map(it => it.id === signageItem.id ? { ...it, margin_percent: marginPercent, total_with_margin: totalWithMargin.toFixed(2) } : it));
-  };
-
-  // Handler for total change
-  const handleTotalWithMarginChange = (signageItem, val) => {
-    const boqTotal = getSignageBoqTotal(signageItem.id);
-    const totalWithMargin = parseFloat(val) || 0;
-    const marginPercent = boqTotal === 0 ? 0 : ((totalWithMargin / boqTotal - 1) * 100);
-    setMarginEdit(edit => ({
-      ...edit,
-      [signageItem.id]: {
-        marginPercent: marginPercent.toFixed(2),
-        totalWithMargin: val,
-        lastEdited: 'total',
-      },
-    }));
-    // Also update signage item in state for instant UI
-    setItems(items => items.map(it => it.id === signageItem.id ? { ...it, margin_percent: marginPercent.toFixed(2), total_with_margin: val } : it));
-  };
-
-  // Handler to persist margin/total to backend
-  const handleMarginBlur = async (signageItem) => {
-    const edit = marginEdit[signageItem.id];
-    if (!edit) return;
-    const boqTotal = getSignageBoqTotal(signageItem.id);
-    // If totalWithMargin is empty or 0, recalculate from marginPercent
-    let totalWithMargin = parseFloat(edit.totalWithMargin);
-    if (!totalWithMargin && edit.marginPercent) {
-      totalWithMargin = boqTotal * (parseFloat(edit.marginPercent) / 100 + 1);
+  // Fetch initial data
+  useEffect(() => {
+    async function fetchData() {
+      const [signageItemsData, boqsData, orderOverviewData, procurementTasksData, inventoryData] = await Promise.all([
+        fetchSignageItems(orderId),
+        fetchBoqItems(orderId),
+        fetchOrderOverview(orderId),
+        fetchProcurementTasks(orderId),
+        fetchInventory(),
+      ]);
+      setItems(signageItemsData.sort((a, b) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity)));
+      setAllBoqs(boqsData);
+      if (orderOverviewData) {
+        setCustomer(orderOverviewData.customer || {}); // Ensure customer is an object
+        setDiscount(orderOverviewData.discount || 0);
+        if (orderOverviewData.customer?.gstin) {
+          setCustomerGstin(orderOverviewData.customer.gstin);
+        }
+        if (orderOverviewData.customer?.pan) {
+          setCustomerPan(orderOverviewData.customer.pan);
+        }
+      }
+      const boqIdsWithTasks = new Set(procurementTasksData.map(task => task.boq_item_id));
+      setProcuredBoqIds(boqIdsWithTasks);
+      const tasksMap = procurementTasksData.reduce((acc, task) => {
+        if (!acc[task.boq_item_id]) acc[task.boq_item_id] = [];
+        acc[task.boq_item_id].push(task);
+        return acc;
+      }, {});
+      setProcurementTasksByBoqId(tasksMap);
+      setInventory(inventoryData);
     }
-    const updates = {
-      margin_percent: parseFloat(edit.marginPercent) || 0,
-      total_with_margin: totalWithMargin || 0,
-    };
-    await updateSignageItem(signageItem.id, updates);
-    fetchSignageItems(orderId).then(setItems).catch(console.error);
-    setMarginEdit(editState => {
-      const next = { ...editState };
-      delete next[signageItem.id];
-      return next;
-    });
-  };
-
-  // Remove react-beautiful-dnd imports
+    fetchData();
+  }, [orderId, setCustomerGstin, setCustomerPan]);
 
   // --- Keyboard navigation for BOQ table ---
   const boqCellRefs = useRef({}); // { [rowIdx_colIdx]: ref }
