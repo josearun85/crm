@@ -153,17 +153,10 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode, allBoq
     }
     return '-';
   }
-
+  console.log('InvoicePdf: invoice', invoice);
   const invoiceNumber = getFirstNonEmpty(
     invoice.invoice_number,
-    invoice.number,
-    invoice.invoiceNo,
-    invoice.no,
-    invoice.id,
-    invoice.id_number,
-    invoice.idNumber,
     invoice?.meta?.invoice_number,
-    invoice?.meta?.number,
     '-'
   );
   const invoiceDate = getFirstNonEmpty(

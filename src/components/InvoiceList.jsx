@@ -268,23 +268,19 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
       const { data: boqsData = [] } = await supabase.from('boq_items').select('*').in('signage_item_id', signageItemIds);
       boqs = boqsData;
     }
-    // Prepare items for InvoicePdf (match order page logic)
-    const items = signageItems.filter(i => i.name || i.description).map(item => {
-      const itemBoqs = boqs.filter(b => b.signage_item_id === item.id);
-      const totalCost = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
-      const qty = Number(item.quantity) || 1;
-      const rate = totalCost / qty;
-      return {
-        name: item.name || '',
-        description: item.description || '',
-        hsn_code: item.hsn_code || '',
-        qty: qty,
-        unit: item.unit || '',
-        rate: rate,
-        amount: (rate * qty).toFixed(2),
-        gst_percent: item.gst_percent || 18,
-      };
-    });
+    // Calculate scaling for GST billable percent/amount
+    let scaling = 1;
+    if (order.gst_billable_percent !== undefined && order.gst_billable_percent !== null && order.gst_billable_percent !== '' && Number(order.gst_billable_percent) !== 100) {
+      scaling = Number(order.gst_billable_percent) / 100;
+    } else if (order.gst_billable_amount && signageItems.length) {
+      const originalTotal = signageItems.reduce((sum, item) => sum + Number(item.cost || 0), 0);
+      if (originalTotal && Number(order.gst_billable_amount) !== originalTotal) {
+        scaling = Number(order.gst_billable_amount) / originalTotal;
+      }
+    }
+    // Prepare items for InvoicePdf (match SignageItemsTab logic)
+    // Pass raw signageItems and allBoqs, not mapped/flattened items
+    // InvoicePdf will handle margin/BOQ logic
     // Compose all header fields for InvoicePdf
     const invoiceData = {
       ...inv,
@@ -294,6 +290,7 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
       po_number: order.po_number || inv.po_number || '',
       po_date: order.po_date || inv.po_date || '',
       status: inv.status,
+      discount: typeof inv.discount !== 'undefined' && inv.discount !== null ? inv.discount : (order.discount || 0),
     };
     // Open a new tab and render the invoice preview
     const previewWindow = window.open('', '_blank');
@@ -338,7 +335,13 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
       const reactRoot = createRoot(root);
       reactRoot.render(
         InvoicePdf ?
-          React.createElement(InvoicePdf, { invoice: invoiceData, customer, items, isPdfMode: true }) :
+          React.createElement(InvoicePdf, {
+            invoice: invoiceData,
+            customer,
+            items: signageItems, // pass raw signageItems
+            allBoqs: boqs,       // pass raw boqs
+            isPdfMode: true
+          }) :
           null
       );
     };

@@ -199,7 +199,34 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
       const { data: boqsData = [] } = await supabase.from('boq_items').select('*').in('signage_item_id', signageItemIds);
       boqs = boqsData;
     }
-    // Pass raw signageItems and allBoqs to InvoicePdf
+
+    // Try to fetch invoice for this order
+    let invoiceNumber = order.invoice_number || order.number || null;
+    const { data: invoiceArr = [] } = await supabase.from('invoices').select('*').eq('order_id', orderId).order('created_at', { ascending: false });
+    if (invoiceArr.length > 0 && invoiceArr[0].invoice_number) {
+      invoiceNumber = invoiceArr[0].invoice_number;
+    }
+    // Construct the invoice object
+    const invoice = {
+      ...order,
+      invoice_number: invoiceNumber || 'DRAFT',
+      customer,
+      items: signageItems,
+      boqs,
+      discount,
+      totalCost: 0, // Will be calculated
+      netTotal: 0,   // Will be calculated
+      gst: 0,        // Will be calculated
+      grandTotal: 0, // Will be calculated
+    };
+
+    // Calculate totals for the invoice
+    invoice.totalCost = signageItems.reduce((sum, item) => sum + (getScaledRate(item) * (Number(item.quantity) || 1)), 0);
+    invoice.netTotal = invoice.totalCost - discount;
+    invoice.gst = signageItems.reduce((sum, item) => sum + ((item.gst_percent || 18) * getScaledRate(item) * (Number(item.quantity) || 1) / 100), 0);
+    invoice.grandTotal = invoice.netTotal + invoice.gst;
+
+    // Pass the constructed invoice to InvoicePdf
     const previewWindow = window.open('', '_blank');
     if (!previewWindow) {
       alert('Popup blocked! Please allow popups for this site.');
@@ -242,7 +269,13 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
       const reactRoot = createRoot(root);
       reactRoot.render(
         InvoicePdf ?
-          React.createElement(InvoicePdf, { invoice: order, customer, items: signageItems, isPdfMode: true, allBoqs: boqs }) :
+          React.createElement(InvoicePdf, {
+            invoice,
+            items: Array.isArray(signageItems) ? signageItems : [],
+            customer: customer || {},
+            allBoqs: Array.isArray(boqs) ? boqs : [],
+            isPdfMode: true
+          }) :
           null
       );
     };
