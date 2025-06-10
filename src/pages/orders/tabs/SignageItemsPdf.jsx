@@ -153,8 +153,8 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
             <div>Bank name: IDFC FIRST</div>
             <div>Branch: JEEVAN BIMA NAGAR BRANCH</div>
             <div>UPI ID: signcompany@idfcbank</div>
-            <div style={{ marginTop: 10 }}>GSTN: 29BPYPK6641B2Z6</div>
-            <div>PAN: BPYPK6641B</div>
+            <div style={{ marginTop: 10 }}>GSTN: 29BYPPK6641B2Z6</div>
+            <div>PAN: BPYPPK6641B</div>
           </div>
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>SCAN & PAY</div>
@@ -168,7 +168,7 @@ export default function SignageItemsPdf({ items, allBoqs, discount, gstPercent, 
           <div style={{ fontWeight: 'bold', marginTop: 16 }}>Authorized Signatory</div>
         </div>
         <div style={{ fontSize: 11, color: '#888', textAlign: 'right', borderTop: '1px solid #eee', paddingTop: 8 }}>
-          Generated on 4 June 2025
+          {/* Generated on 4 June 2025 */}
         </div>
       </div>
     </div>

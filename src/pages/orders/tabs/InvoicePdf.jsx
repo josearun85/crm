@@ -126,6 +126,21 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
   const logoUrl = baseUrl + '/logo.png';
   const qrUrl = baseUrl + '/qr.png';
 
+  // In InvoicePdf, show Place of Supply and Invoice Number/Date in the header
+  // Find the correct values from props
+  const invoiceNumber = invoice.invoice_number || invoice.number || '-';
+  const invoiceDate = invoice.invoice_date ? new Date(invoice.invoice_date).toLocaleDateString('en-IN') : '-';
+  const placeOfSupply = invoice.place_of_supply || customer?.place_of_supply || '-';
+
+  // --- Totals Calculation ---
+  const total = items.reduce((sum, item) => sum + Number(item.amount), 0);
+  const discount = Number(invoice.discount) || 0;
+  const taxableValue = total - discount;
+  // Assume 9% SGST and 9% CGST for all items (or use item.gst_percent if needed)
+  const sgst = items.reduce((sum, item) => sum + (Number(item.amount) * 0.09), 0);
+  const cgst = items.reduce((sum, item) => sum + (Number(item.amount) * 0.09), 0);
+  const grandTotal = taxableValue + sgst + cgst;
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
@@ -147,21 +162,21 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
           // Remove blue border and fit content
         }}
       >
-        {/* A4 outline for preview only, not for PDF */}
-        {/* Removed blue dashed border */}
         {/* Header */}
-        <div className="invoice-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e0e0e0', padding: isPdfMode ? '0 28px 12px 28px' : '24px 28px 12px 28px', borderTopLeftRadius: isPdfMode ? 0 : 12, borderTopRightRadius: isPdfMode ? 0 : 12, background: '#fafbfc', marginTop: 0 }}>
-          <div>
-            <img src={logoUrl} alt="Sign Company Logo" style={{ height: 90, width: 90, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e0e0e0', background: '#fff', boxShadow: '0 1px 4px #0001' }} />
+        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '2px solid #0a3d62', padding: '0 0 12px 0', marginBottom: 0, background: '#fafbfc' }}>
+          <img src={logoUrl} alt="Sign Company Logo" style={{ height: 80, width: 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid #ffe066', background: '#fff', marginRight: 24 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#0a3d62', letterSpacing: 1, fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase', marginBottom: 2 }}>SIGN COMPANY</div>
+            <div style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bengaluru - 560 075</div>
+            <div style={{ fontSize: 14, color: '#222', fontWeight: 500 }}>PHONE: <b>8431555050</b> &nbsp;|&nbsp; GSTN: <b>29BPYPK6641B2Z6</b></div>
           </div>
-          <div style={{ textAlign: 'right', fontSize: 13, lineHeight: 1.5 }}>
-            <div style={{ fontWeight: 700, fontSize: 18, color: '#232323', letterSpacing: 0.2, fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase' }}>Sign Company</div>
-            <div style={{ color: '#444' }}>Shed #7, No.120, Malleshpalya Main Road,<br />New Thippasandra Post, Bangalore - 560 075</div>
-            <div style={{ color: '#444' }}>PHONE: <b>8431505007</b></div>
-            <div style={{ color: '#444' }}>GSTN: <b>29BYPPK6641B2Z6</b></div>
-          </div>
+          {/* <div style={{ textAlign: 'right', minWidth: 260 }}>
+            <div style={{ fontWeight: 700, fontSize: 22, color: '#0a3d62', letterSpacing: 0.2, fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase', marginBottom: 2 }}>TAX INVOICE</div>
+            <div style={{ fontWeight: 600, fontSize: 15, color: '#232323', marginBottom: 2 }}>Invoice No: <span style={{ color: '#d32f2f' }}>{invoiceNumber}</span></div>
+            <div style={{ fontWeight: 600, fontSize: 15, color: '#232323', marginBottom: 2 }}>Date: <span style={{ color: '#232323' }}>{invoiceDate}</span></div>
+            <div style={{ fontWeight: 600, fontSize: 15, color: '#232323' }}>Place of Supply: <span style={{ color: '#232323' }}>Bengaluru</span></div>
+          </div> */}
         </div>
-        <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 14, letterSpacing: 1, color: '#d32f2f', background: '#fff', padding: '10px 0 10px 0', borderBottom: '1px solid #e0e0e0', fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase' }}>Tax Invoice</div>
         
         {/* Bill to, Place of Supply, Invoice No, Date */}
         <div style={{ display: 'flex', borderBottom: '1px solid #e0e0e0', fontSize: 13, background: '#fafbfc', padding: '16px 28px', gap: 18 }}>
@@ -173,11 +188,11 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
           </div>
           <div style={{ flex: 1, borderRight: '1px solid #e0e0e0', paddingLeft: 14, paddingRight: 14 }}>
             <div style={{ fontWeight: 600, color: '#232323', marginBottom: 2, fontSize: 13 }}>Place of Supply</div>
-            <div style={{ fontWeight: 500 }}>{invoice.place_of_supply}</div>
+            <div style={{ fontWeight: 500 }}>Bengaluru</div>
           </div>
           <div style={{ flex: 1, paddingLeft: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#d32f2f', fontSize: 13 }}>
-              <span>{invoice.status === 'Draft' ? 'DRAFT' : <span>INVOICE No: <span style={{ color: '#d32f2f' }}>{invoice.number}</span></span>}</span>
+              <span>{invoice.status === 'Draft' ? 'DRAFT' : <span>INVOICE No: <span style={{ color: '#d32f2f' }}>{invoice.invoice_number}</span></span>}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
               <span style={{ fontWeight: 600 }}>Dated</span>
@@ -241,16 +256,16 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
           <div style={{ flex: 1, paddingRight: 14 }}>
             <div style={{ maxWidth: 340, float: 'left', fontWeight: 600, color: '#232323', fontFamily: 'Inter, Helvetica, Arial, sans-serif', fontSize: 13 }}>
               <div style={{ marginBottom: 2 }}>Total</div>
-              {Number(invoice.discount) > 0 && <div style={{ marginBottom: 2 }}>Less Discount</div>}
+              {discount > 0 && <div style={{ marginBottom: 2 }}>Less Discount</div>}
               <div style={{ marginBottom: 2 }}>ADD SGST</div>
               <div style={{ marginBottom: 2 }}>ADD CGST</div>
             </div>
             <div style={{ float: 'right', textAlign: 'right', fontWeight: 600, minWidth: 120, color: '#232323', fontSize: 13 }}>
-              {Number(invoice.discount) > 0 && <div style={{ marginBottom: 2 }}>{invoice.discount}</div>}
-              <div style={{ marginBottom: 2 }}>{invoice.taxable_value}</div>
-              <div style={{ marginBottom: 2, color: '#d32f2f' }}>9% {invoice.sgst}</div>
-              <div style={{ marginBottom: 2, color: '#d32f2f' }}>9% {invoice.cgst}</div>
-              <div style={{ marginTop: 14, marginBottom: 14, fontWeight: 700, fontSize: 15, color: '#d32f2f', letterSpacing: 0.2 }}>Total<br />{invoice.grand_total}</div>
+              <div style={{ marginBottom: 2 }}>{total.toFixed(2)}</div>
+              {discount > 0 && <div style={{ marginBottom: 2 }}>{discount.toFixed(2)}</div>}
+              <div style={{ marginBottom: 2, color: '#d32f2f' }}>9% {sgst.toFixed(2)}</div>
+              <div style={{ marginBottom: 2, color: '#d32f2f' }}>9% {cgst.toFixed(2)}</div>
+              <div style={{ marginTop: 14, marginBottom: 14, fontWeight: 700, fontSize: 15, color: '#d32f2f', letterSpacing: 0.2 }}>Total<br />{grandTotal.toFixed(2)}</div>
             </div>
             <div style={{ clear: 'both' }}></div>
           </div>
@@ -275,8 +290,8 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
             <div style={{ color: '#444', fontWeight: 400 }}>UPI ID: <b>signcompany@idfcbank</b></div>
           </div>
           <div style={{ flex: 1.2, textAlign: 'center', borderLeft: '1px solid #e0e0e0', paddingLeft: 14 }}>
-            <div style={{ fontWeight: 700, color: '#232323', marginBottom: 12, fontSize: 15, fontFamily: 'Inter, Helvetica, Arial, sans-serif', letterSpacing: 0.5 }}>SCAN & PAY</div>
-            <img src={qrUrl} alt="UPI QR" style={{ height: 100, width: 100, objectFit: 'contain', border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff', marginBottom: 12 }} />
+            {/* <div style={{ fontWeight: 700, color: '#232323', marginBottom: 12, fontSize: 15, fontFamily: 'Inter, Helvetica, Arial, sans-serif', letterSpacing: 0.5 }}>SCAN & PAY</div> */}
+            <img src={qrUrl} alt="UPI QR" style={{ height: 120, width: 120, objectFit: 'contain', border: '1px solid #e0e0e0', borderRadius: 8, background: '#fff', marginBottom: 12 }} />
             <div style={{ fontSize: 12, color: '#888', marginBottom: 16, fontWeight: 500 }}>UPI ID: signcompany@idfcbank</div>
             <div style={{ fontWeight: 700, color: '#232323', marginTop: 18, fontFamily: isPdfMode ? 'Helvetica, Arial, sans-serif' : 'Inter, Helvetica, Arial, sans-serif', fontSize: 13, letterSpacing: 0.5, wordSpacing: 2 }}>For SIGN COMPANY</div>
             <div style={{ fontWeight: 500, marginTop: 10, color: '#232323', fontSize: 12, letterSpacing: 0.5, wordSpacing: 2 }}>

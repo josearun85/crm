@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import InvoicePdf from '../pages/orders/tabs/InvoicePdf';
 import html2pdf from 'html2pdf.js';
 import { createRoot } from 'react-dom/client';
+import { generateInvoicePdf } from '../services/generateInvoicePdf';
 
 const PAGE_SIZE = 10;
 
@@ -250,56 +251,27 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
   // Detect if this is the Drafts tab (all invoices are drafts)
   const allDrafts = invoices.length > 0 && invoices.every(inv => inv.status === 'Draft');
 
-  // Download Invoice PDF handler
+  // Replace the handlePreviewInvoicePdf to match the SignageItemsTab preview flow
   const handlePreviewInvoicePdf = async (inv) => {
-    // If a stored PDF URL exists (for confirmed invoices), open it in a new tab
-    if (inv.status === 'Confirmed' && inv.pdf_url) {
-      window.open(inv.pdf_url, '_blank');
-      return;
-    }
-    // Always fetch latest signage_items and boq_items for this order
-    const supabaseClient = await import('../supabaseClient').then(m => m.default);
-    const { data: signageItems = [] } = await supabaseClient
-      .from('signage_items')
-      .select('*')
-      .eq('order_id', inv.order_id);
-    const signageItemIds = signageItems.map(i => i.id);
-    let boqs = [];
-    if (signageItemIds.length > 0) {
-      const { data: boqsData = [] } = await supabaseClient
-        .from('boq_items')
-        .select('*')
-        .in('signage_item_id', signageItemIds);
-      boqs = boqsData;
-    }
-    // Fetch order and customer
-    const { data: orderArr = [] } = await supabaseClient
-      .from('orders')
-      .select('*')
-      .eq('id', inv.order_id);
+    // Fetch order, customer, signage items, and BOQs for this invoice
+    const { data: orderArr = [] } = await supabase.from('orders').select('*').eq('id', inv.order_id);
     const order = orderArr[0] || {};
     let customer = {};
     if (order.customer_id) {
-      const { data: custArr = [] } = await supabaseClient
-        .from('customers')
-        .select('*')
-        .eq('id', order.customer_id);
+      const { data: custArr = [] } = await supabase.from('customers').select('*').eq('id', order.customer_id);
       customer = custArr[0] || {};
     }
-    // Calculate scaling for GST billable percent/amount
-    let scaling = 1;
-    if (order.gst_billable_percent !== undefined && order.gst_billable_percent !== null && order.gst_billable_percent !== '' && Number(order.gst_billable_percent) !== 100) {
-      scaling = Number(order.gst_billable_percent) / 100;
-    } else if (order.gst_billable_amount && signageItems.length) {
-      const originalTotal = signageItems.reduce((sum, item) => sum + Number(item.cost || 0), 0);
-      if (originalTotal && Number(order.gst_billable_amount) !== originalTotal) {
-        scaling = Number(order.gst_billable_amount) / originalTotal;
-      }
+    const { data: signageItems = [] } = await supabase.from('signage_items').select('*').eq('order_id', inv.order_id).order('sort_order', { ascending: true });
+    const signageItemIds = signageItems.map(i => i.id);
+    let boqs = [];
+    if (signageItemIds.length > 0) {
+      const { data: boqsData = [] } = await supabase.from('boq_items').select('*').in('signage_item_id', signageItemIds);
+      boqs = boqsData;
     }
     // Prepare items for InvoicePdf (match order page logic)
     const items = signageItems.filter(i => i.name || i.description).map(item => {
       const itemBoqs = boqs.filter(b => b.signage_item_id === item.id);
-      const totalCost = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0) * scaling;
+      const totalCost = itemBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0);
       const qty = Number(item.quantity) || 1;
       const rate = totalCost / qty;
       return {
@@ -313,48 +285,17 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
         gst_percent: item.gst_percent || 18,
       };
     });
-    const total = items.reduce((sum, i) => sum + Number(i.amount), 0);
-    const discountVal = Number(order.discount) || 0;
-    const netTotal = total - discountVal;
-    const gst = items.reduce((sum, item) => sum + (item.amount * (item.gst_percent || 18) / 100), 0);
-    const grandTotal = netTotal + gst;
-    function numberToWords(num) {
-      const a = [ '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen' ];
-      const b = [ '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety' ];
-      function inWords(n) {
-        if (n < 20) return a[n];
-        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
-        if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' and ' + inWords(n % 100) : '');
-        if (n < 100000) return inWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + inWords(n % 1000) : '');
-        if (n < 10000000) return inWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + inWords(n % 100000) : '');
-        return inWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + inWords(n % 10000000) : '');
-      }
-      if (num === 0) return 'Zero';
-      const rupees = Math.floor(num);
-      const paise = Math.round((num - rupees) * 100);
-      let words = inWords(rupees) + ' Rupees';
-      if (paise > 0) words += ' and ' + inWords(paise) + ' Paise';
-      words += ' Only';
-      return words;
-    }
-    const amountInWords = numberToWords(grandTotal);
-    const invoice = {
-      number: inv.invoice_number || 'DRAFT',
-      version: order.version || 1,
+    // Compose all header fields for InvoicePdf
+    const invoiceData = {
+      ...inv,
+      invoice_number: inv.invoice_number || inv.number || '-',
+      invoice_date: inv.invoice_date || inv.date || '-',
+      place_of_supply: order.place_of_supply || '-',
+      po_number: order.po_number || inv.po_number || '',
+      po_date: order.po_date || inv.po_date || '',
       status: inv.status,
-      date: inv.invoice_date ? new Date(inv.invoice_date).toLocaleDateString('en-GB') : (order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')),
-      place_of_supply: order.place_of_supply || 'Bangalore',
-      sgst: (gst / 2).toFixed(2),
-      cgst: (gst / 2).toFixed(2),
-      total: total.toFixed(2),
-      discount: discountVal.toFixed(2),
-      taxable_value: netTotal.toFixed(2),
-      grand_total: grandTotal.toFixed(2),
-      amount_in_words: amountInWords,
-      po_number: order.po_number || '',
-      po_date: order.po_date || '',
     };
-    // Open a new tab and render the preview
+    // Open a new tab and render the invoice preview
     const previewWindow = window.open('', '_blank');
     if (!previewWindow) {
       alert('Popup blocked! Please allow popups for this site.');
@@ -364,32 +305,24 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
       <html>
         <head>
           <title>Invoice Preview</title>
-          <style>
-            html, body { width: 794px !important; min-width: 794px !important; max-width: 794px !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
-            #pdf-root { width: 794px !important; min-width: 794px !important; max-width: 794px !important; margin: 0 !important; padding: 0 !important; background: #fff !important; border-radius: 0 !important; box-shadow: none !important; }
-            .download-btn { margin: 18px 0 0 0; padding: 8px 24px; background: #1976d2; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
-          </style>
+          <style>body { margin: 0; padding: 0; font-family: sans-serif; }</style>
         </head>
         <body>
-          <div id="pdf-root"></div>
-          <button class="download-btn" onclick="downloadInvoicePdf()">⬇️ Download Invoice</button>
+          <div id="invoice-preview-root"></div>
+          <button id="download-pdf-btn" style="position:fixed;top:16px;right:16px;z-index:1000;padding:8px 16px;font-size:16px;">⬇️ Download PDF</button>
           <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
           <script>
-            function downloadInvoicePdf() {
-              var root = document.getElementById('pdf-root');
-              if (window.html2pdf) {
-                html2pdf().set({
-                  margin: 0,
-                  filename: 'Invoice_${invoice.number || ''}.pdf',
-                  image: { type: 'jpeg', quality: 0.98 },
-                  html2canvas: { scale: 2 },
-                  jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
-                  pagebreak: { mode: ['avoid-all'] }
-                }).from(root).save();
-              } else {
-                setTimeout(downloadInvoicePdf, 200);
-              }
-            }
+            document.getElementById('download-pdf-btn').onclick = function() {
+              var root = document.getElementById('invoice-preview-root');
+              html2pdf().set({
+                margin: 0,
+                filename: 'Invoice_${invoiceData.invoice_number || 'DRAFT'}.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all'] }
+              }).from(root).save();
+            };
           <\/script>
         </body>
       </html>
@@ -397,17 +330,17 @@ export default function InvoiceList({ invoices, confirmedNumbers = [], onDelete,
     previewWindow.document.close();
     // Wait for the new tab to load, then render the React component
     const renderReact = () => {
-      const pdfRoot = previewWindow.document.getElementById('pdf-root');
-      if (!pdfRoot) {
+      const root = previewWindow.document.getElementById('invoice-preview-root');
+      if (!root) {
         setTimeout(renderReact, 100);
         return;
       }
-      // Render InvoicePdf into the new tab
-      const root = createRoot(pdfRoot);
-      root.render(
-        React.createElement(InvoicePdf, { invoice, customer, items, isPdfMode: true })
+      const reactRoot = createRoot(root);
+      reactRoot.render(
+        InvoicePdf ?
+          React.createElement(InvoicePdf, { invoice: invoiceData, customer, items, isPdfMode: true }) :
+          null
       );
-      // No automatic download trigger; user must click the button in the new tab
     };
     setTimeout(renderReact, 200);
   };

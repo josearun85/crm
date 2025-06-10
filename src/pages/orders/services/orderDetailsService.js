@@ -59,14 +59,12 @@ export async function updateCustomerDetails(customerId, updates) {
 // Signage Items tab
 export async function fetchSignageItems(orderId) {
   const { data, error } = await supabase
-    .from("signage_items")
-    .select("*")
-    .eq("order_id", orderId);
-  if (error) {
-    console.error(error);
-    throw error;
-  }
-  return data;
+    .from('signage_items')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function addSignageItem(orderId, itemData) {
