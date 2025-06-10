@@ -5,7 +5,6 @@ const printStyles = `
   @media print {
     html, body {
       width: 100% !important;
-      height: 100% !important;
       margin: 0 !important;
       padding: 0 !important;
       background: #fff !important;
@@ -18,8 +17,8 @@ const printStyles = `
       width: 794px !important; /* A4 at 96dpi */
       min-width: 0 !important;
       max-width: 794px !important;
+      min-height: 1122px !important; /* A4 height at 96dpi */
       height: auto !important;
-      min-height: 0 !important;
       max-height: none !important;
       margin: 0 auto !important;
       padding: 0 !important;
@@ -159,7 +158,7 @@ export default function InvoicePdf({ invoice, customer, items, isPdfMode }) {
             <div style={{ fontWeight: 700, fontSize: 18, color: '#232323', letterSpacing: 0.2, fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase' }}>Sign Company</div>
             <div style={{ color: '#444' }}>Shed #7, No.120, Malleshpalya Main Road,<br />New Thippasandra Post, Bangalore - 560 075</div>
             <div style={{ color: '#444' }}>PHONE: <b>8431505007</b></div>
-            <div style={{ color: '#444' }}>GSTN: <b>29BPYPK6641B2Z6</b></div>
+            <div style={{ color: '#444' }}>GSTN: <b>29BYPPK6641B2Z6</b></div>
           </div>
         </div>
         <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 14, letterSpacing: 1, color: '#d32f2f', background: '#fff', padding: '10px 0 10px 0', borderBottom: '1px solid #e0e0e0', fontFamily: 'Inter, Helvetica, Arial, sans-serif', textTransform: 'uppercase' }}>Tax Invoice</div>
