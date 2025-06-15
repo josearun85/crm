@@ -1,6 +1,6 @@
 const tabs = [
-  { key: "items", label: "Signage Items" },
-  { key: "items-refactored", label: "Signage Items (New)" }, // Add new tab for refactored version
+  // { key: "items", label: "Signage Items" },
+  { key: "items-refactored", label: "Signage Items" }, // Add new tab for refactored version
   { key: "estimate", label: "Estimate" }, // New Estimate tab
   { key: "invoice", label: "Invoice" },   // New Invoice tab
   { key: "boq", label: "BOQ" },
