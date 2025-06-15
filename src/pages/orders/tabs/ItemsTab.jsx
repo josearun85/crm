@@ -42,9 +42,9 @@ export default function ItemsTab({
     setOpenBoqItemId(openBoqItemId === itemId ? null : itemId);
 
   return (
-    <div style={{ padding: 32 }}>
+    <div style={{ padding: 15 }}>
       <h2 style={{ fontSize: 24, fontWeight: 700 }}>
-        Signage Items (Refactored)
+        Signage Items
       </h2>
 
       {/* + Add Item button */}

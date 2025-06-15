@@ -498,14 +498,19 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
         <table class="pdf-table">
           <thead>
             <tr>
-              <th>S. No.</th>
-              <th>Name & Description</th>
-              <th>HSN Code</th>
-              <th>Qty</th>
-              <th>Rate</th>
-              <th>Amount</th>
-              <th>GST</th>
-              <th>Cost After Tax</th>
+              <th style={{ width: 32, textAlign: 'center' }}>#</th>
+              <th style={{ minWidth: 120 }}>Name</th>
+              <th style={{ minWidth: 320, width: 400 }}>Description</th>
+              <th style={{ width: 48, textAlign: 'center' }}>HSN Code</th>
+              <th style={{ width: 48, textAlign: 'center' }}>Qty</th>
+              <th style={{ width: 80, textAlign: 'right' }}>Rate</th>
+              <th style={{ width: 80, textAlign: 'right' }}>Amount</th>
+              <th style={{ width: 48, textAlign: 'center' }}>GST%</th>
+              <th style={{ width: 80, textAlign: 'right' }}>GST Amount</th>
+              <th style={{ width: 100, textAlign: 'right' }}>Cost After Tax</th>
+              <th style={{ width: 60, textAlign: 'center' }}>Actions</th>
+              <th style={{ width: 40, textAlign: 'center' }}>BOQ</th>
+              <th style={{ width: 60, textAlign: 'center' }}>Move</th>
             </tr>
           </thead>
           <tbody>
@@ -1059,20 +1064,19 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
             <table className="min-w-full border text-xs">
               <thead className="bg-gray-100 text-left">
                 <tr>
-                  <th className="p-2 border w-8 text-center">#</th>
-                  <th className="p-2 border w-16">Image</th>
-                  <th className="p-2 border w-[220px]">Name</th>
-                  <th className="p-2 border w-[340px]">Description</th>
-                  <th className="p-2 border">HSN Code</th>
-                  <th className="p-2 border w-14">Qty</th>
-                  <th className="p-2 border w-20">Rate</th>
-                  <th className="p-2 border w-24">Amount</th>
-                  <th className="p-2 border w-20">GST (%)</th>
-                  <th className="p-2 border w-24">GST Amount</th>
-                  <th className="p-2 border w-28">Cost After Tax</th>
-                  <th className="p-2 border w-8 text-center no-print">Actions</th>
-                  <th className="p-2 border no-print">BOQ</th>
-                  <th className="p-2 border w-12 text-center">Move</th>
+                  <th style={{ width: 32, textAlign: 'center' }}>#</th>
+                  <th style={{ minWidth: 120 }}>Name</th>
+                  <th style={{ minWidth: 320, width: 400 }}>Description</th>
+                  <th style={{ width: 48, textAlign: 'center' }}>HSN Code</th>
+                  <th style={{ width: 48, textAlign: 'center' }}>Qty</th>
+                  <th style={{ width: 80, textAlign: 'right' }}>Rate</th>
+                  <th style={{ width: 80, textAlign: 'right' }}>Amount</th>
+                  <th style={{ width: 48, textAlign: 'center' }}>GST%</th>
+                  <th style={{ width: 80, textAlign: 'right' }}>GST Amount</th>
+                  <th style={{ width: 100, textAlign: 'right' }}>Cost After Tax</th>
+                  <th style={{ width: 60, textAlign: 'center' }}>Actions</th>
+                  <th style={{ width: 40, textAlign: 'center' }}>BOQ</th>
+                  <th style={{ width: 60, textAlign: 'center' }}>Move</th>
                 </tr>
               </thead>
               <tbody>
@@ -1488,7 +1492,6 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                     <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
                       <input
                         type="text"
-
                         value={boq.item || ''}
                         onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, item: e.target.value } : b))}
                         onBlur={e => updateBoqItem(boq.id, { item: boq.item })}
