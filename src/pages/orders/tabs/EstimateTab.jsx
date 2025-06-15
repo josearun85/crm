@@ -11,6 +11,7 @@ import html2pdf from "html2pdf.js";
 export default function EstimateTab({ orderId, orderData, overview, fetchAndRecalc }) {
   // ─── Unpack orderData ────────────────────────────────────────────────
   const {
+    id,
     signageItems = [],
     discount     = 0,
     total        = 0,
@@ -81,7 +82,7 @@ function downloadPDF() {
       html2canvas: {
         scale:       2,
         useCORS:     true,
-        windowWidth: elemWidth-20,      // capture the true width
+        windowWidth: elemWidth,      // capture the true width
       },
       jsPDF: { unit: "pt", format: "a4", orientation: "portrait" },
       pagebreak: { mode: ["css", "legacy"] }
@@ -121,7 +122,7 @@ function downloadPDF() {
         {/* HEADER */}
         <header className="est-header" ref={headerRef} >
           <div className="row1">
-            <div className="title">ESTIMATE</div>
+            <div className="title">ESTIMATE #{overview.id}</div>
             <img src="/logo.jpeg" alt="Logo" className="logo" />
           </div>
           <div className="row2">

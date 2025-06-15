@@ -1,5 +1,15 @@
 import supabase from "../../../supabaseClient";
 
+// orderDetailsService.js
+export async function updateInvoiceStatus(invoiceId, payload) {
+  const { data, error } = await supabase
+    .from("invoices")
+    .update(payload)
+    .eq("id", invoiceId)
+    .select("invoice_number, status")
+    .single();
+  return { data, error };
+}
 // Overview tab
 export async function fetchOrderOverview(orderId) {
   const { data, error } = await supabase
