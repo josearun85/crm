@@ -19,6 +19,7 @@ export default function EstimateTab({ orderId, orderData, overview, fetchAndReca
     gstSummary   = {},
     cgstSummary  = {},
     sgstSummary  = {},
+    igstSummary  = {},
     grandTotal   = 0,
     costToCompany= 0,
     margin       = 0,
@@ -113,7 +114,7 @@ function downloadPDF() {
       setThumbUrls(map);
     })();
   }, [signageItems]);
-
+const isIntraState = customerGSTIN?.startsWith("29");
   return (
     <div className="estimate-container">
       <button className="download-btn" onClick={downloadPDF}>
@@ -233,20 +234,39 @@ function downloadPDF() {
             <thead>
               <tr>
                 <th>GST Rate</th>
-                <th>CGST</th>
-                <th>SGST</th>
+              {isIntraState ? (
+                  <>
+                    <th>CGST</th>
+                    <th>SGST</th>
+                  </>
+                ) : (
+                  <th>IGST</th>
+                )}
+               
+                
               </tr>
             </thead>
             <tbody>
               {Object.keys(gstSummary).map(rate => (
                 <tr key={rate}>
                   <td>{rate}%</td>
-                  <td className="right">
+                 
+                    
+
+                   {isIntraState ? (
+                  <>
+                    <td className="right">
                     ₹ {cgstSummary[rate]?.toFixed(2)} ({(rate / 2).toFixed(0)}%)
                   </td>
                   <td className="right">
                     ₹ {sgstSummary[rate]?.toFixed(2)} ({(rate / 2).toFixed(0)}%)
                   </td>
+                  </>
+                ) : (
+                  <td className="right">
+                    ₹ {igstSummary[rate]?.toFixed(2)} ({(rate)}%)
+                  </td>
+                )}
                 </tr>
               ))}
             </tbody>

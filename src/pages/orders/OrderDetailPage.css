@@ -16,3 +16,17 @@
   background: #fffbe6;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
+.align-top td {
+  vertical-align: top;
+}
+
+.align-top td input,
+td textarea,
+td div {
+  margin: 0;
+  padding: 4px;
+  line-height: 1.4;
+  vertical-align: top;
+  box-sizing: border-box;
+}

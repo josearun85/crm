@@ -317,7 +317,7 @@
 
 .terms {
   /* ensure the *entire* bank/QR + closing block moves to the next page */
-  page-break-after: always;
+  page-break-before: always;
 }
 
 .bank-qr-section,

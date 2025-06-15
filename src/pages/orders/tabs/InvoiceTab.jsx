@@ -137,6 +137,7 @@ if (paise > 0) {
   amountInWords += " and " + numberToWordsIndian(paise) + " Paise";
 }
 amountInWords += " Only";
+const isIntraState = customerGSTIN?.startsWith("29");
 
   return (
     <div className="invoice-container">
@@ -204,6 +205,19 @@ amountInWords += " Only";
         <span className="value">{invDate}</span>
       </div>
       <div className="field-row">
+        <span className="label">Client:</span>
+        <span className="value">{clientName}</span>
+      </div>
+       <div className="field-row">
+        <span className="label">Address:</span>
+        <span className="value">{overview.customer?.address ?? "—"}</span>
+      </div>
+      <div className="field-row">
+        <span className="label">GSTIN:</span>
+        <span className="value">{customerGSTIN}</span>
+      </div>
+
+      <div className="field-row">
         <span className="label">Place of Supply:</span>
         <span className="value">{placeOfSupply}</span>
       </div>
@@ -216,18 +230,9 @@ amountInWords += " Only";
         <span className="value">{poNumber} ({poDate})</span>
       </div>
 
-      <div className="field-row">
-        <span className="label">Client:</span>
-        <span className="value">{clientName}</span>
-      </div>
-      <div className="field-row">
-        <span className="label">GSTIN:</span>
-        <span className="value">{customerGSTIN}</span>
-      </div>
-      <div className="field-row">
-        <span className="label">Address:</span>
-        <span className="value">{overview.customer?.address ?? "—"}</span>
-      </div>
+      
+      
+     
     </div>
   </div>
 </>
@@ -293,24 +298,34 @@ amountInWords += " Only";
             <thead>
               <tr>
                 <th>GST Rate</th>
-                <th>CGST</th>
-                <th>SGST</th>
-                <th>IGST</th>
+                 {isIntraState ? (
+                  <>
+                    <th>CGST</th>
+                    <th>SGST</th>
+                  </>
+                ) : (
+                  <th>IGST</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {Object.keys(orderData.gstSummary).map(rate => (
                 <tr key={rate}>
                   <td>{rate}%</td>
-                  <td className="right">
+                  {isIntraState ? (
+                  <>
+                    <td className="right">
                     ₹ {orderData.cgstSummary[rate]?.toFixed(2)} ({(rate / 2).toFixed(0)}%)
                   </td>
                   <td className="right">
                     ₹ {orderData.sgstSummary[rate]?.toFixed(2)} ({(rate / 2).toFixed(0)}%)
                   </td>
+                  </>
+                ) : (
                   <td className="right">
-                    ₹ {orderData.igstSummary[rate]?.toFixed(2)} ({(rate / 2).toFixed(0)}%)
+                    ₹ {orderData.igstSummary[rate]?.toFixed(2)} ({(rate)}%)
                   </td>
+                )}
                 </tr>
               ))}
             </tbody>

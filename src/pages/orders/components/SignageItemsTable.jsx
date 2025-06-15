@@ -53,12 +53,12 @@ export default function SignageItemsTable({
           <tr>
             <th style={{ width: 32, textAlign: 'center' }}>#</th>
             <th style={{ minWidth: 120 }}>Name</th>
-            <th style={{ minWidth: 280, width: 400 }}>Description</th>
-            <th style={{ width: 60, textAlign: 'center' }}>HSN Code</th>
-            <th style={{ width: 60, textAlign: 'center' }}>Qty</th>
+            <th style={{ minWidth: 200, width: 400 }}>Description</th>
+            <th style={{ width: 70, textAlign: 'center' }}>HSN Code</th>
+            <th style={{ width: 70, textAlign: 'center' }}>Qty</th>
             <th style={{ width: 80, textAlign: 'right' }}>Rate</th>
             <th style={{ width: 80, textAlign: 'right' }}>Amount</th>
-            <th style={{ width: 60, textAlign: 'center' }}>GST%</th>
+            <th style={{ width: 70, textAlign: 'center' }}>GST%</th>
             <th style={{ width: 80, textAlign: 'right' }}>GST Amount</th>
             <th style={{ width: 100, textAlign: 'right' }}>Cost After Tax</th>
             <th style={{ width: 60, textAlign: 'center' }}>Actions</th>
@@ -70,7 +70,7 @@ export default function SignageItemsTable({
           {orderData.signageItems.map((item, idx) => (
             // console.log("Rendering item:", item),
             <React.Fragment key={item.id}>
-              <tr>
+              <tr className="align-top">
                 <td style={{ border: '1px solid #ececec' }}>{idx + 1}</td>
                 <td style={{ border: '1px solid #ececec' }}>
                   <input
@@ -171,7 +171,7 @@ export default function SignageItemsTable({
                       onBoqClick(item.id);
                     }}
                   >
-                    {(item.boqs || []).length}-
+                    {(item.boqs || []).length}
                   </a>
                 </td>
                 <td style={{ border: '1px solid #ececec' }}>
