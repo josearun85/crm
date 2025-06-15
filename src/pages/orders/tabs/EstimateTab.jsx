@@ -1,10 +1,12 @@
 // src/pages/orders/tabs/EstimateTab.jsx
 import React, { useState, useEffect, useRef } from "react";
 import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+// import jsPDF from "jspdf";
 import supabase from "../../../supabaseClient";
 import { updateOrderOverview } from "../services/orderDetailsService";
 import "./EstimateTab.css";
+import html2pdf from "html2pdf.js";
+
 
 export default function EstimateTab({ orderId, orderData, overview, fetchAndRecalc }) {
   // ─── Unpack orderData ────────────────────────────────────────────────
@@ -63,16 +65,31 @@ export default function EstimateTab({ orderId, orderData, overview, fetchAndReca
     day: "2-digit", month: "short", year: "numeric"
   });
   const printRef = useRef();
+  const headerRef = useRef();       // wrap your <header> in this 
+  const footerRef = useRef();       // wrap your <footer> in this
 
-  const downloadPDF = async () => {
-    const canvas = await html2canvas(printRef.current, { scale: 2 });
-    const img = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "pt", "a4");
-    const w = pdf.internal.pageSize.getWidth();
-    const h = (canvas.height * w) / canvas.width;
-    pdf.addImage(img, "PNG", 0, 0, w, h);
-    pdf.save(`Estimate_${orderId}.pdf`);
-  };
+function downloadPDF() {
+  const element = printRef.current;
+  const elemWidth = element.scrollWidth; 
+
+  element.classList.add("downloading");
+  html2pdf()
+    .set({
+      margin:      [20, 20, 20, 20], // top/right/bottom/left in pt
+      filename:    `Estimate_${orderId}.pdf`,
+      image:       { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale:       2,
+        useCORS:     true,
+        windowWidth: elemWidth-20,      // capture the true width
+      },
+      jsPDF: { unit: "pt", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["css", "legacy"] }
+    })
+    .from(element)
+    .save()
+    .finally(() => element.classList.remove("downloading"));
+}
 
   // ─── Thumbnails ───────────────────────────────────────────────────────
   const [thumbUrls, setThumbUrls] = useState({});
@@ -102,7 +119,7 @@ export default function EstimateTab({ orderId, orderData, overview, fetchAndReca
 
       <div className="estimate-sheet" ref={printRef}>
         {/* HEADER */}
-        <header className="est-header">
+        <header className="est-header" ref={headerRef} >
           <div className="row1">
             <div className="title">ESTIMATE</div>
             <img src="/logo.jpeg" alt="Logo" className="logo" />
@@ -291,7 +308,7 @@ export default function EstimateTab({ orderId, orderData, overview, fetchAndReca
         </div>
 
         {/* FOOTER */}
-        <footer className="est-footer">
+        <footer  ref={footerRef}  className="est-footer">
           <div>Sign Company • www.signcompany.com • +91 8431505007</div>
           <div>Generated on {today}</div>
         </footer>

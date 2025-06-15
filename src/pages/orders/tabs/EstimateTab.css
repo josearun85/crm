@@ -23,7 +23,8 @@
    SHEET (A4)
 ────────────────────────────────────────────────────────────────────────── */
 .estimate-sheet {
-  width: 794px; /* A4 at 96dpi */
+  max-width: 794px;
+  width: 100%;
   margin: 0 auto 32px;
   padding: 32px;
   background: #fff;
@@ -307,4 +308,31 @@
   .edit-terms-btn {
     display: none !important;
   }
+}
+/* Hide these controls whenever .downloading is on the sheet */
+.estimate-sheet.downloading .terms-actions,
+.estimate-sheet.downloading .edit-terms-btn {
+  display: none !important;
+}
+
+.terms {
+  /* ensure the *entire* bank/QR + closing block moves to the next page */
+  page-break-after: always;
+}
+
+.bank-qr-section,
+.closing-lines {
+  /* don’t split these across pages */
+  page-break-inside: avoid;
+}
+/* EstimateTab.css */
+
+@media print {
+  .estimate-sheet {
+    width: auto !important;
+    max-width: 100% !important;
+    box-shadow: none;
+    margin: 0;
+  }
+  .download-btn { display: none; }
 }
