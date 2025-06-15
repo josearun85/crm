@@ -291,3 +291,13 @@
   display: block;
   margin-top: 8px;
 }
+
+/* override the right-align from the parent */
+.terms {
+  text-align: left;
+}
+
+/* and make sure the pre-formatted text itself is left-aligned */
+.terms-view {
+  text-align: left;
+}

@@ -130,7 +130,8 @@ export default function OrderDetailPage() {
       });
       console.log(overview,orderData)
       setOverview(overview);
-      setOrderData({ ...calc, signageBoqItems: boqs, customer_name:  overview.customer_name,   name:        overview.name || overview.job_name, });
+      setOrderData({ ...calc,
+         signageBoqItems: boqs, customer_name:  overview.customer_name,   name:        overview.name || overview.job_name, });
       setLocalOverrides({});
     },
     [orderId, customerGstin, gstBillablePercent, orderData.discount]

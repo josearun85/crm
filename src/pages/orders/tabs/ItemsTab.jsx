@@ -81,9 +81,18 @@ export default function ItemsTab({
         customerPan={customerPan}
         setCustomerPan={setCustomerPan}
         setGstBillablePercent={setGstBillablePercent}
+
+        /* BOQ‐toggle props */
+        openBoqItemId={openBoqItemId}
+        onBoqClick={handleBoqClick}
+
+        /* your existing handlers */
         onLocalChange={onLocalBoqChange}
         onSaveBoq={onSaveBoq}
-        onAddItem={handleAddItem}
+
+        /* add‐row now maps to onAddBoqRow */
+        onAddBoqRow={handleAddItem}
+
         onDeleteSignageItem={onDeleteSignageItem}
         onMoveSignageItem={onMoveSignageItem}
       />

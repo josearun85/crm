@@ -110,6 +110,7 @@ export default function InvoiceTab({ overview = {}, invoiceData ={},orderData = 
                 <th>GST Rate</th>
                 <th>CGST</th>
                 <th>SGST</th>
+                <th>IGST</th>
               </tr>
             </thead>
             <tbody>

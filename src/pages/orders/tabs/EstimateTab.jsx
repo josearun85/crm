@@ -19,7 +19,6 @@ export default function EstimateTab({ orderId, orderData, overview, fetchAndReca
     grandTotal   = 0,
     costToCompany= 0,
     margin       = 0,
-    terms: storedTerms = ""
   } = orderData;
 
   // ─── Unpack overview ───────────────────────────────────────────────────
@@ -39,18 +38,24 @@ export default function EstimateTab({ orderId, orderData, overview, fetchAndReca
 * Prices subject to change without notice; please reconfirm.
 * 300W dimmer control unit extra ₹1,750 each if required.
   `.trim();
-
-  const [terms, setTerms] = useState(storedTerms || defaultTerms);
+  // 🚩 Pull the saved terms straight from overview
+  const storedTerms = overview.terms ?? "";
+ useEffect(() => {
+   // whenever the saved terms from overview change, reset local `terms`
+   setTerms(overview.terms || defaultTerms);
+ }, [overview.terms]);
+  // Local state for editing
+  const [terms, setTerms]       = useState(storedTerms || defaultTerms);
   const [editing, setEditing] = useState(false);
 
-  useEffect(() => {
-    setTerms(storedTerms || defaultTerms);
-  }, [storedTerms]);
+  // useEffect(() => {
+  //   setTerms(storedTerms || defaultTerms);
+  // }, [storedTerms]);
 
   const saveTerms = async () => {
     await updateOrderOverview(orderId, { terms });
     setEditing(false);
-    if (fetchAndRecalc) await fetchAndRecalc();
+    // if (fetchAndRecalc) await fetchAndRecalc();
   };
 
   // ─── Date & PDF setup ─────────────────────────────────────────────────
@@ -217,38 +222,39 @@ export default function EstimateTab({ orderId, orderData, overview, fetchAndReca
 
         {/* TERMS & CONDITIONS */}
         <section className="terms">
-          <h2>Terms &amp; Conditions</h2>
-          {editing ? (
-            <>
-              <textarea
-                className="terms-edit"
-                value={terms}
-                onChange={e => setTerms(e.target.value)}
-              />
-              <div className="terms-actions">
-                <button onClick={saveTerms}>Save</button>
-                <button
-                  onClick={() => {
-                    setEditing(false);
-                    setTerms(storedTerms || defaultTerms);
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <pre className="terms-view">{terms}</pre>
-              <button
-                className="edit-terms-btn"
-                onClick={() => setEditing(true)}
-              >
-                Edit Terms
-              </button>
-            </>
-          )}
-        </section>
+      <h2>Terms &amp; Conditions</h2>
+      {editing ? (
+        <>
+          <textarea
+            className="terms-edit"
+            value={terms}                     // bound to local state
+            onChange={e => setTerms(e.target.value)}
+          />
+          <div className="terms-actions">
+            <button onClick={saveTerms}>Save</button>
+            <button
+              onClick={() => {
+                setEditing(false);
+                // reset back to whatever overview.terms holds
+                setTerms(storedTerms || defaultTerms);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <pre className="terms-view">{terms}</pre>
+          <button
+            className="edit-terms-btn"
+            onClick={() => setEditing(true)}
+          >
+            Edit Terms
+          </button>
+        </>
+      )}
+    </section>
          {/* ─── BANK & SCAN-AND-PAY BLOCK ─────────────────────────────────────── */}
         <div className="bank-qr-section">
           <div className="bank-details">
