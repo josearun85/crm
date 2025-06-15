@@ -1,9 +1,25 @@
+// src/pages/orders/OrderDetailPage.jsx
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { fetchOrderOverview } from "./services/orderDetailsService";
+import {
+  fetchOrderOverview,
+  fetchSignageItems,
+  fetchBoqItems,
+  updateSignageItem,
+  addBoqItem,
+  updateBoqItem,
+  deleteBoqItem,
+  updateOrderOverview,
+  deleteSignageItem,
+  fetchInvoiceDetails
+} from "./services/orderDetailsService";
+import { calculateOrderAll } from "../../services/orderCalculations";
 import OrderHeader from "./components/OrderHeader";
 import TabNav from "./components/TabNav";
 import SignageItemsTab from "./tabs/SignageItemsTab";
+import ItemsTab from "./tabs/ItemsTab";
+import EstimateTab from "./tabs/EstimateTab";
+import InvoiceTab from "./tabs/InvoiceTab";
 import BoqTab from "./tabs/BoqTab";
 import TimelineTab from "./tabs/TimelineTab";
 import ProcurementTab from "./tabs/ProcurementTab";
@@ -11,10 +27,13 @@ import FilesTab from "./tabs/FilesTab";
 import NotesTab from "./tabs/NotesTab";
 import PaymentsTab from "./tabs/PaymentsTab";
 import MiscellaneousTab from "./tabs/MiscellaneousTab";
-import './OrderDetailPage.css';
+import "./OrderDetailPage.css";
 
 const tabMap = {
   items: SignageItemsTab,
+  "items-refactored": ItemsTab,
+  estimate: EstimateTab,
+  invoice: InvoiceTab,
   boq: BoqTab,
   timeline: TimelineTab,
   procurement: ProcurementTab,
@@ -26,118 +45,282 @@ const tabMap = {
 
 export default function OrderDetailPage() {
   const { orderId } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
-  // Default to 'items' tab
-  const tab = new URLSearchParams(location.search).get("tab") || "items";
-  const TabComponent = tabMap[tab] || SignageItemsTab;
+  const currentTab = new URLSearchParams(useLocation().search).get("tab") || "items";
+  const TabComponent = tabMap[currentTab] || SignageItemsTab;
 
-  // GSTIN and PAN state lifted up
+  // ─── Metadata ───────────────────────────────────────────────────────────────
   const [customerGstin, setCustomerGstin] = useState("");
-  const [customerPan, setCustomerPan] = useState("");
+  const [customerPan, setCustomerPan]       = useState("");
   const [gstBillablePercent, setGstBillablePercent] = useState("");
+  // ─── Invoice payload ─────────────────────────────────────────────────────────
+  const [invoiceData, setInvoiceData] = useState({});
+  // ─── Central order data ─────────────────────────────────────────────────────
+  const [orderData, setOrderData] = useState({
+    name:"",
+    signageItems:    [],
+    signageBoqItems: [],
+    totalBoqCost:    0,
+    total:           0,
+    netTotal:        0,
+    gst:             0,
+    grandTotal:      0,
+    igst:            0,
+    cgst:            0,
+    sgst:            0,
+    costToCompany:   0,
+    margin:          0,
+    discount:        0,
+    gstSummary:      {},
+    igstSummary:     {},
+    cgstSummary:     {},
+    sgstSummary:     {},
+  });
 
-  // Fetch GST billable percent and customer info
-  useEffect(() => {
-    if (!orderId) return;
-    fetchOrderOverview(orderId).then(order => {
-      setCustomerGstin(order?.customer?.gstin || "");
-      setCustomerPan(order?.customer?.pan || "");
-      setGstBillablePercent(order?.gst_billable_percent != null ? order.gst_billable_percent : "");
-    });
-  }, [orderId]);
+  const [overview,setOverview] = useState({
+    customer_name: "",
+    jobName: "",
+  });
 
-  // Ensure a draft invoice exists for the order
-  useEffect(() => {
-    if (!orderId) return;
-    async function ensureDraftInvoice() {
-      const supabase = (await import("../../supabaseClient")).default;
-      // Fetch order to get customer_id
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .select('id, customer_id')
-        .eq('id', orderId)
-        .single();
-      if (orderError || !order) return;
-      // Only check for existing draft invoice for this order
-      const { data: invoices, error: fetchError } = await supabase
-        .from('invoices')
-        .select('id, order_id, status')
-        .eq('order_id', orderId)
-        .eq('status', 'Draft');
-      if (fetchError) return;
-      if (!invoices || invoices.length === 0) {
-        await supabase
-          .from('invoices')
-          .insert([{ order_id: orderId, customer_id: order.customer_id, status: 'Draft', created_at: new Date().toISOString() }]);
-      }
-    }
-    ensureDraftInvoice();
-  }, [orderId]);
+  // ─── Local unsaved overrides ─────────────────────────────────────────────────
+  const [localOverrides, setLocalOverrides] = useState({});
 
-  // Handler to update GST billable percent and persist to backend
-  const handleGstBillableChange = async (_amount, percent) => {
-    setGstBillablePercent(percent);
-    if (orderId) {
-      const { updateOrderDetails, fetchOrderOverview, fetchPayments, addPayment, updatePayment, deletePayment } = await import("./services/orderDetailsService");
-      await updateOrderDetails(orderId, {
-        gst_billable_percent: percent === "" ? null : Number(percent),
+  // ─── Feedback & refs ──────────────────────────────────────────────────────────
+  const [feedbackMsg, setFeedbackMsg] = useState("");
+  const feedbackTimeout = useRef(null);
+  const didFetchOverview = useRef(false);
+
+  // ─── Merge helper for live preview ────────────────────────────────────────────
+  const mergeOverrides = (savedItems, savedBoqs, overrides) => {
+    let effectiveBoqs = [...savedBoqs];
+    const effectiveItems = savedItems.map(si =>
+      overrides[si.id]
+        ? { ...si, margin_percent: overrides[si.id].marginPercent }
+        : si
+    );
+    Object.entries(overrides).forEach(([sid, { boqs }]) => {
+      boqs.forEach(row => {
+        if (!row.id) effectiveBoqs.push({ ...row, signage_item_id: sid });
+        else effectiveBoqs = effectiveBoqs.map(b => b.id === row.id ? row : b);
       });
-      // Refetch from DB to ensure UI is in sync with DB
-      const order = await fetchOrderOverview(orderId);
-      let newPercent = order?.gst_billable_percent != null ? order.gst_billable_percent : "";
-      setGstBillablePercent(newPercent);
-      // Auto-create or delete auto-cash-non-gst payment
-      const payments = await fetchPayments(orderId);
-      // Use a unique note to identify the auto payment
-      const autoCash = payments.find(p => p.notes === "auto-cash-non-gst" && p.payment_mode === "cash");
-      const signageValue = Number(order?.signage_items_value) || 0;
-      const gstPortion = (Number(newPercent) / 100) * signageValue;
-      const nonGstAmount = signageValue - gstPortion;
-      if (Number(newPercent) === 100) {
-        // Delete the auto payment if it exists
-        if (autoCash) await deletePayment(autoCash.id);
-      } else if (Number(newPercent) < 100 && nonGstAmount > 0) {
-        // Create or update the auto payment
-        if (autoCash) {
-          await updatePayment(autoCash.id, { amount: nonGstAmount });
-        } else {
-          await addPayment(orderId, {
-            payment_date: new Date().toISOString().slice(0, 10),
-            amount: nonGstAmount,
-            payment_mode: "cash",
-            reference: "",
-            type: "",
-            notes: "auto-cash-non-gst",
-            paid: false
-          });
-        }
-      }
-    }
+    });
+    return { effectiveItems, effectiveBoqs };
   };
+ 
+  // ─── ❶ Fetch & recalc saved data ─────────────────────────────────────────────
+  const fetchAndRecalc = useCallback(
+    async (overrideDiscount) => {
+      const [items, boqs,overview] = await Promise.all([
+        fetchSignageItems(orderId),
+        fetchBoqItems(orderId),
+        fetchOrderOverview(orderId),
+      ]);
+    // pull invoice row too
+    const invoice = await fetchInvoiceDetails(orderId);
+    setInvoiceData(invoice);
+      const discountValue = overrideDiscount != null
+        ? overrideDiscount
+        : orderData.discount;
+      const calc = calculateOrderAll({
+        signageItems:    items,
+        signageBoqItems: boqs,
+        discount:        discountValue,
+        customerGstin,
+        gstBillablePercent,
+      });
+      console.log(overview,orderData)
+      setOverview(overview);
+      setOrderData({ ...calc, signageBoqItems: boqs, customer_name:  overview.customer_name,   name:        overview.name || overview.job_name, });
+      setLocalOverrides({});
+    },
+    [orderId, customerGstin, gstBillablePercent, orderData.discount]
+  );
+// ♻️ Move a signage item up or down in the list
+ const handleMoveSignageItem = useCallback(
+   async (signageItemId, direction) => {
+     // get current array
+     const arr = [...orderData.signageItems];
+     const idx = arr.findIndex(i => i.id === signageItemId);
+     if (idx < 0) return;
+     const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+     if (swapIdx < 0 || swapIdx >= arr.length) return;
+
+     // swap in-memory
+     [arr[idx], arr[swapIdx]] = [arr[swapIdx], arr[idx]];
+     // optimistically update UI
+     setOrderData(d => ({ ...d, signageItems: arr }));
+
+     // TODO: persist new sort_order if you have a column for it.
+    //  Example:
+     await updateSignageItem(arr[idx].id, { sort_order: swapIdx });
+     await updateSignageItem(arr[swapIdx].id, { sort_order: idx });
+    console.log(`Moved signage item ${signageItemId} ${direction}`);
+     // then re-calc everything
+     await fetchAndRecalc();
+   },
+   [orderData.signageItems, fetchAndRecalc]);
+
+  // ─── ❷ Initial load: overview + recalc ───────────────────────────────────────
+  useEffect(() => {
+    if (!orderId || didFetchOverview.current) return;
+    didFetchOverview.current = true;
+    (async () => {
+      const overview = await fetchOrderOverview(orderId);
+      setCustomerGstin(overview.customer?.gstin || "");
+      setCustomerPan(overview.customer?.pan || "");
+      setGstBillablePercent(overview.gst_billable_percent ?? "");
+      setOrderData(prev => ({ ...prev,  }));
+      await fetchAndRecalc(overview.discount || 0);
+    })();
+  }, [orderId, fetchAndRecalc]);
+
+  // ─── ❸ Persist discount & recalc ─────────────────────────────────────────────
+  const handleDiscountChange = useCallback(
+    async (newDiscount) => {
+      await updateOrderOverview(orderId, { discount: newDiscount });
+      setOrderData(prev => ({ ...prev, discount: newDiscount }));
+      await fetchAndRecalc(newDiscount);
+    },
+    [orderId, fetchAndRecalc]
+  );
+
+  // ─── ❹ Live preview: recalc with overrides ──────────────────────────────────
+  const recalcWithOverrides = useCallback((overrides) => {
+    const { effectiveItems, effectiveBoqs } = mergeOverrides(
+      orderData.signageItems,
+      orderData.signageBoqItems,
+      overrides
+    );
+    const calc = calculateOrderAll({
+      signageItems:    effectiveItems,
+      signageBoqItems: effectiveBoqs,
+      discount:        orderData.discount,
+      customerGstin,
+      gstBillablePercent,
+    });
+    setOrderData({ ...calc, signageBoqItems: effectiveBoqs });
+  }, [orderData, customerGstin, gstBillablePercent]);
+
+  const handleLocalBoqChange = useCallback((signageItemId, boqs, marginPct) => {
+    setLocalOverrides(prev => {
+      const next = { ...prev, [signageItemId]: { boqs, marginPercent: marginPct } };
+      recalcWithOverrides(next);
+      return next;
+    });
+  }, [recalcWithOverrides]);
+
+  // ─── ❺ Add BOQ row → feedback + recalc ─────────────────────────────────────
+  const handleAddBoqRow = useCallback(
+    async (signageItemId) => {
+      try {
+        await addBoqItem(signageItemId, {
+          signage_item_id: signageItemId,
+          item: "",
+          material: "",
+          unit: "",
+          quantity: 1,
+          cost_per_unit: 0,
+        });
+        setFeedbackMsg("BOQ row added");
+        clearTimeout(feedbackTimeout.current);
+        feedbackTimeout.current = setTimeout(() => setFeedbackMsg(""), 2000);
+        await fetchAndRecalc();
+        const liveRegion = document.getElementById("boq-live-region");
+        if (liveRegion) liveRegion.textContent = "BOQ row added";
+      } catch {
+        setFeedbackMsg("Failed to add BOQ row");
+        clearTimeout(feedbackTimeout.current);
+        feedbackTimeout.current = setTimeout(() => setFeedbackMsg(""), 3000);
+        const liveRegion = document.getElementById("boq-live-region");
+        if (liveRegion) liveRegion.textContent = "Failed to add BOQ row";
+      }
+    },
+    [fetchAndRecalc]
+  );
+
+  // ─── ❻ Save BOQ edits → DB + recalc ─────────────────────────────────────────
+  const handleSaveBoq = useCallback(
+    async (signageItemId, editedBoqs = [], { marginPct, toDelete = [] }) => {
+      if (marginPct != null) {
+        await updateSignageItem(signageItemId, { margin_percent: marginPct });
+      }
+      for (const id of toDelete) {
+        await deleteBoqItem(id);
+      }
+      for (const row of editedBoqs) {
+        if (!row.id) await addBoqItem(signageItemId, row);
+        else         await updateBoqItem(row.id, row);
+      }
+      await fetchAndRecalc();
+    },
+    [fetchAndRecalc]
+  );
+
+  const handleDeleteSignageItem = useCallback(
+  async signageItemId => {
+    if (!window.confirm("Are you sure you want to delete this signage item?")) return;
+    await deleteSignageItem(signageItemId);
+    await fetchAndRecalc();
+  },
+  [fetchAndRecalc]
+);
+        console.log("Rendering OrderDetailPage with orderId:", orderData,overview);
+
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start bg-[#fffbe6]">
-      <div className="w-full flex-1 flex flex-col items-center">
-        <div className="w-full max-w-[1000px] mx-auto px-4 py-6 bg-white">
-          {/* Always show overview, never hide on scroll */}
-          <div>
-            <OrderHeader orderId={orderId} customerGstin={customerGstin} setCustomerGstin={setCustomerGstin} customerPan={customerPan} setCustomerPan={setCustomerPan} />
-          </div>
-          <div className="tabnav-wrapper">
-            <TabNav currentTab={tab} onTabChange={(t) => navigate(`?tab=${t}`)} />
-          </div>
-          <div className="mt-6">
-            <TabComponent
-              orderId={orderId}
-              customerGstin={customerGstin}
-              setCustomerGstin={setCustomerGstin}
-              customerPan={customerPan}
-              setCustomerPan={setCustomerPan}
-              gstBillablePercent={gstBillablePercent}
-              setGstBillablePercent={percent => setGstBillablePercent(percent)}
-            />
-          </div>
+    <div className="min-h-screen flex flex-col items-center bg-[#fffbe6]">
+      <div className="w-full max-w-[1000px] mx-auto px-4 py-6 bg-white">
+        <OrderHeader
+          orderId={orderId}
+          customerGstin={customerGstin}
+          setCustomerGstin={setCustomerGstin}
+          customerPan={customerPan}
+          setCustomerPan={setCustomerPan}
+        />
+        <TabNav
+          currentTab={currentTab}
+          onTabChange={t => navigate(`?tab=${t}`)}
+        />
+        <div className="mt-6">
+          <TabComponent
+            orderId={orderId}
+            orderData={orderData}
+            overview={overview}
+            invoiceData={invoiceData}
+            onDiscountChange={handleDiscountChange}
+            onLocalBoqChange={handleLocalBoqChange}
+            onMoveSignageItem={handleMoveSignageItem}
+            onDeleteSignageItem={handleDeleteSignageItem}
+            onSaveBoq={handleSaveBoq}
+            onAddBoqRow={handleAddBoqRow}
+            setOrderData={setOrderData}
+            customerGstin={customerGstin}
+            setCustomerGstin={setCustomerGstin}
+            customerPan={customerPan}
+            setCustomerPan={setCustomerPan}
+            gstBillablePercent={gstBillablePercent}
+            setGstBillablePercent={setGstBillablePercent}
+          />
+
+          {/* ARIA live region */}
+          <div
+            id="boq-live-region"
+            aria-live="polite"
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              width: "1px",
+              height: "1px",
+              overflow: "hidden",
+            }}
+          />
+
+          {/* Feedback toast */}
+          {feedbackMsg && (
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-100 text-green-800 px-4 py-2 rounded shadow z-50">
+              {feedbackMsg}
+            </div>
+          )}
         </div>
       </div>
     </div>

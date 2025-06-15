@@ -11,8 +11,33 @@ export async function fetchOrderOverview(orderId) {
     console.error(error);
     throw error;
   }
+  console.log("Fetched order overview:", data);
   // Attach customer_name for convenience
-  return { ...data, customer_name: data.customer?.name || "" };
+  // return { ...data,jobName:data.name ,customer_name: data.customer?.name || "" };
+  return {
+    ...data,
+    jobName: data.name,
+    customer_name: data.customer?.name || "",
+    customer_gstin: data.customer?.gstin || "",
+    customer_pan:   data.customer?.pan   || ""
+  };
+}
+export async function fetchInvoiceDetails(orderId) {
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("*")
+    .eq("order_id", orderId)
+    .maybeSingle();
+  if (error) throw error;
+  return data || {};
+}
+export async function updateOrderOverview(orderId, changes) {
+  const { data, error } = await supabase
+    .from("orders")
+    .update(changes)
+    .eq("id", orderId);
+  if (error) throw error;
+  return data;
 }
 
 export async function updateOrderStatus(orderId, newStatus) {
@@ -82,6 +107,7 @@ export async function addSignageItem(orderId, itemData) {
 }
 
 export async function updateSignageItem(itemId, updates) {
+  console.log("Updating signage item", itemId, "with data", updates);
   const { data, error } = await supabase
     .from("signage_items")
     .update(updates)

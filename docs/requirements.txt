@@ -1,0 +1,108 @@
+# Order Calculation Specification (Signage CRM)
+
+## 1. BOQ (Bill of Quantities) Calculations
+- **Input:** For each signage item, a list of BOQ items with fields: `quantity`, `cost_per_unit`.
+- **Formula:**
+  - `boq_total = sum(quantity * cost_per_unit for each BOQ item)`
+- **Output:** `boq_total` for each signage item.
+
+## 2. Margin Application
+- **Input:** For each signage item: `boq_total`, `margin_percent` is stored in the db, the total_with_margin is calculated
+
+- **Formula:**
+boq_total_with_margin = boq_total * (1 + margin_percent / 100)
+
+## 3. Rate Calculation
+- **Input:** `boq_total_with_margin`, `quantity` (for each signage item)
+- **Formula:**
+  - `rate = boq_total_with_margin / quantity` (if quantity > 0, else 0)
+- **Output:** `rate` for each signage item.
+
+## 4. Amount Calculation
+- **Input:** `rate`, `quantity`
+- **Formula:**
+  - `amount = rate * quantity`
+- **Output:** `amount` for each signage item.
+
+## 5. GST Calculation
+- **Input:** `amount`, `gst_percent` (default 18 if not set)
+- **Formula:**
+  - `gst_amount = amount * gst_percent / 100`
+- **Output:** `gst_amount` for each signage item.
+
+## 6. Cost After Tax
+- **Input:** `amount`, `gst_amount`
+- **Formula:**
+  - `cost_after_tax = amount + gst_amount`
+- **Output:** `cost_after_tax` for each signage item.
+
+## 7. GST Billable Scaling (if applicable)
+- **Input:** `gst_billable_percent` or `gst_billable_amount` (order-level)
+- **Formula:**
+  - If `gst_billable_percent` is set and != 100: `scaling = gst_billable_percent / 100`
+  - Else if `gst_billable_amount` is set and != sum of all signage item costs: `scaling = gst_billable_amount / sum(signage_item.cost)`
+  - Else: `scaling = 1`
+  - Apply `scaling` to all signage item totals and rates.
+- **Output:** Scaled values for all signage items.
+
+
+## 7.1 if `gst_billable_percent` is set:
+  - we need to auto create a payment entry for a cash payment for the difference  in pending stage with due date as 15days from now.
+    - `payment_entry =  sum(gst_amount for all signage items) - gst_billable_amount
+
+## 8. Order Totals
+- **Input:** All signage items' `amount`, `gst_amount`, `cost_after_tax`, `discount` (order-level)
+- **Formula:**
+  - `total = sum(amount for all signage items)`
+  - `net_total = total - discount`
+  - `gst = sum(gst_amount for all signage items)`
+  - rules for igst/cgst/sgst
+    - if customer GSTIN starts with '29' (Karnataka), split GST into CGST and SGST (each = gst / 2)
+    - else use IGST (full gst)
+  - `calculate all three tax types always, set the irrelevant ones to 0` using gst as the input
+  - igst = gst if customer GSTIN does not start with '29' else 0
+  - cgst = gst / 2 if customer GSTIN starts with '29' else 0
+  - sgst = gst / 2 if customer GSTIN starts with '29' else 0
+    - `grand_total = net_total + gst`
+    display net total only if discount = 0, else display grand total
+
+
+- **Output:** `total`, `net_total`, `gst`, igst,cgst,sgst ,`grand_total` (order-level)
+
+## 9. Cost to Company
+- **Input:** All BOQ items for all signage items
+- **Formula:**
+  - `cost_to_company = sum(quantity * cost_per_unit for all BOQ items)`
+- **Output:** `cost_to_company` (order-level)
+
+## 10. Margin (Order Level)
+- **Input:** `net_total`, `cost_to_company`
+- **Formula:**
+  - `margin = net_total - cost_to_company`
+- **Output:** `margin` (order-level)
+
+## 11. GST Summary Table
+- **Input:** All signage items' `gst_percent`, `gst_amount`
+- **Formula:**
+  - Group signage items by `gst_percent` and sum their `gst_amount` for each rate.
+- **Output:** Table of GST rate vs. total GST amount.
+
+## 12. Regional GST Handling (e.g., Karnataka)
+- **Input:** Customer GSTIN
+- **Formula:**
+  - If GSTIN starts with '29' (Karnataka): split GST into CGST and SGST (each = gst_amount / 2)
+  - Else: use IGST (full gst_amount)
+- **Output:** GST summary table with correct columns.
+
+## 13. Calculation Triggers
+- Recalculate all values whenever any of the following change:
+  - Signage items (add/edit/delete)
+  - BOQ items (add/edit/delete)
+  - Margin or total_with_margin
+  - Discount
+  - GST billable percent/amount
+  - GST percent
+
+## 14. Calculation Location
+- All calculations must be performed centrally (e.g., in OrderDetailPage.jsx or a shared utility), not in UI components.
+- UI components must only display or edit data, never perform calculations themselves.

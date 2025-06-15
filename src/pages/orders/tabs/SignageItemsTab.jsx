@@ -1009,6 +1009,9 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
     setOpenBoqItemId(openBoqItemId === itemId ? null : itemId);
   };
 
+  // Defensive: ensure allBoqs is always an array
+  const safeAllBoqs = Array.isArray(allBoqs) ? allBoqs : [];
+
   return (
     <div className="space-y-4 flex justify-center relative">
       {/* Watermark logo */}
@@ -1237,7 +1240,7 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                               className="text-blue-600 underline cursor-pointer"
                               onClick={e => setShowBoqForItemId(showBoqForItemId === item.id ? null : item.id)}
                             >
-                              {allBoqs.filter(b => b.signage_item_id === item.id).length}
+                              {safeAllBoqs.filter(b => b.signage_item_id === item.id).length}
                             </span>
                           )}
                         </td>
@@ -1248,17 +1251,90 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
                       </tr>
                       {showBoqForItemId === item.id && (
                         <tr>
-                          <td colSpan={14} style={{ background: '#fffbe6', padding: 0 }}>
+                          <td colSpan={14} style={{ background: 'white', padding: 0 }}>
                             <div style={{ padding: 16 }}>
-                              <BoqTab
-                                signageItem={item}
-                                allBoqs={allBoqs}
-                                orderId={orderId}
-                                onBoqChange={async () => {
-                                  const updatedBoqs = await fetchBoqItems(orderId);
-                                  setAllBoqs(updatedBoqs);
-                                }}
-                              />
+                              {/* BOQ Summary Table - editable, white background */}
+                              <div style={{ background: '#fff', padding: 24, borderRadius: 8, margin: '32px 0' }}>
+                                <div style={{ fontWeight: 700, fontSize: 22, marginBottom: 16 }}>BOQ Summary Across All Signage Items</div>
+                                <table style={{ width: '100%', background: '#fff', borderCollapse: 'collapse', fontSize: 15, marginBottom: 12 }}>
+                                  <thead style={{ background: '#f7f7f7' }}>
+                                    <tr>
+                                      <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>S. No.</th>
+                                      <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Signage Item</th>
+                                      <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Item</th>
+                                      <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Material</th>
+                                      <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Unit</th>
+                                      <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Quantity</th>
+                                      <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Cost/Unit</th>
+                                      <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Total</th>
+                                      <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Procurement</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {safeAllBoqs.filter(b => b.signage_item_id === item.id).map((boq, idx) => {
+                                      const signageItem = items.find(i => i.id === boq.signage_item_id) || {};
+                                      return (
+                                        <tr key={boq.id}>
+                                          <td style={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: 8 }}>{idx + 1}</td>
+                                          <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{signageItem.name || ''}</td>
+                                          <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                                            <input
+                                              type="text"
+                                              value={boq.item || ''}
+                                              onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, item: e.target.value } : b))}
+                                              onBlur={e => updateBoqItem(boq.id, { item: boq.item })}
+                                              style={{ width: 80, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px' }}
+                                            />
+                                          </td>
+                                          <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                                            <input
+                                              type="text"
+                                              value={boq.material || ''}
+                                              onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, material: e.target.value } : b))}
+                                              onBlur={e => updateBoqItem(boq.id, { material: boq.material })}
+                                              style={{ width: 80, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px' }}
+                                            />
+                                          </td>
+                                          <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                                            <input
+                                              type="text"
+                                              value={boq.unit || ''}
+                                              onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, unit: e.target.value } : b))}
+                                              onBlur={e => updateBoqItem(boq.id, { unit: boq.unit })}
+                                              style={{ width: 60, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px' }}
+                                            />
+                                          </td>
+                                          <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                                            <input
+                                              type="number"
+                                              min={1}
+                                              value={boq.quantity}
+                                              onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, quantity: e.target.value } : b))}
+                                              onBlur={e => updateBoqItem(boq.id, { quantity: Number(boq.quantity) })}
+                                              style={{ width: 60, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px', textAlign: 'right' }}
+                                            />
+                                          </td>
+                                          <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                                            <input
+                                              type="number"
+                                              min={0}
+                                              value={boq.cost_per_unit}
+                                              onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, cost_per_unit: e.target.value } : b))}
+                                              onBlur={e => updateBoqItem(boq.id, { cost_per_unit: Number(boq.cost_per_unit) })}
+                                              style={{ width: 80, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px', textAlign: 'right' }}
+                                            />
+                                          </td>
+                                          <td style={{ border: '1px solid #e0e0e0', padding: 8, textAlign: 'right' }}>{(Number(boq.quantity) * Number(boq.cost_per_unit || 0)).toFixed(2)}</td>
+                                          <td style={{ border: '1px solid #e0e0e0', padding: 8, textAlign: 'center' }}>—</td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                                <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 18, marginTop: 8 }}>
+                                  Total BOQ Cost: ₹{safeAllBoqs.filter(b => b.signage_item_id === item.id).reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0).toFixed(2)}
+                                </div>
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -1384,6 +1460,89 @@ export default function SignageItemsTab({ orderId, customerGstin, setCustomerGst
           >
             ⬇️ Download Invoice
           </button>
+        </div>
+        {/* BOQ Summary Table - editable, white background */}
+        <div style={{ background: '#fff', padding: 24, borderRadius: 8, margin: '32px 0' }}>
+          <div style={{ fontWeight: 700, fontSize: 22, marginBottom: 16 }}>BOQ Summary Across All Signage Items</div>
+          <table style={{ width: '100%', background: '#fff', borderCollapse: 'collapse', fontSize: 15, marginBottom: 12 }}>
+            <thead style={{ background: '#f7f7f7' }}>
+              <tr>
+                <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>S. No.</th>
+                <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Signage Item</th>
+                <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Item</th>
+                <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Material</th>
+                <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Unit</th>
+                <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Quantity</th>
+                <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Cost/Unit</th>
+                <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Total</th>
+                <th style={{ padding: 8, border: '1px solid #e0e0e0' }}>Procurement</th>
+              </tr>
+            </thead>
+            <tbody>
+              {safeAllBoqs.map((boq, idx) => {
+                const signageItem = items.find(i => i.id === boq.signage_item_id) || {};
+                return (
+                  <tr key={boq.id}>
+                    <td style={{ border: '1px solid #e0e0e0', textAlign: 'center', padding: 8 }}>{idx + 1}</td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>{signageItem.name || ''}</td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                      <input
+                        type="text"
+
+                        value={boq.item || ''}
+                        onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, item: e.target.value } : b))}
+                        onBlur={e => updateBoqItem(boq.id, { item: boq.item })}
+                        style={{ width: 80, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px' }}
+                      />
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                      <input
+                        type="text"
+                        value={boq.material || ''}
+                        onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, material: e.target.value } : b))}
+                        onBlur={e => updateBoqItem(boq.id, { material: boq.material })}
+                        style={{ width: 80, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px' }}
+                      />
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                      <input
+                        type="text"
+                        value={boq.unit || ''}
+                        onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, unit: e.target.value } : b))}
+                        onBlur={e => updateBoqItem(boq.id, { unit: boq.unit })}
+                        style={{ width: 60, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px' }}
+                      />
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                      <input
+                        type="number"
+                        min={1}
+                        value={boq.quantity}
+                        onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, quantity: e.target.value } : b))}
+                        onBlur={e => updateBoqItem(boq.id, { quantity: Number(boq.quantity) })}
+                        style={{ width: 60, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px', textAlign: 'right' }}
+                      />
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 8 }}>
+                      <input
+                        type="number"
+                        min={0}
+                        value={boq.cost_per_unit}
+                        onChange={e => setAllBoqs(allBoqs => allBoqs.map(b => b.id === boq.id ? { ...b, cost_per_unit: e.target.value } : b))}
+                        onBlur={e => updateBoqItem(boq.id, { cost_per_unit: Number(boq.cost_per_unit) })}
+                        style={{ width: 80, background: '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 6px', textAlign: 'right' }}
+                      />
+                    </td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 8, textAlign: 'right' }}>{(Number(boq.quantity) * Number(boq.cost_per_unit || 0)).toFixed(2)}</td>
+                    <td style={{ border: '1px solid #e0e0e0', padding: 8, textAlign: 'center' }}>—</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div style={{ textAlign: 'right', fontWeight: 700, fontSize: 18, marginTop: 8 }}>
+            Total BOQ Cost: ₹{allBoqs.reduce((sum, b) => sum + Number(b.quantity) * Number(b.cost_per_unit || 0), 0).toFixed(2)}
+          </div>
         </div>
       </div>
     </div>

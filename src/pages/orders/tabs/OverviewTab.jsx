@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { fetchOrderOverview, updateOrderDetails, addFeedNote } from "../services/orderDetailsService";
 
-export default function OverviewTab({ orderId }) {
+export default function OverviewTab({ orderId,orderData, overview, }) {
+  
   const [order, setOrder] = useState(null);
   const [error, setError] = useState(null);
   const [editBuffer, setEditBuffer] = useState({});
+  // setOrder(orderData)
 
   useEffect(() => {
     if (!orderId || isNaN(Number(orderId))) return;
@@ -83,7 +85,7 @@ export default function OverviewTab({ orderId }) {
                 <td className="p-2 border">
                   <input
                     className="w-full border rounded p-1"
-                    value={editBuffer.name !== undefined ? editBuffer.name : order.name || ""}
+                    value={editBuffer.name !== undefined ? editBuffer.name : orderData.name || ""}
                     onChange={(e) => handleFieldChange("name", e.target.value)}
                     onBlur={() => handleFieldBlur("name", "Name")}
                   />

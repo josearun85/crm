@@ -1,0 +1,114 @@
+.invoice-container {
+  padding: 32px;
+  font-family: sans-serif;
+  color: #222;
+}
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  background: #f5f5f5;
+  padding: 16px 24px;
+  border-radius: 8px;
+}
+.header-left, .header-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.invoice-logo {
+  width: 80px;
+  margin-bottom: 8px;
+}
+.company-name {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.company-line {
+  font-size: 12px;
+  color: #444;
+}
+.header-right .label {
+  font-weight: 600;
+  font-size: 12px;
+}
+.header-right .value {
+  margin-left: 4px;
+  font-size: 12px;
+}
+.tax-invoice-title {
+  text-align: center;
+  margin: 24px 0 12px;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+.invoice-table th,
+.invoice-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 12px;
+}
+.invoice-table th {
+  background: #f0f0f0;
+  text-align: center;
+  font-weight: 600;
+}
+.center { text-align: center; }
+.right  { text-align: right;  }
+.item-name { font-weight: 600; margin-bottom: 4px; }
+.item-desc { font-size: 11px; color: #555; }
+.invoice-summary {
+  width: 280px;
+  margin-left: auto;
+  margin-bottom: 16px;
+}
+.invoice-summary .line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 2px 0;
+}
+.invoice-summary .grand span {
+  font-size: 16px;
+  font-weight: 700;
+  color: red;
+}
+.amount-words {
+  margin-bottom: 24px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.bank-qr-section.invoice-bank-qr {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 24px;
+}
+.bank-details, .scan-pay {
+  flex: 1;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.section-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.qr-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto 8px;
+}
+.upi-id {
+  text-align: center;
+  font-size: 11px;
+  color: #333;
+}

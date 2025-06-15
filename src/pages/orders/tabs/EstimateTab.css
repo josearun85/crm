@@ -1,0 +1,293 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   CONTAINER & DOWNLOAD BUTTON
+────────────────────────────────────────────────────────────────────────── */
+.estimate-container {
+  padding: 16px;
+  text-align: right;
+}
+.download-btn {
+  background: #00458a;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+.download-btn:hover {
+  background: #003366;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   SHEET (A4)
+────────────────────────────────────────────────────────────────────────── */
+.estimate-sheet {
+  width: 794px; /* A4 at 96dpi */
+  margin: 0 auto 32px;
+  padding: 32px;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  font-family: "Segoe UI", Roboto, sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   HEADER
+────────────────────────────────────────────────────────────────────────── */
+.est-header .row1,
+.est-header .row2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.est-header .row1 {
+  margin-bottom: 16px;
+}
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #999;
+}
+.logo {
+  max-height: 80px;
+  max-width: 120px;
+}
+.est-header .row2 .left,
+.est-header .row2 .right {
+  display: flex;
+  flex-direction: column;
+}
+.field-row {
+  display: flex;
+  font-size: 13px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+.field-row span:first-child {
+  font-weight: 600;
+  width: 100px;
+}
+.field-row .value {
+ margin-left: 4px; 
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   ITEMS TABLE
+────────────────────────────────────────────────────────────────────────── */
+.est-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+.est-table th,
+.est-table td {
+  border: 1px solid #ccc;
+  padding: 8px 10px;
+  vertical-align: top;
+}
+.est-table th {
+  background: #f3f6fa;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-size: 12px;
+}
+.image-cell {
+  width: 100px;
+  text-align: center;
+}
+.thumbnail {
+  max-width: 88px;
+  max-height: 64px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.placeholder {
+  font-size: 11px;
+  color: #888;
+  border: 1px dashed #bbb;
+  padding: 4px;
+  border-radius: 4px;
+}
+.center {
+  text-align: center;
+}
+.right {
+  text-align: right;
+}
+.particulars {
+  text-align: left;
+}
+.name {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.desc {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.3;
+  white-space: pre-wrap;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   SUMMARY BOX
+────────────────────────────────────────────────────────────────────────── */
+.summary-block {
+  float: right;
+  width: 360px;
+  padding: 16px;
+  border: 1px solid #ccc;
+  margin-bottom: 32px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.summary-block .line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.summary-block .line.big {
+  font-weight: 600;
+  font-size: 15px;
+  margin-top: 12px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   GST BREAKUP TABLE
+────────────────────────────────────────────────────────────────────────── */
+.gst-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 12px;
+}
+.gst-table th,
+.gst-table td {
+  padding: 4px 8px;
+  border: none;
+  text-align: left;
+}
+.gst-table th {
+  font-weight: 600;
+  background: transparent;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   TERMS & CONDITIONS
+────────────────────────────────────────────────────────────────────────── */
+.terms {
+  clear: both;
+  margin-top: 48px;
+  font-size: 13px;
+}
+.terms h2 {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+.terms-view {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  padding: 12px;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+.terms-edit {
+  width: 100%;
+  min-height: 120px;
+  font-family: monospace;
+  font-size: 13px;
+}
+.terms-actions {
+  margin-top: 8px;
+}
+.terms-actions button {
+  margin-right: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.edit-terms-btn {
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: #0066cc;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   FOOTER
+────────────────────────────────────────────────────────────────────────── */
+.est-footer {
+  border-top: 1px solid #ddd;
+  padding-top: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: #555;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PRINT RESET
+────────────────────────────────────────────────────────────────────────── */
+@media print {
+  .download-btn { display: none; }
+  body, .estimate-container, .estimate-sheet {
+    margin: 0; box-shadow: none; width: auto;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   BANK & QR SECTION
+────────────────────────────────────────────────────────────────────────── */
+.bank-qr-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 32px;
+  gap: 24px;
+}
+.bank-details, .scan-pay {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.section-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.qr-image {
+  display: block;
+  max-width: 150px;
+  max-height: 150px;
+  width: 100%;
+  height: auto;
+  margin: 0 auto 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+}
+.upi-id {
+  text-align: center;
+  font-size: 12px;
+  color: #333;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   CLOSING LINES
+────────────────────────────────────────────────────────────────────────── */
+.closing-lines {
+  margin-top: 24px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.closing-lines p {
+  margin: 8px 0;
+}
+.closing-lines em {
+  font-style: italic;
+}
+.closing-lines strong {
+  display: block;
+  margin-top: 8px;
+}
