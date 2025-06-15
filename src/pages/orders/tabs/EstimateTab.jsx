@@ -125,24 +125,29 @@ function downloadPDF() {
 
 
         <header className="est-header" ref={headerRef}>
-<div className="invoice-header">
+<div className="est-header">
 
-  {/* ── COMPANY BLOCK ─────────────────────── */}
-  <div className="invoice-header company-block">
+  <div className=" company-block">
     <div className="head-left-align">
-      <img src="/logo.jpeg" alt="Sign Company" className="invoice-logo"/>
-      <div className="company-name">SIGN COMPANY</div>
-      <div className="company-line">
-        Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore – 560 075
+      <div className="logo-grid">
+          <div><img src="/logo.jpeg" alt="Sign Company" className="invoice-logo"/></div>
+          <div>
+            <div className="company-name">SIGN COMPANY</div>
+            <div className="company-line">
+              Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore – 560 075
+            </div>
+            <div className="company-line">PHONE: 8431505007</div>
+            <div className="company-line">GSTIN: 29BPYPPK6641B2Z6</div>
+          </div>
       </div>
-      <div className="company-line">PHONE: 8431505007</div>
-      <div className="company-line">GSTIN: 29BPYPPK6641B2Z6</div>
+      
+      
     </div>
   </div>
 
   {/* ── INVOICE DETAILS STRIP ─────────────── */}
-  <div className="invoice-header details-strip">
-    <div className="header-right">
+  <div className=" details-strip">
+    <div className="">
       
 
 
@@ -159,9 +164,9 @@ function downloadPDF() {
         <span className="label">GSTIN:</span>
         <span className="value">{customerGSTIN}</span>
       </div>
-      <div className="field-row">
+      <div className="field-row  whitespace-normal break-words w-full ">
         <span className="label">Address:</span>
-        <span className="value">{overview.customer?.address ?? "—"}</span>
+        <span className="value address-block ">{overview.customer?.address ?? "—"}</span>
       </div>
     </div>
   </div>

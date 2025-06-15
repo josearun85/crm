@@ -121,7 +121,7 @@ function numberToWordsIndian(n) {
   if (n > 0) {
     parts.push( n < 100 ? twoDigitWords(n) : threeDigitWords(n) );
   }
-  return parts.join(" and ");
+  return parts.join(" ");
 }
 
 // ─── Usage inside your React component ─────────────────────────────────
@@ -132,7 +132,7 @@ const total = orderData.grandTotal || 0;
 const rupees = Math.floor(total);
 const paise  = Math.round((total - rupees) * 100);
 
-let amountInWords = numberToWordsIndian(rupees) + " Rupees";
+let amountInWords = "Rupees "+numberToWordsIndian(rupees);
 if (paise > 0) {
   amountInWords += " and " + numberToWordsIndian(paise) + " Paise";
 }
@@ -174,21 +174,27 @@ amountInWords += " Only";
 <div className="invoice-header">
 <>
   {/* ── COMPANY BLOCK ─────────────────────── */}
-  <div className="invoice-header company-block">
-    <div className="header-left">
-      <img src="/logo.jpeg" alt="Sign Company" className="invoice-logo"/>
-      <div className="company-name">SIGN COMPANY</div>
-      <div className="company-line">
-        Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore – 560 075
+<div className=" company-block">
+    <div className="head-left-align">
+      <div className="logo-grid">
+          <div><img src="/logo.jpeg" alt="Sign Company" className="invoice-logo"/></div>
+          <div>
+            <div className="company-name">SIGN COMPANY</div>
+            <div className="company-line">
+              Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore – 560 075
+            </div>
+            <div className="company-line">PHONE: 8431505007</div>
+            <div className="company-line">GSTIN: 29BPYPPK6641B2Z6</div>
+          </div>
       </div>
-      <div className="company-line">PHONE: 8431505007</div>
-      <div className="company-line">GSTIN: 29BPYPPK6641B2Z6</div>
+      
+      
     </div>
   </div>
 
   {/* ── INVOICE DETAILS STRIP ─────────────── */}
-  <div className="invoice-header details-strip">
-    <div className="header-right">
+  <div className=" details-strip">
+    <div className="">
       <div className="field-row">
         <span className="label">INVOICE No:</span>
         <span className="value">{invNo}</span>
@@ -207,12 +213,9 @@ amountInWords += " Only";
       </div>
       <div className="field-row">
         <span className="label">PO Number:</span>
-        <span className="value">{poNumber}</span>
+        <span className="value">{poNumber} ({poDate})</span>
       </div>
-      <div className="field-row">
-        <span className="label">PO Date:</span>
-        <span className="value">{poDate}</span>
-      </div>
+
       <div className="field-row">
         <span className="label">Client:</span>
         <span className="value">{clientName}</span>
@@ -238,7 +241,7 @@ amountInWords += " Only";
         <thead>
           <tr>
             <th>S. No.</th>
-            <th>Name & Description</th>
+            <th style={{width:"250px"}}>Name & Description</th>
             <th>HSN Code</th>
             <th>Qty</th>
             <th>Rate</th>

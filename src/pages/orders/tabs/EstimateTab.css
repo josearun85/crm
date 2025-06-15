@@ -344,6 +344,7 @@
   background: "white";
   padding: 16px 24px;
   border-radius: 8px;
+  width:100%;
 }
 .header-left, .header-right {
   display: flex;
@@ -385,4 +386,13 @@
 
 .head-left-align{
   text-align:left;
+}
+.logo-grid{
+  display:grid;
+  grid-template-columns:100px 1fr;
+  grid-timeplate-rows:1fr;
+}
+.address-block{
+  width:500px;
+  overflow:wrap;
 }

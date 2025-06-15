@@ -107,7 +107,10 @@
   color: #333;
 }
 
+.invoice-header{
+  display:grid;
 
+}
 
 /* COMPANY BLOCK (top row) */
 .company-block {
@@ -122,7 +125,6 @@
   background: #e0e0e0;
   padding: 16px 24px;
   border-radius: 8px;
-  margin-bottom: 24px;
 }
 
 .header-right {
@@ -144,4 +146,9 @@
 
 .field-row .value {
   white-space: nowrap;
+}
+
+.field-row span:first-child {
+font-weight: 600;
+width: 150px;
 }

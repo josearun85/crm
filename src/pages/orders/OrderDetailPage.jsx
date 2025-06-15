@@ -46,7 +46,7 @@ const tabMap = {
 export default function OrderDetailPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const currentTab = new URLSearchParams(useLocation().search).get("tab") || "items";
+  const currentTab = new URLSearchParams(useLocation().search).get("tab") || "items-refactored";
   const TabComponent = tabMap[currentTab] || SignageItemsTab;
 
   // ─── Metadata ───────────────────────────────────────────────────────────────
