@@ -336,3 +336,53 @@
   }
   .download-btn { display: none; }
 }
+
+
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  background: "white";
+  padding: 16px 24px;
+  border-radius: 8px;
+}
+.header-left, .header-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* COMPANY BLOCK (top row) */
+.company-block {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+/* DETAILS STRIP (second row) */
+.details-strip {
+  background: #e0e0e0;
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.header-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+}
+
+.field-row {
+  display: flex;
+  font-size: 13px;
+  align-items: baseline;
+}
+
+.field-row .label {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.head-left-align{
+  text-align:left;
+}

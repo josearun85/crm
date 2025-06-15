@@ -147,6 +147,15 @@ const [deletedRows, setDeletedRows] = useState(new Set());
   });
 };
 
+const handleMarginBoqBlur = e => {
+  const val = Number(e.target.value) || 0;
+  const newPrc = (val / boqTotal) * 100;
+  const marginBoq = (boqTotal * pct) / 100;
+  setMarginBoq(marginBoq);
+  setTotalWithMargin(boqTotal + marginBoq);
+  handleBlur();
+}
+const marginBoq = (boqTotal * marginPct) / 100;
   return (
     <div className="mt-2">
       <table className="min-w-full border text-xs bg-white">
@@ -184,6 +193,15 @@ const [deletedRows, setDeletedRows] = useState(new Set());
         </tbody>
         <tfoot>
           <tr className="bg-gray-50">
+            <td colSpan={3} className="p-2 font-medium">Total Cost</td>
+            <td colSpan={1} className="p-2">
+              <input
+                type="number"
+                className="w-full border px-1 py-0.5 text-xs"
+                value={boqTotal.toFixed(2)}
+                readOnly></input>
+              
+            </td>
             <td colSpan={3} className="p-2 font-medium">Margin %</td>
             <td colSpan={1} className="p-2">
               <input
@@ -194,7 +212,17 @@ const [deletedRows, setDeletedRows] = useState(new Set());
                 onChange={e => setMarginPct(Number(e.target.value))}
               />
             </td>
-            <td className="p-2 text-right font-medium">Total (with margin)</td>
+             <td colSpan={3} className="p-2 font-medium">Margin </td>
+            <td colSpan={1} className="p-2">
+              <input
+                type="number"
+                className="w-full border px-1 py-0.5 text-xs"
+                value={marginBoq}
+                onBlur={handleMarginBoqBlur}
+                onChange={e => setMarginPct(Number(e.target.value))}
+              />
+            </td>
+            <td className="p-2 text-right font-medium">Sale Price</td>
             <td className="p-2 text-right font-medium">
               {totalWithMargin.toFixed(2)}
             </td>

@@ -26,6 +26,8 @@ export default function EstimateTab({ orderId, orderData, overview, fetchAndReca
 
   // ─── Unpack overview ───────────────────────────────────────────────────
   const { customer_name = "—", jobName = "—" } = overview;
+  const clientName   = overview.customer_name || "—";
+  const customerGSTIN= overview.customer_gstin    || "—";
 
   // ─── Terms & Conditions ──────────────────────────────────────────────
   const defaultTerms = `
@@ -120,43 +122,59 @@ function downloadPDF() {
 
       <div className="estimate-sheet" ref={printRef}>
         {/* HEADER */}
-        <header className="est-header" ref={headerRef} >
-          <div className="row1">
-            <div className="title">ESTIMATE #{overview.id}</div>
-            <img src="/logo.jpeg" alt="Logo" className="logo" />
-          </div>
-          <div className="row2">
-            <div className="left">
-              <div className="field-row">
-                <span>CLIENT:</span>
-                <span className="value">{customer_name}</span>
-              </div>
-              <div className="field-row">
-                <span>JOB NAME:</span>
-                <span className="value">{jobName}</span>
-              </div>
-            </div>
-            <div className="right">
-              <div className="field-row">
-                <span>DATE:</span>
-                <span className="value">{today}</span>
-              </div>
-              <div className="field-row">
-                <span>EST NO:</span>
-                <span className="value">
-                  {orderId}.1.{new Date().getFullYear()}
-                </span>
-              </div>
-            </div>
-          </div>
+
+
+        <header className="est-header" ref={headerRef}>
+<div className="invoice-header">
+
+  {/* ── COMPANY BLOCK ─────────────────────── */}
+  <div className="invoice-header company-block">
+    <div className="head-left-align">
+      <img src="/logo.jpeg" alt="Sign Company" className="invoice-logo"/>
+      <div className="company-name">SIGN COMPANY</div>
+      <div className="company-line">
+        Shed #7, No.120, Malleshpalya Main Road, New Thippasandra Post, Bangalore – 560 075
+      </div>
+      <div className="company-line">PHONE: 8431505007</div>
+      <div className="company-line">GSTIN: 29BPYPPK6641B2Z6</div>
+    </div>
+  </div>
+
+  {/* ── INVOICE DETAILS STRIP ─────────────── */}
+  <div className="invoice-header details-strip">
+    <div className="header-right">
+      
+
+
+      <div className="field-row">
+        <span className="label">Estimate No: </span>
+        <span className="value">{orderId}.{orderData.version || 1}.{new Date(Date.now()).getFullYear()}</span>
+      </div>
+
+      <div className="field-row">
+        <span className="label">Client:</span>
+        <span className="value">{clientName}</span>
+      </div>
+      <div className="field-row">
+        <span className="label">GSTIN:</span>
+        <span className="value">{customerGSTIN}</span>
+      </div>
+      <div className="field-row">
+        <span className="label">Address:</span>
+        <span className="value">{overview.customer?.address ?? "—"}</span>
+      </div>
+    </div>
+  </div>
+
+</div>
         </header>
 
         {/* ITEMS TABLE */}
         <table className="est-table">
           <thead>
             <tr>
-              <th>S No</th>
-              <th>Particulars</th>
+              <th className="head-left-align">S No</th>
+              <th className="head-left-align">Particulars</th>
               <th>Rate/Unit</th>
               <th>Qty</th>
               <th>Amount</th>
