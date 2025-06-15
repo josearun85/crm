@@ -301,3 +301,10 @@
 .terms-view {
   text-align: left;
 }
+@media print {
+  /* hide the “Edit Terms” button when printing/downloading */
+  .terms-actions,
+  .edit-terms-btn {
+    display: none !important;
+  }
+}
