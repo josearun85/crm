@@ -155,7 +155,6 @@ function downloadPDF() {
         <table className="est-table">
           <thead>
             <tr>
-              <th>Image</th>
               <th>S No</th>
               <th>Particulars</th>
               <th>Rate/Unit</th>
@@ -166,18 +165,17 @@ function downloadPDF() {
           <tbody>
             {signageItems.map((it, i) => (
               <tr key={it.id}>
-                <td className="image-cell">
-                  {thumbUrls[it.id] ? (
-                    <img src={thumbUrls[it.id]} alt="" className="thumbnail" />
-                  ) : (
-                    <div className="placeholder">Paste Image</div>
-                  )}
-                </td>
+               
                 <td className="center">{i + 1}</td>
                 <td className="particulars">
                   {it.name && <div className="name">{it.name}</div>}
                   {it.description && (
                     <div className="desc">{it.description}</div>
+                  )}
+                   {thumbUrls[it.id] ? (
+                    <img src={thumbUrls[it.id]} alt="" style={{ margin: 10, width: 300 }} />
+                  )  : (
+                    <div ></div>
                   )}
                 </td>
                 <td className="right">₹ {(it.rate || 0).toFixed(2)}</td>
