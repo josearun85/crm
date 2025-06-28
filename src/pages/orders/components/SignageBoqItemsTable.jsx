@@ -2,13 +2,19 @@ import React, { useState, useEffect, useRef } from "react";
 
 export default function SignageBoqItemsTable({
   signageItemId,
-  boqItems,
+  boqItems: rawBoqItems,
   marginPercent,
   onSaveBoq,
   onLocalBoqChange,
   ensureBoqForSignageItem,
 }) {
-  const [localBoqs, setLocalBoqs] = useState(() => boqItems.map(b => ({ ...b })));
+
+  const boqItems = Array.isArray(rawBoqItems) ? rawBoqItems : [];
+
+  const [localBoqs, setLocalBoqs] = useState(() =>
+    boqItems.map(b => ({ ...b }))
+  );
+
   const [marginPct, setMarginPct] = useState(marginPercent || 0);
   const [boqTotal, setBoqTotal] = useState(0);
   const [totalWithMargin, setTotalWithMargin] = useState(0);
@@ -17,7 +23,7 @@ export default function SignageBoqItemsTable({
 const [dirtyRows, setDirtyRows] = useState(new Set());
 const [deletedRows, setDeletedRows] = useState(new Set());
   // originalRows for delete detection
-  const originalIds = useRef(boqItems.map(b => b.id).filter(Boolean));
+  // const originalIds = useRef(boqItems.map(b => b.id).filter(Boolean));
   // Only update localBoqs if boqItems actually changed (deep compare by id/length)
   useEffect(() => {
     // Avoid infinite loop: only update if different
@@ -191,7 +197,11 @@ const marginBoq = (boqTotal * marginPct) / 100;
             </tr>
           ))}
         </tbody>
-        <tfoot>
+
+      </table>
+          <br/>
+      <table>
+        <tbody>
           <tr className="bg-gray-50">
             <td colSpan={3} className="p-2 font-medium">Total Cost</td>
             <td colSpan={1} className="p-2">
@@ -227,7 +237,8 @@ const marginBoq = (boqTotal * marginPct) / 100;
               {totalWithMargin.toFixed(2)}
             </td>
           </tr>
-        </tfoot>
+        </tbody>
+        
       </table>
 
       <div className="text-right mt-3">

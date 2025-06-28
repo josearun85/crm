@@ -4,6 +4,7 @@ import OrderCostingSummary from "../components/OrderCostingSummary";
 import {
   addSignageItem,
   fetchSignageItems,
+  addBoqItem,
   fetchBoqItems,
 } from "../services/orderDetailsService";
 
@@ -36,6 +37,33 @@ export default function ItemsTab({
     const updatedItems = await fetchSignageItems(orderId);
     setOrderData((prev) => ({ ...prev, signageItems: updatedItems }));
   };
+
+  // Insert right after handleAddItem
+const handleAddBoqRow = async (signageItemId) => {
+  if (!orderId || !signageItemId) return;
+
+  // 1️⃣  persist an empty BOQ row
+  const blank = await addBoqItem(signageItemId, {
+    signage_item_id: signageItemId,
+    item: "",
+    material: "",
+    unit: "",
+    quantity: 1,
+    cost_per_unit: 0,
+  });
+
+  // 2️⃣  inject it into React state so the table updates immediately
+  setOrderData((prev) => ({
+    ...prev,
+    signageItems: prev.signageItems.map((si) =>
+      si.id === signageItemId
+        ? { ...si, boqs: [...(si.boqs ?? []), blank] }
+        : si
+    ),
+    signageBoqItems: [...prev.signageBoqItems, blank],
+  }));
+};
+  
 
   const [openBoqItemId, setOpenBoqItemId] = useState(null);
   const handleBoqClick = (itemId) =>
@@ -91,8 +119,8 @@ export default function ItemsTab({
         onSaveBoq={onSaveBoq}
 
         /* add‐row now maps to onAddBoqRow */
-        onAddBoqRow={handleAddItem}
-
+        // onAddBoqRow={handleAddItem}
+        onAddBoqRow={handleAddBoqRow}
         onDeleteSignageItem={onDeleteSignageItem}
         onMoveSignageItem={onMoveSignageItem}
       />

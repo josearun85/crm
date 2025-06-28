@@ -21,7 +21,7 @@ export default function SignageItemsTable({
   onMoveSignageItem
 }) {
   
-
+// console.log(orderData)
 
   const handleFieldBlur = async (itemId, field, value) => {
     await updateSignageItem(itemId, { [field]: value });

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom'
 import CustomersPage from './pages/CustomersPage.jsx'
-import OrderPage from './pages/OrderPage.jsx'
+// import OrderPage from './pages/OrderPage.jsx'
 import EnquiriesPage from './pages/EnquiriesPage.jsx'
 import OrderDetailPage from './pages/orders/OrderDetailPage.jsx';
 import InvoicesPage from './pages/InvoicesPage.jsx'
@@ -57,7 +57,7 @@ export default function App() {
                 <Route path="/" element={<Navigate to="/customers" />} />
                 <Route path="/enquiries" element={<EnquiriesPage />} />
                 <Route path="/customers" element={<CustomersPage />} />
-                <Route path="/orders/:id" element={<OrderPage />} />
+                {/* <Route path="/orders/:id" element={<OrderPage />} /> */}
                 <Route path="/orders-v2/:orderId" element={<OrderDetailPage />} />
                 <Route path="/inventory" element={<InventoryPage />} />
                 <Route path="/vendors" element={<VendorsPage />} />

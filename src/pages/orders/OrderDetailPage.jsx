@@ -16,7 +16,7 @@ import {
 import { calculateOrderAll } from "../../services/orderCalculations";
 import OrderHeader from "./components/OrderHeader";
 import TabNav from "./components/TabNav";
-import SignageItemsTab from "./tabs/SignageItemsTab";
+// import SignageItemsTab from "./tabs/SignageItemsTab";
 import ItemsTab from "./tabs/ItemsTab";
 import EstimateTab from "./tabs/EstimateTab";
 import InvoiceTab from "./tabs/InvoiceTab";
@@ -30,7 +30,7 @@ import MiscellaneousTab from "./tabs/MiscellaneousTab";
 import "./OrderDetailPage.css";
 
 const tabMap = {
-  items: SignageItemsTab,
+  // items: SignageItemsTab,
   "items-refactored": ItemsTab,
   estimate: EstimateTab,
   invoice: InvoiceTab,
@@ -107,35 +107,112 @@ export default function OrderDetailPage() {
     return { effectiveItems, effectiveBoqs };
   };
  
-  // ─── ❶ Fetch & recalc saved data ─────────────────────────────────────────────
-  const fetchAndRecalc = useCallback(
-    async (overrideDiscount) => {
-      const [items, boqs,overview] = await Promise.all([
-        fetchSignageItems(orderId),
-        fetchBoqItems(orderId),
-        fetchOrderOverview(orderId),
-      ]);
-    // pull invoice row too
+  // // ─── ❶ Fetch & recalc saved data ─────────────────────────────────────────────
+  // const fetchAndRecalc = useCallback(
+  //   async (overrideDiscount) => {
+  //     const [items, boqs,overview] = await Promise.all([
+  //       fetchSignageItems(orderId),
+  //       fetchBoqItems(orderId),
+  //       fetchOrderOverview(orderId),
+  //     ]);
+  //   // pull invoice row too
+  //   const invoice = await fetchInvoiceDetails(orderId);
+  //   setInvoiceData(invoice);
+  //     const discountValue = overrideDiscount != null
+  //       ? overrideDiscount
+  //       : orderData.discount;
+  //     const calc = calculateOrderAll({
+  //       signageItems:    items,
+  //       signageBoqItems: boqs,
+  //       discount:        discountValue,
+  //       customerGstin,
+  //       gstBillablePercent,
+  //     });
+  //     console.log(overview,orderData)
+  //     setOverview(overview);
+  //     setOrderData({ ...calc,
+  //        signageBoqItems: boqs, customer_name:  overview.customer_name,   name:        overview.name || overview.job_name, });
+  //     setLocalOverrides({});
+  //   },
+  //   [orderId, customerGstin, gstBillablePercent, orderData.discount]
+  // );
+
+
+// ─── ❶ Fetch & recalc saved data ─────────────────────────────────────────────
+const fetchAndRecalc = useCallback(
+  async (overrideDiscount) => {
+    /* ------------------------------------------------------
+       1. Pull the three “master” entities in parallel
+    ------------------------------------------------------ */
+    let [items, boqs, overview] = await Promise.all([
+      fetchSignageItems(orderId),
+      fetchBoqItems(orderId),
+      fetchOrderOverview(orderId),
+    ]);
+
+    /* ------------------------------------------------------
+       2. Guarantee every signage item has *at least one*
+          persisted BOQ row (all empty fields)
+    ------------------------------------------------------ */
+    const itemsNeedingBoq = items.filter(
+      si => !boqs.some(bq => bq.signage_item_id === si.id)
+    );
+
+    if (itemsNeedingBoq.length) {
+      await Promise.all(
+        itemsNeedingBoq.map(si =>
+          addBoqItem(si.id, {
+            signage_item_id: si.id,
+            item: "",
+            material: "",
+            unit: "",
+            quantity: 1,
+            cost_per_unit: 0,
+          })
+        )
+      );
+      // Re-fetch BOQs so we have the DB-generated IDs
+      boqs = await fetchBoqItems(orderId);
+    }
+
+    /* ------------------------------------------------------
+       3. Pull invoice row (already separate in the original)
+    ------------------------------------------------------ */
     const invoice = await fetchInvoiceDetails(orderId);
     setInvoiceData(invoice);
-      const discountValue = overrideDiscount != null
-        ? overrideDiscount
-        : orderData.discount;
-      const calc = calculateOrderAll({
-        signageItems:    items,
-        signageBoqItems: boqs,
-        discount:        discountValue,
-        customerGstin,
-        gstBillablePercent,
-      });
-      console.log(overview,orderData)
-      setOverview(overview);
-      setOrderData({ ...calc,
-         signageBoqItems: boqs, customer_name:  overview.customer_name,   name:        overview.name || overview.job_name, });
-      setLocalOverrides({});
-    },
-    [orderId, customerGstin, gstBillablePercent, orderData.discount]
-  );
+
+    /* ------------------------------------------------------
+       4. Run the master calculation & update React state
+    ------------------------------------------------------ */
+    const discountValue =
+      overrideDiscount != null ? overrideDiscount : orderData.discount;
+
+    const calc = calculateOrderAll({
+      signageItems:    items,
+      signageBoqItems: boqs,
+      discount:        discountValue,
+      customerGstin,
+      gstBillablePercent,
+    });
+
+    setOverview(overview);
+    setOrderData({
+      ...calc,
+      signageBoqItems: boqs,
+      customer_name:   overview.customer_name,
+      name:            overview.name || overview.job_name,
+    });
+
+    /* ------------------------------------------------------
+       5. Reset local overrides so the UI is in sync
+    ------------------------------------------------------ */
+    setLocalOverrides({});
+  },
+  [orderId, customerGstin, gstBillablePercent, orderData.discount]
+);
+
+
+
 // ♻️ Move a signage item up or down in the list
  const handleMoveSignageItem = useCallback(
    async (signageItemId, direction) => {
@@ -265,7 +342,7 @@ export default function OrderDetailPage() {
   },
   [fetchAndRecalc]
 );
-        console.log("Rendering OrderDetailPage with orderId:", orderData,overview);
+        // console.log("Rendering OrderDetailPage with orderId:", orderData,overview);
 
 
   return (

@@ -21,7 +21,7 @@ export async function fetchOrderOverview(orderId) {
     console.error(error);
     throw error;
   }
-  console.log("Fetched order overview:", data);
+  // console.log("Fetched order overview:", data);
   // Attach customer_name for convenience
   // return { ...data,jobName:data.name ,customer_name: data.customer?.name || "" };
   return {
@@ -103,7 +103,7 @@ export async function fetchSignageItems(orderId) {
 }
 
 export async function addSignageItem(orderId, itemData) {
-  console.log("Inserting signage item with order_id", orderId, "and data", itemData);
+  // console.log("Inserting signage item with order_id", orderId, "and data", itemData);
   const { data, error } = await supabase
     .from("signage_items")
     .insert([{ ...itemData, order_id: orderId }])
@@ -117,7 +117,7 @@ export async function addSignageItem(orderId, itemData) {
 }
 
 export async function updateSignageItem(itemId, updates) {
-  console.log("Updating signage item", itemId, "with data", updates);
+  // console.log("Updating signage item", itemId, "with data", updates);
   const { data, error } = await supabase
     .from("signage_items")
     .update(updates)
