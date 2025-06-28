@@ -47,7 +47,7 @@ export default function OrderDetailPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const currentTab = new URLSearchParams(useLocation().search).get("tab") || "items-refactored";
-  const TabComponent = tabMap[currentTab] || SignageItemsTab;
+  const TabComponent = tabMap[currentTab] || ItemsTab;
 
   // ─── Metadata ───────────────────────────────────────────────────────────────
   const [customerGstin, setCustomerGstin] = useState("");
@@ -137,7 +137,6 @@ export default function OrderDetailPage() {
   //   [orderId, customerGstin, gstBillablePercent, orderData.discount]
   // );
 
-
 // ─── ❶ Fetch & recalc saved data ─────────────────────────────────────────────
 const fetchAndRecalc = useCallback(
   async (overrideDiscount) => {
@@ -212,6 +211,10 @@ const fetchAndRecalc = useCallback(
 );
 
 
+const handleDataChanged = useCallback(
+  () => fetchAndRecalc(),
+  [fetchAndRecalc]
+);
 
 // ♻️ Move a signage item up or down in the list
  const handleMoveSignageItem = useCallback(
@@ -359,7 +362,7 @@ const fetchAndRecalc = useCallback(
           currentTab={currentTab}
           onTabChange={t => navigate(`?tab=${t}`)}
         />
-        <div className="mt-6">
+        <div className="mt-2">
           <TabComponent
             orderId={orderId}
             orderData={orderData}
@@ -378,6 +381,7 @@ const fetchAndRecalc = useCallback(
             setCustomerPan={setCustomerPan}
             gstBillablePercent={gstBillablePercent}
             setGstBillablePercent={setGstBillablePercent}
+            onDataChanged={handleDataChanged}
           />
 
           {/* ARIA live region */}

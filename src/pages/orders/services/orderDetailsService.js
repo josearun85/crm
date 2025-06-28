@@ -872,3 +872,53 @@ export async function getInventoryItems() {
   }
   return data;
 }
+
+// ──────────────────────────────────────────────────────────────
+// Signage-item template helpers
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Fetch every non-archived signage-item template, ordered so the
+ * most recently and most frequently used ones appear first.
+ *
+ * @returns {Promise<Array<{ id: string, name: string }>>}
+ */
+
+export async function fetchSignageItemTemplates() {
+  const { data, error } = await supabase
+    .from("signage_item_templates")
+    .select("id, name")
+    .eq("archived", false)
+    // one call, comma-separated cols
+    .order("last_used,use_count", { ascending: false, nullsLast: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Create one signage item (plus all its default BOQ rows) with a
+ * single RPC call.
+ *
+ * • orderId      – numeric primary-key from the orders table
+ * • templateId   – UUID from signage_item_templates.id
+ * 
+ * Returns:  { signageItem: {...}, boqs: [...] }
+ */
+export async function addSignageItemFromTemplate(orderId, templateId) {
+  // Make sure the payload matches the SQL signature (bigint + uuid)
+  const { data, error } = await supabase.rpc(
+    "add_signage_item_from_template",
+    {
+      _order_id:   Number(orderId),   // cast “7” → 7
+      _template_id: templateId
+    }
+  );
+
+  if (error) {
+    console.error("RPC add_signage_item_from_template failed:", error);
+    throw new Error(error.message || "Server rejected the template insert");
+  }
+
+  return data;           // { signageItem, boqs }
+}

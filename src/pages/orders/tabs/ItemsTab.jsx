@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+import React, { useState ,useEffect} from "react";
 import SignageItemsTable from "../components/SignageItemsTable";
 import OrderCostingSummary from "../components/OrderCostingSummary";
+import ChooseItemModal from "../components/ChooseItemModal";
 import {
   addSignageItem,
   fetchSignageItems,
   addBoqItem,
   fetchBoqItems,
+    fetchSignageItemTemplates,
+  addSignageItemFromTemplate,
 } from "../services/orderDetailsService";
 
 export default function ItemsTab({
@@ -23,8 +26,47 @@ export default function ItemsTab({
   setCustomerPan,
   setGstBillablePercent,
   onDeleteSignageItem,
-  onMoveSignageItem
+  onMoveSignageItem,
+  onDataChanged
 }) {
+
+/* ──────────────────────────────────────────────────────────
+     3.  Modal state + template list
+  ────────────────────────────────────────────────────────── */
+  const [isChooseOpen, setChooseOpen] = useState(false);
+  const [templates, setTemplates] = useState([]);
+
+  /* fetch list when modal opens */
+  useEffect(() => {
+    if (!isChooseOpen) return;
+    (async () => {
+      try {
+        const rows = await fetchSignageItemTemplates();
+        setTemplates(rows);
+      } catch (err) {
+        console.error("Failed to load templates", err);
+        setTemplates([]);
+      }
+    })();
+  }, [isChooseOpen]);
+
+const handleSelectTemplate = async (templateId) => {
+  try {
+    console.log("orderId →", orderId);
+    console.log("templateId →", templateId);
+
+    await addSignageItemFromTemplate(orderId, templateId);   // ← only once
+    setChooseOpen(false);
+    onDataChanged?.();        // parent re-fetch & recalc
+  } catch (err) {
+    console.error("Add-from-template failed:", err);
+    alert(err.message || "Could not add item – see console.");
+  }
+};
+
+  /* BOQ accordion toggle */
+  const toggleBoq = (id) => setOpenBoqItemId(openBoqItemId === id ? null : id);
+
   // Add blank signage item
   const handleAddItem = async () => {
     if (!orderId) return;
@@ -70,10 +112,10 @@ const handleAddBoqRow = async (signageItemId) => {
     setOpenBoqItemId(openBoqItemId === itemId ? null : itemId);
 
   return (
-    <div style={{ padding: 15 }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700 }}>
+    <div style={{ padding: 5 }}>
+      {/* <h2 style={{ fontSize: 24, fontWeight: 700 }}>
         Signage Items
-      </h2>
+      </h2> */}
 
       {/* + Add Item button */}
       <div
@@ -95,6 +137,19 @@ const handleAddBoqRow = async (signageItemId) => {
           }}
         >
           + Add Item
+        </button>
+        <button
+          onClick={() => setChooseOpen(true)}
+          style={{
+            background: "#facc15",
+            color: "#000",
+            padding: "8px 16px",
+            borderRadius: 4,
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          + Choose Item
         </button>
       </div>
 
@@ -138,6 +193,12 @@ const handleAddBoqRow = async (signageItemId) => {
           onDiscountChange={onDiscountChange}
         />
       </div>
+      <ChooseItemModal
+        open={isChooseOpen}
+        onClose={() => setChooseOpen(false)}
+        templates={templates}
+        onSelectTemplate={handleSelectTemplate}
+      />
     </div>
   );
 }

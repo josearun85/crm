@@ -61,7 +61,7 @@ export default function SignageItemsTable({
             <th style={{ width: 70, textAlign: 'center' }}>GST%</th>
             <th style={{ width: 80, textAlign: 'right' }}>GST Amount</th>
             <th style={{ width: 100, textAlign: 'right' }}>Cost After Tax</th>
-            <th style={{ width: 60, textAlign: 'center' }}>Actions</th>
+            <th style={{ width: 60, textAlign: 'center' }}></th>
             <th style={{ width: 40, textAlign: 'center' }}>BOQ</th>
             <th style={{ width: 60, textAlign: 'center' }}>Move</th>
           </tr>
